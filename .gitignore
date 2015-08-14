@@ -1,0 +1,6 @@
+*.o
+ot-recorder
+ocat
+*.dSYM
+.DS_Store
+store/
