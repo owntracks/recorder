@@ -21,10 +21,6 @@
 #include "misc.h"
 
 
-#ifndef TRUE
-# define TRUE (1)
-# define FALSE (0)
-#endif
 #define SSL_VERIFY_PEER (1)
 #define SSL_VERIFY_NONE (0)
 
@@ -520,7 +516,8 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 				fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
 
 				/* Now safewrite the last location */
-				utstring_printf(ts, "%s/last", JSONDIR);
+				utstring_printf(ts, "%s/last/%s/%s",
+					JSONDIR, utstring_body(username), utstring_body(device));
 				if (mkpath(utstring_body(ts)) < 0) {
 					perror(utstring_body(ts));
 				}
@@ -528,9 +525,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 					utstring_body(username), utstring_body(device));
 
 				safewrite(utstring_body(ts), jsonstring);
-
-
-
 				fclose(fp);
 			}
 		}
