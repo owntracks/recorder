@@ -1,3 +1,6 @@
+#ifndef UDATA_H_INCLUDED
+# define UDATA_H_INCLUDED
+
 #include "config.h"
 #include "utarray.h"
 #ifdef HAVE_REDIS
@@ -16,3 +19,5 @@ struct udata {
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int useredis;			/* True if we should do Redis (if we have it) */
 };
+
+#endif

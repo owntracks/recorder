@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "utstring.h"
 #include "ctype.h"
+#include "udata.h"
 #include "misc.h"
 
 char *bindump(char *buf, long buflen)
@@ -28,6 +29,14 @@ char *bindump(char *buf, long buflen)
  * a monitoring hoook.
  */
 
-void monitorhook(time_t now, char *topic)
+void monitorhook(struct udata *userdata, time_t now, char *topic)
 {
+	struct udata *ud = (struct udata *)userdata;
+
+#ifdef HAVE_REDIS
+        if (ud->useredis) {
+	}
+#endif
+	if (ud->usefiles) {
+	}
 }

@@ -388,7 +388,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	time(&now);
 
-	monitorhook(now, m->topic);
+	monitorhook(ud, now, m->topic);
 
 	/* FIXME: handle null leading topic `/` */
 	utstring_printf(basetopic, "%s/%s/%s", topics[0], topics[1], topics[2]);

@@ -3,6 +3,6 @@
 
 #include <time.h>
 char *bindump(char *buf, long buflen);
-void monitorhook(time_t now, char *topic);
+void monitorhook(struct udata *ud, time_t now, char *topic);
 
 #endif

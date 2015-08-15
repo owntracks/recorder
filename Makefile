@@ -15,4 +15,4 @@ base64.o: base64.h base64.c
 ghash.o: ghash.h ghash.c config.h udata.h
 safewrite.o: safewrite.h safewrite.c
 jget.o: jget.c jget.h json.h
-misc.o: misc.c misc.h
+misc.o: misc.c misc.h udata.h
