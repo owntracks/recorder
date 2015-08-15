@@ -4,6 +4,7 @@
 #include "ctype.h"
 #include "udata.h"
 #include "misc.h"
+#include "safewrite.h"
 
 char *bindump(char *buf, long buflen)
 {
@@ -41,13 +42,13 @@ void monitorhook(struct udata *userdata, time_t now, char *topic)
 #else
 	if (ud->usefiles) {
 		char mpath[BUFSIZ];
-		FILE *fp;
+		static UT_string *us = NULL;
+
+		utstring_renew(us);
+		utstring_printf(us, "%ld %s\n", now, topic);
 
 		sprintf(mpath, "%s/monitor", JSONDIR);
-		if ((fp = fopen(mpath, "w")) != NULL) {
-			fprintf(fp, "%ld %s\n", now, topic);
-			fclose(fp);
-		}
+		safewrite(mpath, utstring_body(us));
 	}
 #endif
 }
