@@ -442,9 +442,16 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		/* Is it OwnTracks Greenwich CSV? */
 
 		if ((json = csv(m->payload, tid, t, &lat, &lon, &tst)) == NULL) {
+			/* It's not JSON or it's not a location CSV; store it */
+			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
+				fprintf(fp, RECFORMAT, isotime(now),
+					utstring_body(rest),
+					 bindump(m->payload, m->payloadlen));
+				fclose(fp);
+			}
 			return;
 		}
-		fprintf(stderr, "+++++ %s\n", json_stringify(json, NULL));
+		// fprintf(stderr, "+++++ %s\n", json_stringify(json, NULL));
 	}
 
 #if 0
