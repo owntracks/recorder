@@ -107,7 +107,7 @@ int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *c
 		/* if ghash file is available, read cc:addr into that */
 		snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s/%s.json", JSONDIR, ghash, ghash);
 
-		fprintf(stderr, "Reading GhashCache from %s\n", gfile);
+		// fprintf(stderr, "Reading GhashCache from %s\n", gfile);
 		if ((fp = fopen(gfile, "r")) != NULL) {
 			char buf[BUFSIZ];
 
@@ -138,7 +138,7 @@ int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *c
 				fclose(fp);
 			}
 		} else {
-			fprintf(stderr, "Not cached: ghash: %s\n", gfile);
+			// fprintf(stderr, "Not cached: ghash: %s\n", gfile);
 		}
 	}
 
