@@ -10,9 +10,9 @@ ot-recorder: ot-recorder.c json.o utarray.h utstring.h geo.o geohash.o mkpath.o 
 
 geo.o: geo.h geo.c udata.h
 geohash.o: geohash.h geohash.c udata.h
-file.o: file.h file.c config.h
+file.o: file.h file.c config.h misc.h
 base64.o: base64.h base64.c
-ghash.o: ghash.h ghash.c config.h udata.h
+ghash.o: ghash.h ghash.c config.h udata.h misc.h
 safewrite.o: safewrite.h safewrite.c
 jget.o: jget.c jget.h json.h
 misc.o: misc.c misc.h udata.h

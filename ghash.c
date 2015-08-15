@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "ghash.h"
+#include "misc.h"
 
 void redis_ping(redisContext **redis)
 {

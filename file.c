@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <time.h>
 #include "file.h"
+#include "misc.h"
 
 static void ut_lower(UT_string *us)
 {
