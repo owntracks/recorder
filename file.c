@@ -74,8 +74,13 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 	}
 #endif
 
-	time(&now);
-	utstring_printf(path, "/%s.%s", yyyymm(now), suffix);
+	if (strcmp(prefix, "rec") == 0) {
+		time(&now);
+		utstring_printf(path, "/%s.%s", yyyymm(now), suffix);
+	} else {
+		utstring_printf(path, "/%s.%s",
+			utstring_body(user), suffix);
+	}
 
         ut_clean(path);
 
