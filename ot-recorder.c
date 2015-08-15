@@ -436,7 +436,11 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
-	/* Decode JSON payload and ensure _type: location */
+	/*
+	 * Try to decode JSON payload to find _type: location. If that doesn't work,
+	 * see if it's OwnTracks' Greenwich CSV
+	 */
+
 	json = extract(ud, m->payload, tid, t, &lat, &lon, &tst);
 	if (json == NULL) {
 		/* Is it OwnTracks Greenwich CSV? */
@@ -462,6 +466,10 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 #endif
 
+	/*
+	 * We are now processing a _type location.
+	 */
+
 	utstring_renew(ghash);
         p = geohash_encode(lat, lon, GEOHASH_PREC);
 	if (p != NULL) {
@@ -481,13 +489,12 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		JsonNode *geo;
 
 		if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
-			fprintf(stderr, "REVGEO: %s\n", utstring_body(addr));
+			// fprintf(stderr, "REVGEO: %s\n", utstring_body(addr));
 			ghash_storecache(ud, geo, utstring_body(ghash), utstring_body(addr), utstring_body(cc));
 			json_delete(geo);
 		}
 	}
 
-	/* FIXME: check if this is a location type */
 	/*
 	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
 	 * Add a few bits to the JSON, and record it on a per-user/device basis.
