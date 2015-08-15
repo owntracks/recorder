@@ -18,6 +18,7 @@
 #include "file.h"
 #include "safewrite.h"
 #include "base64.h"
+#include "misc.h"
 
 
 #ifndef TRUE
@@ -372,7 +373,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
-	printf("%s %s\n", m->topic, m->payload); fflush(stdout);
+	printf("%s %s\n", m->topic, bindump(m->payload, m->payloadlen)); fflush(stdout);
 
 
 	utstring_renew(ts);
@@ -420,8 +421,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		if (ud->usefiles) {
 			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 
-				/* TODO: check payload for binary characters and hex-dump? */
-				fprintf(fp, RECFORMAT, isotime(now), utstring_body(rest), m->payload);
+				fprintf(fp, RECFORMAT, isotime(now), utstring_body(rest), bindump(m->payload, m->payloadlen));
 				fclose(fp);
 			}
 		}
