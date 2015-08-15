@@ -21,3 +21,13 @@ char *bindump(char *buf, long buflen)
 	}
 	return (utstring_body(out));
 }
+
+/*
+ * At each received message, the recorder invokes this function with the
+ * current epoch time and the topic being handled. Use this to update
+ * a monitoring hoook.
+ */
+
+void monitorhook(time_t now, char *topic)
+{
+}
