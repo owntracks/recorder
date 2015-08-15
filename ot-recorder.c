@@ -144,7 +144,7 @@ void do_info(void *userdata, UT_string *username, UT_string *device, char *paylo
 	utstring_renew(face);
 
         if ((json = json_decode(payload)) == NULL) {
-		puts("Can't decode INFO payload");
+		fprintf(stderr, "Can't decode INFO payload for username=%s\n", utstring_body(username));
 		return;
 	}
 
@@ -229,7 +229,8 @@ void do_msg(void *userdata, UT_string *username, UT_string *device, char *payloa
 	FILE *fp;
 
         if ((json = json_decode(payload)) == NULL) {
-		puts("Can't decode INFO payload");
+		fprintf(stderr, "Can't decode MSG payload for username=%s, device=%s\n",
+			utstring_body(username), utstring_body(device));
 		return;
 	}
 
