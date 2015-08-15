@@ -131,7 +131,7 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 		utstring_printf(cc, "__");
 	}
 
-	fprintf(stderr, "revgeo returns %d: %s\n", rc, utstring_body(addr));
+	// fprintf(stderr, "revgeo returns %d: %s\n", rc, utstring_body(addr));
 
 	time(&now);
 
