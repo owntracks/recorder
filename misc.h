@@ -13,4 +13,6 @@ int mkpath(char *path);
 char *bindump(char *buf, long buflen);
 void monitorhook(struct udata *ud, time_t now, char *topic);
 
+void monitor_update(struct udata *ud, time_t now, char *topic);
+
 #endif

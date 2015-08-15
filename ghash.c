@@ -38,6 +38,7 @@ void ghash_store_redis(redisContext **redis, char *ghash, char *addr, char *cc)
 		return;
 }
 
+
 void last_storeredis(redisContext **redis, char *username, char *device, char *jsonstring)
 {
 	redisReply *r;
@@ -89,6 +90,19 @@ int ghash_get_redis_cache(redisContext **redis, char *ghash, UT_string *addr, UT
 
 	return (found);
 }
+
+void monitor_update(struct udata *ud, time_t now, char *topic)
+{
+	redisReply *r;
+
+	redis_ping(&ud->redis);
+
+	r = redisCommand(ud->redis, "HMSET ot-recorder-monitor time %ld topic %s", now, topic);
+	if (r) /* FIXME */
+		return;
+
+}
+
 #endif /* !HAVE_REDIS */
 
 int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *cc)

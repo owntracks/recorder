@@ -26,7 +26,7 @@ char *bindump(char *buf, long buflen)
 /*
  * At each received message, the recorder invokes this function with the
  * current epoch time and the topic being handled. Use this to update
- * a monitoring hoook.
+ * a monitoring hoook. If we have Redis, use that exclusively.
  */
 
 void monitorhook(struct udata *userdata, time_t now, char *topic)
@@ -35,8 +35,19 @@ void monitorhook(struct udata *userdata, time_t now, char *topic)
 
 #ifdef HAVE_REDIS
         if (ud->useredis) {
+		monitor_update(ud, now, topic);
+		return;
+	}
+#else
+	if (ud->usefiles) {
+		char mpath[BUFSIZ];
+		FILE *fp;
+
+		sprintf(mpath, "%s/monitor", JSONDIR);
+		if ((fp = fopen(mpath, "w")) != NULL) {
+			fprintf(fp, "%ld %s\n", now, topic);
+			fclose(fp);
+		}
 	}
 #endif
-	if (ud->usefiles) {
-	}
 }
