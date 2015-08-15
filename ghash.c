@@ -3,6 +3,8 @@
 #include "ghash.h"
 #include "misc.h"
 
+#ifdef HAVE_REDIS
+
 void redis_ping(redisContext **redis)
 {
 	struct timeval timeout = { 1, 500000 }; // 1.5 seconds
@@ -87,6 +89,7 @@ int ghash_get_redis_cache(redisContext **redis, char *ghash, UT_string *addr, UT
 
 	return (found);
 }
+#endif /* !HAVE_REDIS */
 
 int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *cc)
 {
