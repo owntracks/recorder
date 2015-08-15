@@ -4,3 +4,4 @@ ocat
 *.dSYM
 .DS_Store
 store/
+jpm-test/
