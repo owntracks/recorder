@@ -51,11 +51,10 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 
 	if (device) {
 		ut_lower(device);
+		utstring_printf(path, "%s/%s/%s/%s", JSONDIR, prefix, utstring_body(user), utstring_body(device));
+	} else {
+		utstring_printf(path, "%s/%s/%s", JSONDIR, prefix, utstring_body(user));
 	}
-
-        //utstring_printf(path, "%s/%s/%-1.1s/%-2.2s",
-        //       JSONDIR, prefix, utstring_body(user), utstring_body(user));
-        utstring_printf(path, "%s/%s/%s/%s", JSONDIR, prefix, utstring_body(user), utstring_body(device));
 
         ut_clean(path);
 
