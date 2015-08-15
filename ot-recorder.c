@@ -433,6 +433,10 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		mosquitto_sub_topic_tokens_free(&topics, count);
 		return;
         }
+
+	if (utstring_len(reltopic) == 0)
+		utstring_printf(reltopic, "-");
+
 	mosquitto_sub_topic_tokens_free(&topics, count);
 
 	if (m->retain == TRUE && ud->ignoreretained) {
