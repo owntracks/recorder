@@ -352,7 +352,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
         char **topics;
         int count = 0, cached;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
-	static UT_string *rest = NULL;
+	static UT_string *reltopic = NULL;
 	char *jsonstring;
 	time_t now;
 
@@ -402,6 +402,12 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 	}
 
+	/*
+	 * Determine "relative topic", relative to base, i.e. whatever comes behind
+	 * ownntracks/user/device/
+	 */
+
+	utstring_renew(reltopic);
 	if (count != 3) {
 		/*
 		 * Not a normal location publish. Build up a string consisting of the remaining
@@ -411,16 +417,15 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 		int j;
 
-		utstring_renew(rest);
 		for (j = 3; j < count; j++) {
-			utstring_printf(rest, "%s%c", topics[j], (j < count - 1) ? '/' : ' ');
+			utstring_printf(reltopic, "%s%c", topics[j], (j < count - 1) ? '/' : ' ');
 		}
 
 
 		if (ud->usefiles) {
 			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 
-				fprintf(fp, RECFORMAT, isotime(now), utstring_body(rest), bindump(m->payload, m->payloadlen));
+				fprintf(fp, RECFORMAT, isotime(now), utstring_body(reltopic), bindump(m->payload, m->payloadlen));
 				fclose(fp);
 			}
 		}
@@ -447,7 +452,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			/* It's not JSON or it's not a location CSV; store it */
 			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 				fprintf(fp, RECFORMAT, isotime(now),
-					utstring_body(rest),
+					utstring_body(reltopic),
 					 bindump(m->payload, m->payloadlen));
 				fclose(fp);
 			}
