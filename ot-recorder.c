@@ -521,7 +521,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 */
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-		printf("***** %s\n", jsonstring);
 
 #ifdef HAVE_REDIS
 		if (ud->useredis) {
