@@ -46,12 +46,17 @@ static int run = 1;
 double number(JsonNode *j, char *element)
 {
 	JsonNode *m;
+	double d;
 
 	if ((m = json_find_member(j, element)) != NULL) {
 		if (m->tag == JSON_NUMBER) {
 			return (m->number_);
 		} else if (m->tag == JSON_STRING) {
-			return (atof(m->string_));
+			d = atof(m->string_);
+			/* Normalize to number */
+			json_remove_from_parent(m);
+			json_append_member(j, element, json_mknumber(d));
+			return (d);
 		}
 	}
 
@@ -96,10 +101,17 @@ JsonNode *extract(struct udata *ud, char *payload, char *tid, char *t, double *l
 		}
 	}
 
+	/*
+	 * Normalize tst, lat, lon to numbers, particularly for Greenwich
+	 * which produces strings currently.
+	 */
+
 	*tst = time(NULL);
 	if ((j = json_find_member(json, "tst")) != NULL) {
 		if (j && j->tag == JSON_STRING) {
 			*tst = strtoul(j->string_, NULL, 10);
+			json_remove_from_parent(j);
+			json_append_member(json, "tst", json_mknumber(*tst));
 		} else {
 			*tst = (unsigned long)j->number_;
 		}
@@ -508,6 +520,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
         json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
+		printf("***** %s\n", jsonstring);
 
 #ifdef HAVE_REDIS
 		if (ud->useredis) {
