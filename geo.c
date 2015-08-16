@@ -3,10 +3,9 @@
 #include <time.h>
 #include <curl/curl.h>
 #include "utstring.h"
+#include "config.h"
 #include "geo.h"
 #include "json.h"
-
-#define GURL "http://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN"
 
 static CURL *curl;
 
@@ -57,8 +56,8 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 	// printf("%s\n", utstring_body(geodata));
 	if ((j = json_find_member(json, "status")) != NULL) {
 		// printf("}}}}}} %s\n", j->string_);
-		if (strcmp(j->string_, "OVER_QUERY_LIMIT") == 0) {
-			fprintf(stderr, "revgeo: %s\n", j->string_);
+		if (strcmp(j->string_, "OK") != 0) {
+			fprintf(stderr, "revgeo: %s (%s)\n", j->string_, utstring_body(geodata));
 			return (0);
 		}
 	}
