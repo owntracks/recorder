@@ -514,10 +514,12 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	/*
 	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
-	 * Add a few bits to the JSON, and record it on a per-user/device basis.
 	 */
 
+	/*
+	 * Add a few bits to the JSON, and record it on a per-user/device basis.
         json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
+	 */
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
 		printf("***** %s\n", jsonstring);
