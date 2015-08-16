@@ -321,13 +321,11 @@ JsonNode *csv(char *payload, char *tid, char *t, double *lat, double *lon, long 
 
 	*tst = strtoul(tmptst, NULL, 16);
 
-	sprintf(tmptst, "%ld", *tst);
-
 	json = json_mkobject();
 	json_append_member(json, "_type", json_mkstring("location"));
 	json_append_member(json, "t",	  json_mkstring(t));
 	json_append_member(json, "tid",	  json_mkstring(tid));
-	json_append_member(json, "tst",	  json_mkstring(tmptst));
+	json_append_member(json, "tst",	  json_mknumber(*tst));
 	json_append_member(json, "lat",	  json_mknumber(*lat));
 	json_append_member(json, "lon",	  json_mknumber(*lon));
 	json_append_member(json, "cog",	  json_mknumber(cog));
