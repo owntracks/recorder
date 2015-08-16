@@ -22,7 +22,7 @@ static size_t writemem(void *contents, size_t size, size_t nmemb, void *userp)
 
 static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 {
-	JsonNode *json, *results, *address, *ac, *zeroth;
+	JsonNode *json, *results, *address, *ac, *zeroth, *j;
 
 	/*
 	* We are parsing this. I want the formatted_address in `addr' and
@@ -43,6 +43,24 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 
 	if ((json = json_decode(utstring_body(geodata))) == NULL) {
 		return (0);
+	}
+
+	/*
+	 * Check for:
+	 *
+	 *  { "error_message" : "You have exceeded your daily request quota for this API. We recommend registering for a key at the Google Developers Console: https://console.developers.google.com/",
+	 *     "results" : [],
+	 *        "status" : "OVER_QUERY_LIMIT"
+	 *  }
+	 */
+
+	// printf("%s\n", utstring_body(geodata));
+	if ((j = json_find_member(json, "status")) != NULL) {
+		// printf("}}}}}} %s\n", j->string_);
+		if (strcmp(j->string_, "OVER_QUERY_LIMIT") == 0) {
+			fprintf(stderr, "revgeo: %s\n", j->string_);
+			return (0);
+		}
 	}
 
 	if ((results = json_find_member(json, "results")) != NULL) {
@@ -127,8 +145,8 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	// printf("%s\n", utstring_body(url));
 
 	if (!(rc = goog_decode(cbuf, addr, cc))) {
-		utstring_printf(addr, "Unknown (%lf,%lf)", lat, lon);
-		utstring_printf(cc, "__");
+		json_delete(geo);
+		return (NULL);
 	}
 
 	// fprintf(stderr, "revgeo returns %d: %s\n", rc, utstring_body(addr));
