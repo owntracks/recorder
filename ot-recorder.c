@@ -37,7 +37,6 @@
  * 10	=> 1.2m x 59.5cm
  */
 
-#define GEOHASH_PREC	(7)
 #define TOPIC_PARTS     (4)             /* owntracks/user/device/info */
 #define TOPIC_SUFFIX    "info"
 
