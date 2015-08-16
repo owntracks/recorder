@@ -1,0 +1,11 @@
+#define JSONDIR "store"
+
+#define GEOHASH_PREC	(7)
+
+/*
+ * Google Maps reverse geocoding URL.
+ * If you need to use an API KEY, change the scheme to "https:"
+ * and add "&key=xxxxx" to the end of this URL
+ */
+
+#define GURL "http://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN"

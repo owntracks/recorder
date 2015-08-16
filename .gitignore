@@ -6,3 +6,4 @@ ocat
 store/
 jpm-test/
 config.mk
+config.h

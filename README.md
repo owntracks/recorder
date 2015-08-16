@@ -7,6 +7,7 @@ Recorder
 
 ## Installation
 
+1. Copy `config.h.example` to `config.h`
 1. Edit `config.h`
 2. Edit `config.mk` and select features
 2. Type `make`
