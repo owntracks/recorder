@@ -320,7 +320,7 @@ JsonNode *csv(char *payload, char *tid, char *t, double *lat, double *lon, long 
 	double vel, trip, alt, cog;
 
         if (sscanf(payload, "%[^,],%[^,],%[^,],%lf,%lf,%lf,%lf,%lf,%lf,%lf", tid, tmptst, t, lat, lon, &cog, &vel, &alt, &dist, &trip) != 10) {
-		fprintf(stderr, "**** payload not CSV: %s\n", payload);
+		// fprintf(stderr, "**** payload not CSV: %s\n", payload);
                 return (NULL);
         }
 
@@ -379,7 +379,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
-	printf("%s %s\n", m->topic, bindump(m->payload, m->payloadlen)); fflush(stdout);
+	// printf("%s %s\n", m->topic, bindump(m->payload, m->payloadlen)); fflush(stdout);
 
 
 	utstring_renew(ts);
@@ -463,6 +463,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 		if ((json = csv(m->payload, tid, t, &lat, &lon, &tst)) == NULL) {
 			/* It's not JSON or it's not a location CSV; store it */
+			/* It may be an lwt */
 			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 				fprintf(fp, RECFORMAT, isotime(now),
 					utstring_body(reltopic),
@@ -554,9 +555,20 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	/* publish  */
 	republish(mosq, ud, utstring_body(username), m->topic, lat, lon, utstring_body(cc), utstring_body(addr), tst, t);
 
-	fprintf(stderr, "%c %s %-7s %s [%s] %s\n",
+	if (*t == 0) {
+		strcpy(t, " ");
+	}
+
+	fprintf(stderr, "%c %s %-35s t=%-1.1s tid=%-2.2s loc=%.5f,%.5f [%s] %s\n",
 		(cached) ? '*' : '-',
-		utstring_body(ghash), m->topic, ltime(tst), utstring_body(cc), utstring_body(addr));
+		ltime(tst),
+		m->topic,
+		t,
+		tid,
+		lat, lon,
+		utstring_body(cc),
+		utstring_body(addr)
+		);
 	
 
 	json_delete(json);
