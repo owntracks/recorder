@@ -559,7 +559,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		strcpy(t, " ");
 	}
 
-	fprintf(stderr, "%c %s %-35s t=%-1.1s tid=%-2.2s loc=%.5f,%.5f [%s] %s\n",
+	fprintf(stderr, "%c %s %-35s t=%-1.1s tid=%-2.2s loc=%.5f,%.5f [%s] %s (%s)\n",
 		(cached) ? '*' : '-',
 		ltime(tst),
 		m->topic,
@@ -567,7 +567,8 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		tid,
 		lat, lon,
 		utstring_body(cc),
-		utstring_body(addr)
+		utstring_body(addr),
+		utstring_body(ghash)
 		);
 	
 
