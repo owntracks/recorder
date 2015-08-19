@@ -18,6 +18,7 @@ struct udata {
 	char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int useredis;			/* True if we should do Redis (if we have it) */
+	int revgeo;			/* True (default) if we should do reverse Geo lookups */
 };
 
 #endif

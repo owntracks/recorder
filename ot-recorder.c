@@ -485,18 +485,23 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	utstring_renew(cc);
 
 	cached = FALSE;
+	if (ud->revgeo == TRUE) {
 
-	/* FIXME: */
+		/* FIXME: */
 
-	cached = ghash_readcache(ud, utstring_body(ghash), addr, cc);
-	if (!cached) {
-		JsonNode *geo;
+		cached = ghash_readcache(ud, utstring_body(ghash), addr, cc);
+		if (!cached) {
+			JsonNode *geo;
 
-		if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
-			// fprintf(stderr, "REVGEO: %s\n", utstring_body(addr));
-			ghash_storecache(ud, geo, utstring_body(ghash), utstring_body(addr), utstring_body(cc));
-			json_delete(geo);
+			if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
+				// fprintf(stderr, "REVGEO: %s\n", utstring_body(addr));
+				ghash_storecache(ud, geo, utstring_body(ghash), utstring_body(addr), utstring_body(cc));
+				json_delete(geo);
+			}
 		}
+	} else {
+		utstring_printf(cc, "??");
+		utstring_printf(addr, "n.a.");
 	}
 
 	/*
@@ -598,7 +603,7 @@ static void catcher(int sig)
 
 void usage(char *prog)
 {
-	fprintf(stderr, "Usage: %s [-D] [-F] [-N] [-P prefix] [-R] topic [topic...]\n", prog);
+	fprintf(stderr, "Usage: %s [-D] [-F] [-G] [-N] [-P prefix] [-R] topic [topic...]\n", prog);
 	exit(2);
 }
 
@@ -623,13 +628,16 @@ int main(int argc, char **argv)
 	udata.skipdemo		= TRUE;
 	udata.useredis		= TRUE;
 
-	while ((ch = getopt(argc, argv, "DFRNP:")) != EOF) {
+	while ((ch = getopt(argc, argv, "DFGRNP:")) != EOF) {
 		switch (ch) {
 			case 'D':
 				ud->skipdemo = FALSE;
 				break;
 			case 'F':
 				ud->usefiles = FALSE;
+				break;
+			case 'G':
+				ud->revgeo = FALSE;
 				break;
 			case 'N':
 				ud->useredis = FALSE;
@@ -750,7 +758,7 @@ int main(int argc, char **argv)
 	}
 
 	while (run) {
-		rc = mosquitto_loop(mosq, 0, 1);
+		rc = mosquitto_loop(mosq, /* timeout */ 500, /* max-packets */ 1);
 		if (run && rc) {
 			fprintf(stderr, "loop sleep: rc=%d [%s]\n", rc, mosquitto_strerror(rc));
 			sleep(10);
