@@ -602,7 +602,6 @@ void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 		//SQL sqlite3_finalize(ud->raw);
 		//SQL sqlite3_finalize(ud->lastloc);
 		//SQL sqlite3_close(ud->db);
-		run =  FALSE;
 	}
 }
 
@@ -767,7 +766,12 @@ int main(int argc, char **argv)
 	}
 
 	while (run) {
-		mosquitto_loop_forever(mosq, -1, 1);
+		rc = mosquitto_loop(mosq, 0, 1);
+		if (run && rc) {
+			fprintf(stderr, "loop sleep: rc=%d [%s]\n", rc, mosquitto_strerror(rc));
+			sleep(10);
+			mosquitto_reconnect(mosq);
+		}
 	}
 
 	mosquitto_disconnect(mosq);
