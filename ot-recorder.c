@@ -26,6 +26,8 @@
 
 #define TOPIC_PARTS     (4)             /* owntracks/user/device/info */
 #define TOPIC_SUFFIX    "info"
+#define DEFAULT_QOS	(2)
+#define CLEAN_SESSION	false
 
 static int run = 1;
 
@@ -574,8 +576,8 @@ void on_connect(struct mosquitto *mosq, void *userdata, int rc)
 	char **m = NULL;
 
 	while ((m = (char **)utarray_next(ud->topics, m))) {
-		fprintf(stderr, "Subscribing to %s\n", *m);
-		mosquitto_subscribe(mosq, &mid, *m, 0);
+		fprintf(stderr, "Subscribing to %s (qos=%d)\n", *m, ud->qos);
+		mosquitto_subscribe(mosq, &mid, *m, ud->qos);
 	}
 }
 
@@ -603,7 +605,7 @@ static void catcher(int sig)
 
 void usage(char *prog)
 {
-	fprintf(stderr, "Usage: %s [-D] [-F] [-G] [-i clientid] [-N] [-P prefix] [-R] topic [topic...]\n", prog);
+	fprintf(stderr, "Usage: %s [-D] [-F] [-G] [-i clientid] [-N] [-P prefix] [-q qos] [-R] topic [topic...]\n", prog);
 	exit(2);
 }
 
@@ -622,6 +624,7 @@ int main(int argc, char **argv)
 #endif
 	char *progname = *argv;
 
+	udata.qos		= DEFAULT_QOS;
 	udata.usefiles		= TRUE;
 	udata.ignoreretained	= TRUE;
 	udata.pubprefix		= NULL;
@@ -636,7 +639,7 @@ int main(int argc, char **argv)
 	}
 	utstring_printf(clientid, "-%d", getpid());
 
-	while ((ch = getopt(argc, argv, "DFGi:RNP:")) != EOF) {
+	while ((ch = getopt(argc, argv, "DFGi:q:RNP:")) != EOF) {
 		switch (ch) {
 			case 'D':
 				ud->skipdemo = FALSE;
@@ -656,6 +659,13 @@ int main(int argc, char **argv)
 				break;
 			case 'P':
 				udata.pubprefix = strdup(optarg);
+				break;
+			case 'q':
+				ud->qos = atoi(optarg);
+				if (ud->qos < 0 || ud->qos > 2) {
+					fprintf(stderr, "%s: illegal qos\n", progname);
+					exit(2);
+				}
 				break;
 			case 'R':
 				ud->ignoreretained = FALSE;
@@ -696,7 +706,7 @@ int main(int argc, char **argv)
 	ud->redis = redisConnectWithTimeout("localhost", 6379, timeout);
 #endif
 
-	mosq = mosquitto_new(utstring_body(clientid), true, (void *)&udata);
+	mosq = mosquitto_new(utstring_body(clientid), CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
 		fprintf(stderr, "Error: Out of memory.\n");
 		mosquitto_lib_cleanup();
