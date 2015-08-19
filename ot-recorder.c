@@ -603,7 +603,7 @@ static void catcher(int sig)
 
 void usage(char *prog)
 {
-	fprintf(stderr, "Usage: %s [-D] [-F] [-G] [-N] [-P prefix] [-R] topic [topic...]\n", prog);
+	fprintf(stderr, "Usage: %s [-D] [-F] [-G] [-i clientid] [-N] [-P prefix] [-R] topic [topic...]\n", prog);
 	exit(2);
 }
 
@@ -628,7 +628,14 @@ int main(int argc, char **argv)
 	udata.skipdemo		= TRUE;
 	udata.useredis		= TRUE;
 
-	while ((ch = getopt(argc, argv, "DFGRNP:")) != EOF) {
+	utstring_new(clientid);
+	utstring_printf(clientid, "ot-recorder");
+	if (uname(&uts) == 0) {
+		utstring_printf(clientid, "-%s", uts.nodename);
+	}
+	utstring_printf(clientid, "-%d", getpid());
+
+	while ((ch = getopt(argc, argv, "DFGi:RNP:")) != EOF) {
 		switch (ch) {
 			case 'D':
 				ud->skipdemo = FALSE;
@@ -638,6 +645,10 @@ int main(int argc, char **argv)
 				break;
 			case 'G':
 				ud->revgeo = FALSE;
+				break;
+			case 'i':
+				utstring_clear(clientid);
+				utstring_printf(clientid, "%s", optarg);
 				break;
 			case 'N':
 				ud->useredis = FALSE;
@@ -670,17 +681,13 @@ int main(int argc, char **argv)
 		port = atoi(p);
 	}
 
-	revgeo_init();
+	if (ud->revgeo == TRUE) {
+		revgeo_init();
+	}
 
-	utstring_new(clientid);
 
 	mosquitto_lib_init();
 
-	utstring_printf(clientid, "ot-recorder");
-	if (uname(&uts) == 0) {
-		utstring_printf(clientid, "-%s", uts.nodename);
-	}
-	utstring_printf(clientid, "-%d", getpid());
 
 	signal(SIGINT, catcher);
 
