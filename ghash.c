@@ -123,7 +123,7 @@ int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *c
 
 	if (ud->usefiles) {
 		/* if ghash file is available, read cc:addr into that */
-		snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s/%s.json", JSONDIR, ghash, ghash);
+		snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s/%s.json", STORAGEDIR, ghash, ghash);
 
 		// fprintf(stderr, "Reading GhashCache from %s\n", gfile);
 		if ((fp = fopen(gfile, "r")) != NULL) {
@@ -176,7 +176,7 @@ void ghash_storecache(struct udata *ud, JsonNode *geo, char *ghash, char *addr, 
 #endif
 
 	if (ud->usefiles) {
-		snprintf(gfile, BUFSIZ, "%s/ghash", JSONDIR);
+		snprintf(gfile, BUFSIZ, "%s/ghash", STORAGEDIR);
 		if (mkpath(gfile) < 0) {
 			perror(gfile);
 		} else {
@@ -186,12 +186,12 @@ void ghash_storecache(struct udata *ud, JsonNode *geo, char *ghash, char *addr, 
 			json_append_member(geo, "cc", json_mkstring(ghash));
 
 			if ((js = json_stringify(geo, NULL)) != NULL) {
-				snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s", JSONDIR, ghash);
+				snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s", STORAGEDIR, ghash);
 				if (mkpath(gfile) != 0) {
 					perror(gfile);
 					return;
 				}
-				snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s/%s.json", JSONDIR, ghash, ghash);
+				snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s/%s.json", STORAGEDIR, ghash, ghash);
 
 				if ((fp = fopen(gfile, "w")) != NULL) {
 					fprintf(fp, "%s\n", js);

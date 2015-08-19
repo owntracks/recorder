@@ -532,7 +532,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 				/* Now safewrite the last location */
 				utstring_printf(ts, "%s/last/%s/%s",
-					JSONDIR, utstring_body(username), utstring_body(device));
+					STORAGEDIR, utstring_body(username), utstring_body(device));
 				if (mkpath(utstring_body(ts)) < 0) {
 					perror(utstring_body(ts));
 				}

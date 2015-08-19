@@ -1,4 +1,11 @@
-#define JSONDIR "store"
+/*
+ * This is the top-level directory you create; ot-recorder
+ * stores files below this hierarchy and creates directories
+ * therin by itself. Note that the user running `ot-recorder'
+ * must be granted write access (rwx)
+ */
+
+#define STORAGEDIR "/path/to/store"
 
 /*
  * 1	=> 5,009.4km x 4,992.6km

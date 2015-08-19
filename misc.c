@@ -47,7 +47,7 @@ void monitorhook(struct udata *userdata, time_t now, char *topic)
 		utstring_renew(us);
 		utstring_printf(us, "%ld %s\n", now, topic);
 
-		sprintf(mpath, "%s/monitor", JSONDIR);
+		sprintf(mpath, "%s/monitor", STORAGEDIR);
 		safewrite(mpath, utstring_body(us));
 	}
 #endif
