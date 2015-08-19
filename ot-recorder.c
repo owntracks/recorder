@@ -24,19 +24,6 @@
 #define SSL_VERIFY_PEER (1)
 #define SSL_VERIFY_NONE (0)
 
-/*
- * 1	=> 5,009.4km x 4,992.6km
- * 2	=> 1,252.3km x 624.1km
- * 3	=> 156.5km x 156km
- * 4	=> 39.1km x 19.5km
- * 5	=> 4.9km x 4.9km
- * 6	=> 1.2km x 609.4m
- * 7	=> 152.9m x 152.4m
- * 8	=> 38.2m x 19m
- * 9	=> 4.8m x 4.8m
- * 10	=> 1.2m x 59.5cm
- */
-
 #define TOPIC_PARTS     (4)             /* owntracks/user/device/info */
 #define TOPIC_SUFFIX    "info"
 
@@ -553,7 +540,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 
 	/* publish  */
-	republish(mosq, ud, utstring_body(username), m->topic, lat, lon, utstring_body(cc), utstring_body(addr), tst, t);
+	// republish(mosq, ud, utstring_body(username), m->topic, lat, lon, utstring_body(cc), utstring_body(addr), tst, t);
 
 	if (*t == 0) {
 		strcpy(t, " ");
@@ -599,9 +586,6 @@ void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 	#ifdef HAVE_REDIS
 		redisFree(ud->redis);
 	#endif
-		//SQL sqlite3_finalize(ud->raw);
-		//SQL sqlite3_finalize(ud->lastloc);
-		//SQL sqlite3_close(ud->db);
 	}
 }
 
