@@ -627,6 +627,7 @@ int main(int argc, char **argv)
 	udata.pubprefix		= NULL;
 	udata.skipdemo		= TRUE;
 	udata.useredis		= TRUE;
+	udata.revgeo		= TRUE;
 
 	utstring_new(clientid);
 	utstring_printf(clientid, "ot-recorder");
