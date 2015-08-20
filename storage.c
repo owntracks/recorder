@@ -134,6 +134,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr)
 	long counter = 0L;
 	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", NULL };
 	static char *strings[] = { "tid", "t", NULL };
+	extern int errno;
 
 
 	if (!strcmp(filename, "-")) {
@@ -141,7 +142,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr)
 		doclose = 0;
 	} else {
 		if ((fp = fopen(filename, "r")) == NULL) {
-			perror(filename);
+			fprintf(stderr, "Cannot open %s: %s\n", filename, strerror(errno));
 			return;
 		}
 		doclose = 1;
