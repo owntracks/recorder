@@ -95,6 +95,8 @@ int main(int argc, char **argv)
 		printf("%s\n", js);
 		json_delete(json);
 		free(js);
+
+		return (0);
 	}
 
 	if (argc == 0 && !username && !device) {
