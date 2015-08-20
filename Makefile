@@ -9,7 +9,7 @@ ifneq ($(HAVE_REDIS),no)
 endif
 
 
-all: ot-recorder #### ot-reader
+all: ot-recorder ocat
 
 ot-reader: ot-reader.c json.o utstring.h ghash.o mkpath.o jget.o
 	$(CC) $(CFLAGS) ot-reader.c -o ot-reader json.o ghash.o mkpath.o jget.o $(LIBS)
@@ -25,6 +25,12 @@ ghash.o: ghash.h ghash.c config.h udata.h misc.h Makefile config.mk
 safewrite.o: safewrite.h safewrite.c
 jget.o: jget.c jget.h json.h Makefile config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
+
+ocat: ocat.o storage.o json.o geohash.o ghash.o mkpath.o
+	$(CC) $(CFLAGS) -o ocat ocat.o storage.o json.o geohash.o ghash.o mkpath.o
+
+ocat.o: ocat.c storage.h
+storage.o: storage.c storage.h config.h
 
 clean:
 	rm -f *.o
