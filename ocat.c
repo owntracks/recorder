@@ -105,7 +105,11 @@ int main(int argc, char **argv)
 	} else if (username && device && (argc > 0)) {
 		fprintf(stderr, "%s: filename with --user and --device is not supported\n", progname);
 		return (-1);
+	} else if (!username || !device) {
+		usage(progname);
 	}
+
+
 	
 
 	/*
