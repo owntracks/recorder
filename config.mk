@@ -1,2 +1,2 @@
 # Select features
-HAVE_REDIS ?= yes
+HAVE_REDIS ?= no
