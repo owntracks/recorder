@@ -149,7 +149,6 @@ int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *c
 					}
 
 					json_delete(json);
-					puts("**** GOTCHA");
 					cached = TRUE;
 				}
 
