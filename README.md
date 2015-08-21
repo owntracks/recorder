@@ -12,6 +12,20 @@ Recorder
 2. Edit `config.mk` and select features
 2. Type `make`
 
+## Reverse Geo
+
+If not disabled with option `-G`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains. This is stored in Redis (ghash:xxx) if available or in files. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a `missing` file:
+
+```
+$ cat store/ghash/missing
+u0tfsr3 48.292223 8.274535
+u0m97hc 46.652733 7.868803
+...
+```
+
+This can be used to subsequently obtain said geo lookups.
+
+
 ## Monitoring
 
 In order to monitor the _recorder_, whenever an MQTT message is received, the _recorder_ will add an epoch timestamp and the last received topic a Redis key (if configured) or a file otherwise. The Redis key looks like this:

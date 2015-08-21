@@ -499,6 +499,18 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 				// fprintf(stderr, "REVGEO: %s\n", utstring_body(addr));
 				ghash_storecache(ud, geo, utstring_body(ghash), utstring_body(addr), utstring_body(cc));
 				json_delete(geo);
+			} else {
+				/* We didn't obtain reverse Geo, maybe because of over
+				 * quota; make a note of the missing geohash */
+
+				char gfile[BUFSIZ];
+				FILE *fp;
+
+				snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
+				if ((fp = fopen(gfile, "a")) != NULL) {
+					fprintf(fp, "%s %lf %lf\n", utstring_body(ghash), lat, lon);
+					fclose(fp);
+				}
 			}
 		}
 	} else {
