@@ -6,13 +6,6 @@
 #include "json.h"
 #include "storage.h"
 
-static char *tstampyyyymm(time_t t) {
-        static char buf[] = "YYYY-MM";
-
-        strftime(buf, sizeof(buf), "%Y-%m", gmtime(&t));
-        return(buf);
-}
-
 void usage(char *prog)
 {
 	printf("Usage: %s [options..] [file ...]\n", prog);
@@ -20,7 +13,14 @@ void usage(char *prog)
 	printf("  --list		-l	list users (or a user's (-u) devices\n");
 	printf("  --user username	-u	specify username\n");
 	printf("  --device devicename   -d	specify device name\n");
-	printf("  --yyyymm YYYY-MM	-D	specify year-month (shell pat, eg: '2015-0[572]')\n");
+	printf("  --from <time>         -F      from date/time\n");
+	printf("  --to   <time>         -T      to date/time\n");
+	printf("         specify <time> as     YYYY-MM-DDTHH:MM:SS\n");
+	printf("                               YYYY-MM-DDTHH:MM\n");
+	printf("                               YYYY-MM-DDTHH\n");
+	printf("                               YYYY-MM-DD\n");
+	printf("                               YYYY-MM\n");
+
 	exit(1);
 }
 
@@ -29,12 +29,11 @@ int main(int argc, char **argv)
 	char *progname = *argv;
 	int c;
 	int list = 0;
-	char *username = NULL, *device = NULL, *yyyymm = NULL;
+	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
-	time_t now;
+	time_t now, s_lo, s_hi;
 
 	time(&now);
-	yyyymm = tstampyyyymm(now);
 
 	while (1) {
 		static struct option long_options[] = {
@@ -42,12 +41,13 @@ int main(int argc, char **argv)
 			{ "list",	no_argument,	0, 	'l'},
 			{ "user",	required_argument, 0, 	'u'},
 			{ "device",	required_argument, 0, 	'd'},
-			{ "yyyymm",	required_argument, 0, 	'D'},
+			{ "from",	required_argument, 0, 	'F'},
+			{ "to",		required_argument, 0, 	'T'},
 		  	{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:D:", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -61,8 +61,11 @@ int main(int argc, char **argv)
 			case 'd':
 				device = strdup(optarg);
 				break;
-			case 'D':
-				yyyymm = strdup(optarg);
+			case 'F':
+				time_from = strdup(optarg);
+				break;
+			case 'T':
+				time_to = strdup(optarg);
 				break;
 			case 'h':
 			case '?':
@@ -83,10 +86,15 @@ int main(int argc, char **argv)
 		return (-2);
 	}
 
+	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
+		fprintf(stderr, "%s: bad time(s) specified\n", progname);
+		return (-2);
+	}
+
 	if (list) {
 		char *js;
 
-		json = lister(username, device, yyyymm);
+		json = lister(username, device, s_lo, s_hi);
 		if (json == NULL) {
 			fprintf(stderr, "%s: cannot list\n", progname);
 			exit(2);
@@ -131,7 +139,7 @@ int main(int argc, char **argv)
 	} else {
 		JsonNode *arr, *f;
 
-		if ((json = lister(username, device, yyyymm)) != NULL) {
+		if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
 				json_foreach(f, arr) {
 					printf("%s\n", f->string_);

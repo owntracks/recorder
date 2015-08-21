@@ -17,6 +17,7 @@ void get_geo(JsonNode *o, char *ghash)
 	static UT_string *addr = NULL, *cc = NULL;
 	static struct udata udata;
 
+	/* FIXME!!!! */
 	udata.usefiles = 1;
 
 	utstring_renew(addr);
@@ -26,6 +27,72 @@ void get_geo(JsonNode *o, char *ghash)
 		json_append_member(o, "addr", json_mkstring(utstring_body(addr)));
 		json_append_member(o, "cc", json_mkstring(utstring_body(cc)));
 	}
+}
+
+/*
+ * `s' has a time string in it. Try to convert into time_t
+ * using a variety of formats from higher to lower precision.
+ * Return 1 on success, 0 on failure.
+ */
+
+static int str_time_to_secs(char *s, time_t *secs)
+{
+	static char **f, *formats[] = {
+			"%Y-%m-%dT%H:%M:%S",
+			"%Y-%m-%dT%H:%M",
+			"%Y-%m-%dT%H",
+			"%Y-%m-%d",
+			"%Y-%m",
+			NULL
+		};
+	struct tm tm;
+	int success = 0;
+
+	memset(&tm, 0, sizeof(struct tm));
+	tm.tm_isdst = -1;		/* A negative value for tm_isdst causes
+					 * the mktime() function to attempt to
+					 * divine whether summer time is in
+					 * effect for the specified time. */
+	for (f = formats; f && *f; f++) {
+		if (strptime(s, *f, &tm) != NULL) {
+			success = 1;
+			printf("str_time_to_secs succeeds with %s\n", *f);
+			break;
+		}
+	}
+
+	if (!success)
+		return (0);
+
+	// tm.tm_mday = tm.tm_hour = 0;
+	// tm.tm_hour = tm.tm_min = tm.tm_sec = 1;
+	*secs = mktime(&tm);
+	printf("str_time_to_secs: %s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
+		s,
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+		tm.tm_hour, tm.tm_min, tm.tm_sec);
+	return (1);
+}
+
+int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
+{
+	time_t now;
+
+	time(&now);
+	if (!time_from || !*time_from || !time_to || !*time_to) {
+		if (!time_from || !*time_from) {
+			*s_lo = now - (60 * 60 * 6);
+		}
+		if (!time_to || !*time_to) {
+			*s_hi = now;
+		}
+		return (1);
+	}
+
+	if (str_time_to_secs(time_from, s_lo) == 0 ||
+		str_time_to_secs(time_to, s_hi) == 0) 
+			return (0);
+	return (*s_lo > *s_hi ? 0 : 1);
 }
 
 /*
@@ -61,6 +128,7 @@ static void ls(char *path, JsonNode *obj)
  * put the names into a JSON array in obj.
  */
 
+#if 0
 static void lsglob(char *pathpat, JsonNode *obj)
 {
         glob_t paths;
@@ -86,20 +154,23 @@ static void lsglob(char *pathpat, JsonNode *obj)
 	json_append_member(obj, "results", jarr);
         return;
 }
+#endif
 
 /*
  * If `user' and `device' are both NULL, return list of users.
  * If `user` is specified, and device is NULL, return user's devices
  * If both user and device are specified, return list of .rec files;
- * in that case, limit with `yyyymm' which is YYYY-MM
+ * in that case, limit with `s_lo` and `s_hi`
  */
 
-JsonNode *lister(char *user, char *device, char *yyyymm)
+JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 {
 	JsonNode *json = json_mkobject();
 	UT_string *path = NULL;
 
 	utstring_renew(path);
+
+	printf("%ld %ld\n", s_lo, s_hi);
 
 	/* FIXME: lowercase user/device */
 
@@ -109,11 +180,13 @@ JsonNode *lister(char *user, char *device, char *yyyymm)
 	} else if (!device) {
 		utstring_printf(path, "%s/rec/%s", STORAGEDIR, user);
 		ls(utstring_body(path), json);
+#if 0
 	} else {
 		utstring_printf(path, "%s/rec/%s/%s/%s.rec",
 			STORAGEDIR, user, device,
 			(yyyymm) ? yyyymm : "*");
 		lsglob(utstring_body(path), json);
+#endif
 	}
 
 	return (json);
