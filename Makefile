@@ -1,6 +1,7 @@
 include config.mk
 
-LIBS = -lcurl -lmosquitto
+LIBS = -L/Users/jpm/Auto/pubgit/MQTT/mosquitto/org.eclipse.mosquitto.git/lib
+LIBS += -lcurl -lmosquitto
 CFLAGS=-Wall -Werror -g
 
 ifneq ($(HAVE_REDIS),no)
@@ -10,9 +11,6 @@ endif
 
 
 all: ot-recorder ocat
-
-ot-reader: ot-reader.c json.o utstring.h ghash.o mkpath.o jget.o
-	$(CC) $(CFLAGS) ot-reader.c -o ot-reader json.o ghash.o mkpath.o jget.o $(LIBS)
 
 ot-recorder: ot-recorder.c json.o utarray.h utstring.h geo.o geohash.o mkpath.o file.o safewrite.o base64.o ghash.o config.h udata.h misc.o
 	$(CC) $(CFLAGS) ot-recorder.c -o ot-recorder json.o geo.o geohash.o mkpath.o file.o safewrite.o base64.o ghash.o misc.o $(LIBS)
@@ -27,7 +25,7 @@ jget.o: jget.c jget.h json.h Makefile config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
 
 ocat: ocat.o storage.o json.o geohash.o ghash.o mkpath.o
-	$(CC) $(CFLAGS) -o ocat ocat.o storage.o json.o geohash.o ghash.o mkpath.o
+	$(CC) $(CFLAGS) -o ocat ocat.o storage.o json.o geohash.o ghash.o mkpath.o $(LIBS)
 
 ocat.o: ocat.c storage.h
 storage.o: storage.c storage.h config.h
