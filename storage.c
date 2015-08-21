@@ -1,8 +1,11 @@
+// #define __USE_XOPEN 1
+// #define _GNU_SOURCE 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include <glob.h>
+#include <fnmatch.h>
+#include <ctype.h>
 #include "utstring.h"
 #include "config.h"
 #include "storage.h"
@@ -79,19 +82,19 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
 	time_t now;
 
 	time(&now);
-	if (!time_from || !*time_from || !time_to || !*time_to) {
-		if (!time_from || !*time_from) {
-			*s_lo = now - (60 * 60 * 6);
-		}
-		if (!time_to || !*time_to) {
-			*s_hi = now;
-		}
-		return (1);
+	if (!time_from || !*time_from) {
+		*s_lo = now - (60 * 60 * 6);
+	} else {
+		if (str_time_to_secs(time_from, s_lo) == 0)
+			return (0);
 	}
 
-	if (str_time_to_secs(time_from, s_lo) == 0 ||
-		str_time_to_secs(time_to, s_hi) == 0) 
+	if (!time_to || !*time_to) {
+		*s_hi = now;
+	} else {
+		if (str_time_to_secs(time_to, s_hi) == 0)
 			return (0);
+	}
 	return (*s_lo > *s_hi ? 0 : 1);
 }
 
@@ -125,36 +128,119 @@ static void ls(char *path, JsonNode *obj)
 
 /*
  * List the files (glob pattern) in the directory at `pathpat' and
- * put the names into a JSON array in obj.
+ * put the names into a new JSON array in obj. Filenames (2015-08.rec)
+ * are checked whether they fall (time-wise) into the seconds between
+ * s_lo and s_hi.
  */
 
-#if 0
-static void lsglob(char *pathpat, JsonNode *obj)
+static time_t t_lo, t_hi;	/* must be global so that filter() can access them */
+
+static int filter_filename(const struct dirent *d)
 {
-        glob_t paths;
-        int flags = GLOB_NOCHECK;
-        char **p;
+	struct tm tm1, tm2;
+	time_t seconds_lo, seconds_hi;
+	char *p; // , datestr[64];
+
+	/* if the filename doesn't look like YYYY-MM.rec we can safely ignore it.
+	 * Needs modifying after the year 2999 ;-) */
+	if (fnmatch("2[0-9][0-9][0-9]-[0-3][0-9].rec", d->d_name, 0) != 0)
+		return (0);
+
+	/* Try converting filename to seconds; normalize other bits of `tm' */
+	memset(&tm1, 0, sizeof(struct tm));
+	memset(&tm2, 0, sizeof(struct tm));
+	if ((p = strptime(d->d_name, "%Y-%m", &tm1)) == NULL) {
+		puts("filter: convert err");
+		return (0);
+	}
+
+	tm2 = tm1;
+
+	/* We're only interested in YYYY-MM */
+	tm1.tm_mday = 28; // 28 b/c of Feb, otherwise overflow into next month
+	tm1.tm_hour = 23;
+	tm1.tm_min = tm1.tm_sec = 59;
+
+	// tm.tm_mday = 21;
+	// tm.tm_mon -= 1;
+	// tm.tm_hour = 1;
+	// tm.tm_hour = tm.tm_min = tm.tm_sec = 1;
+	tm1.tm_isdst = -1;
+	seconds_hi = mktime(&tm1);
+
+	tm2.tm_mday = 01;
+	tm2.tm_hour = 00;
+	tm2.tm_min = tm2.tm_sec = 01;
+	tm2.tm_isdst = -1;
+	seconds_lo = mktime(&tm2);
+
+	printf("filter: file %s has %04d-%02d-%02d %02d:%02d:%02d\n",
+		d->d_name,
+		tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday,
+		tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
+	
+
+	printf("seconds_lo    = %ld %s", seconds_lo, ctime(&seconds_lo));
+	printf("t_lo          = %ld %s", t_lo, ctime(&t_lo));
+	printf("seconds_hi    = %ld %s", seconds_hi, ctime(&seconds_hi));
+	printf("t_hi          = %ld %s", t_hi, ctime(&t_hi));
+	puts("");
+
+	if (seconds_hi >= t_hi && seconds_lo <= t_lo) {
+		printf("filter: returns: %s\n", d->d_name);
+		return (1);
+	}
+	return (0);
+}
+
+static int cmp( const struct dirent **a, const struct dirent **b)
+{
+	return strcmp((*a)->d_name, (*b)->d_name);
+}
+
+#if 0
+static time_t month_part(time_t secs)
+{
+	struct tm *tm;
+
+	tm = gmtime(&secs);
+	// tm->tm_mday = 1;
+	// tm->tm_min = tm->tm_sec = 1;
+	tm->tm_isdst = -1;
+
+	printf("month_part: s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+	return mktime(tm);
+
+}
+#endif
+
+static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
+{
+	struct dirent **namelist;
+	int i, n;
 	JsonNode *jarr = json_mkarray();
 
-        if (glob(pathpat, flags, NULL, &paths) != 0) {
-		json_append_member(obj, "error", json_mkstring("Cannot glob requested pattern"));
+	/* Set global t_ values */
+	t_lo = s_lo; //month_part(s_lo);
+	t_hi = s_hi; //month_part(s_hi);
+
+	if ((n = scandir(pathpat, &namelist, filter_filename, cmp)) < 0) {
+		json_append_member(obj, "error", json_mkstring("Cannot lsscan requested directory"));
                 return;
 	}
 
-	/* Ensure we add paths only if the glob actuall expanded */
-	if (paths.gl_matchc > 0) {
-		for (p = paths.gl_pathv; *p != NULL; p++) {
-			// char *s = strdup(*p);
-			// utarray_push_back(dirs, &s);
-			json_append_element(jarr, json_mkstring(*p));
-		}
-        }
-        globfree(&paths);
+	for (i = 0; i < n; i++) {
+		printf("%s\n", namelist[i]->d_name);
+		json_append_element(jarr, json_mkstring(namelist[i]->d_name));
+		free(namelist[i]);
+	}
+	free(namelist);
 
 	json_append_member(obj, "results", jarr);
-        return;
 }
-#endif
 
 /*
  * If `user' and `device' are both NULL, return list of users.
@@ -167,12 +253,20 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 {
 	JsonNode *json = json_mkobject();
 	UT_string *path = NULL;
+	char *bp;
 
 	utstring_renew(path);
 
 	printf("%ld %ld\n", s_lo, s_hi);
 
-	/* FIXME: lowercase user/device */
+	for (bp = user; bp && *bp; bp++) {
+		if (isupper(*bp))
+			*bp = tolower(*bp);
+	}
+	for (bp = device; bp && *bp; bp++) {
+		if (isupper(*bp))
+			*bp = tolower(*bp);
+	}
 
 	if (!user && !device) {
 		utstring_printf(path, "%s/rec", STORAGEDIR);
@@ -180,13 +274,10 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 	} else if (!device) {
 		utstring_printf(path, "%s/rec/%s", STORAGEDIR, user);
 		ls(utstring_body(path), json);
-#if 0
 	} else {
-		utstring_printf(path, "%s/rec/%s/%s/%s.rec",
-			STORAGEDIR, user, device,
-			(yyyymm) ? yyyymm : "*");
-		lsglob(utstring_body(path), json);
-#endif
+		utstring_printf(path, "%s/rec/%s/%s",
+			STORAGEDIR, user, device);
+		lsscan(utstring_body(path), s_lo, s_hi, json);
 	}
 
 	return (json);
