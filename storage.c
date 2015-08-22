@@ -386,72 +386,68 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 /*
  * We're being passed an array of location objects created in
  * locations(). Produce a Geo JSON tree.
+
+	{
+	  "type": "FeatureCollection",
+	  "features": [
+	    {
+	      "type": "Feature",
+	      "geometry": {
+		"type": "Point",
+		"coordinates": [-80.83775386582222,35.24980190252168]
+	      },
+	      "properties": {
+		"name": "DOUBLE OAKS CENTER",
+		"address": "1326 WOODWARD AV"
+	      }
+	    },
+	    {
+	      "type": "Feature",
+	      "geometry": {
+		"type": "Point",
+		"coordinates": [-80.83827000459532,35.25674709224663]
+	      },
+	      "properties": {
+		"name": "DOUBLE OAKS NEIGHBORHOOD PARK",
+		"address": "2605  DOUBLE OAKS RD"
+	      }
+	    }
+	  ]
+	}
+ *
  */
-/*
+
+static void append_to_feature_array(JsonNode *features, double lat, double lon, char *tid, char *addr)
 {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [-80.83775386582222,35.24980190252168]
-      },
-      "properties": {
-        "name": "DOUBLE OAKS CENTER",
-        "address": "1326 WOODWARD AV"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [-80.83827000459532,35.25674709224663]
-      },
-      "properties": {
-        "name": "DOUBLE OAKS NEIGHBORHOOD PARK",
-        "address": "2605  DOUBLE OAKS RD"
-      }
-    }
-  ]
-}
-*/
+	JsonNode *geom, *props, *f = json_mkobject();
 
-static void geo_f_array(JsonNode *features, double lat, double lon, char *tid, char *addr)
-{
-        // JsonNode *features = json_mkarray();
-        JsonNode *f;
+	json_append_member(f, "type", json_mkstring("Feature"));
 
-                JsonNode *geom, *props;
-                f = json_mkobject();
-
-                json_append_member(f, "type", json_mkstring("Feature"));
-
-                geom = json_mkobject();
+	geom = json_mkobject();
                    json_append_member(geom, "type", json_mkstring("Point"));
                    JsonNode *coords = json_mkarray();
                    json_append_element(coords, json_mknumber(lon));         /* first LON! */
                    json_append_element(coords, json_mknumber(lat));
                    json_append_member(geom, "coordinates", coords);
 
-
-
-                props = json_mkobject();
+	props = json_mkobject();
                   json_append_member(props, "name", json_mkstring(tid));
                   json_append_member(props, "address", json_mkstring(addr));
 
+        json_append_member(f, "geometry", geom);
+        json_append_member(f, "properties", props);
 
-                json_append_member(f, "geometry", geom);
-                json_append_member(f, "properties", props);
-
-                json_append_element(features, f);
+        json_append_element(features, f);
 }
+
 JsonNode *geo_json(JsonNode *location_array)
 {
 	JsonNode *one, *j;
         JsonNode *feature_array, *fcollection;
 
-	fcollection = json_mkobject();
+	if ((fcollection = json_mkobject()) == NULL)
+		return (NULL);
+
 	json_append_member(fcollection, "type", json_mkstring("FeatureCollection"));
 
 	feature_array = json_mkarray();
@@ -474,7 +470,7 @@ JsonNode *geo_json(JsonNode *location_array)
                         addr = j->string_;
                 }
 
-		geo_f_array(feature_array, lat, lon, tid, addr);
+		append_to_feature_array(feature_array, lat, lon, tid, addr);
 	}
 
 	json_append_member(fcollection, "features", feature_array);
