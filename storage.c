@@ -52,10 +52,6 @@ static int str_time_to_secs(char *s, time_t *secs)
 	int success = 0;
 
 	memset(&tm, 0, sizeof(struct tm));
-	tm.tm_isdst = 0; 		/* A negative value for tm_isdst causes
-					 * the mktime() function to attempt to
-					 * divine whether summer time is in
-					 * effect for the specified time. */
 	for (f = formats; f && *f; f++) {
 		if (strptime(s, *f, &tm) != NULL) {
 			success = 1;
@@ -67,8 +63,12 @@ static int str_time_to_secs(char *s, time_t *secs)
 	if (!success)
 		return (0);
 
-	// tm.tm_mday = tm.tm_hour = 0;
-	// tm.tm_hour = tm.tm_min = tm.tm_sec = 1;
+	tm.tm_mday = (tm.tm_mday < 1) ? 1 : tm.tm_mday;
+	tm.tm_isdst = -1; 		/* A negative value for tm_isdst causes
+					 * the mktime() function to attempt to
+					 * divine whether summer time is in
+					 * effect for the specified time. */
+
 	*secs = mktime(&tm);
 	printf("str_time_to_secs: %s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
 		s,
@@ -85,7 +85,7 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
 
 	time(&now);
 	if (!time_from || !*time_from) {
-		*s_lo = now - (60 * 60 * 6);
+		*s_lo = now - (60 * 60 * DEFAULT_HISTORY_HOURS);
 	} else {
 		if (str_time_to_secs(time_from, s_lo) == 0)
 			return (0);
