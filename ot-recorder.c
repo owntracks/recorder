@@ -19,6 +19,7 @@
 #include "safewrite.h"
 #include "base64.h"
 #include "misc.h"
+#include "util.h"
 
 
 #define SSL_VERIFY_PEER (1)
@@ -109,13 +110,6 @@ JsonNode *extract(struct udata *ud, char *payload, char *tid, char *t, double *l
 	*lon = number(json, "lon");
 
 	return (json);
-}
-
-static const char *isotime(time_t t) {
-	static char buf[] = "YYYY-MM-DDTHH:MM:SSZ";
-
-	strftime(buf, sizeof(buf), "%FT%TZ", gmtime(&t));
-	return(buf);
 }
 
 static const char *ltime(time_t t) {
