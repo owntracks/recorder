@@ -5,6 +5,48 @@
 #include <time.h>
 #include "json.h"
 #include "storage.h"
+#include "util.h"
+
+void csv_output(JsonNode *json)
+{
+	JsonNode *arr, *one, *j;
+	time_t tst = 0L;
+	double lat = 0.0, lon = 0.0;
+	char *tid = "", *addr;
+
+	arr = json_find_member(json, "locations");
+	json_foreach(one, arr) {
+		tid = addr = "";
+		lat = lon = 0.0;
+
+		if ((j = json_find_member(one, "tid")) != NULL) {
+			tid = j->string_;
+		}
+
+		if ((j = json_find_member(one, "addr")) != NULL) {
+			addr = j->string_;
+		}
+
+		if ((j = json_find_member(one, "tst")) != NULL) {
+			tst = j->number_;
+		}
+
+		if ((j = json_find_member(one, "lat")) != NULL) {
+			lat = j->number_;
+		}
+
+		if ((j = json_find_member(one, "lon")) != NULL) {
+			lon = j->number_;
+		}
+
+		printf("%s,%s,%lf,%lf,%s\n",
+			isotime(tst),
+			tid,
+			lat,
+			lon,
+			addr);
+	}
+}
 
 void usage(char *prog)
 {
@@ -20,6 +62,7 @@ void usage(char *prog)
 	printf("                               YYYY-MM-DDTHH\n");
 	printf("                               YYYY-MM-DD\n");
 	printf("                               YYYY-MM\n");
+	printf("  --format json|csv	-f     output format (default: JSON)\n");
 
 	exit(1);
 }
@@ -32,6 +75,14 @@ int main(int argc, char **argv)
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
+        typedef enum {
+                PLAIN   = 0,
+                GEOJSON,
+                CSV,
+                JSON,
+        } output_type;
+	output_type otype = JSON;
+
 
 	time(&now);
 
@@ -43,11 +94,12 @@ int main(int argc, char **argv)
 			{ "device",	required_argument, 0, 	'd'},
 			{ "from",	required_argument, 0, 	'F'},
 			{ "to",		required_argument, 0, 	'T'},
+			{ "format",	required_argument, 0, 	'f'},
 		  	{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -66,6 +118,18 @@ int main(int argc, char **argv)
 				break;
 			case 'T':
 				time_to = strdup(optarg);
+				break;
+			case 'f':
+				if (!strcmp(optarg, "json"))
+					otype = JSON;
+				else if (!strcmp(optarg, "geojson"))
+					otype = GEOJSON;
+				else if (!strcmp(optarg, "csv"))
+					otype = CSV;
+				else {
+					fprintf(stderr, "%s: unrecognized output format\n", progname);
+					exit(2);
+				}
 				break;
 			case 'h':
 			case '?':
@@ -151,7 +215,28 @@ int main(int argc, char **argv)
 	}
 
 	json_append_member(obj, "locations", locs);
-	printf("%s\n", json_stringify(obj, " "));
+
+
+	if (otype == JSON) {
+		char *js = json_stringify(obj, " ");
+
+		if (js != NULL) {
+			printf("%s\n", js);
+			free(js);
+		}
+
+	} else if (otype == CSV) {
+		csv_output(obj);
+	} else if (otype == GEOJSON) {
+		JsonNode *geojson = geo_json(locs);
+		char *js;
+
+		js = json_stringify(geojson, " ");
+		if (js != NULL) {
+			printf("%s\n", js);
+			free(js);
+		}
+	}
 
 	return (0);
 }
