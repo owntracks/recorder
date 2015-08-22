@@ -34,4 +34,4 @@
  * How many hours back should `ocat' display data by default
  */
 
-#DEFAULT_HISTORY_HOURS 6
+#define DEFAULT_HISTORY_HOURS 6
