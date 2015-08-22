@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <errno.h>
 #include <fnmatch.h>
 #include <ctype.h>
 #include "utstring.h"
@@ -271,7 +272,6 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 	long counter = 0L;
 	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", NULL };
 	static char *strings[] = { "tid", "t", NULL };
-	extern int errno;
 	static UT_string *tstamp = NULL;
 
 	utstring_renew(tstamp);
