@@ -1,6 +1,8 @@
 #include "config.h"
 #include "udata.h"
-#include <hiredis/hiredis.h>
+#ifdef HAVE_REDIS
+# include <hiredis/hiredis.h>
+#endif
 #include "geohash.h"
 #include "utstring.h"
 #include "json.h"
