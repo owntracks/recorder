@@ -52,14 +52,14 @@ static int str_time_to_secs(char *s, time_t *secs)
 	int success = 0;
 
 	memset(&tm, 0, sizeof(struct tm));
-	tm.tm_isdst = -1;		/* A negative value for tm_isdst causes
+	tm.tm_isdst = 0; 		/* A negative value for tm_isdst causes
 					 * the mktime() function to attempt to
 					 * divine whether summer time is in
 					 * effect for the specified time. */
 	for (f = formats; f && *f; f++) {
 		if (strptime(s, *f, &tm) != NULL) {
 			success = 1;
-			printf("str_time_to_secs succeeds with %s\n", *f);
+			fprintf(stderr, "str_time_to_secs succeeds with %s\n", *f);
 			break;
 		}
 	}
@@ -80,6 +80,8 @@ static int str_time_to_secs(char *s, time_t *secs)
 int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
 {
 	time_t now;
+
+	setenv("TZ", "UTC", 1);  // FIXME: really?
 
 	time(&now);
 	if (!time_from || !*time_from) {
@@ -137,9 +139,8 @@ static time_t t_lo, t_hi;	/* must be global so that filter() can access them */
 
 static int filter_filename(const struct dirent *d)
 {
-	struct tm tm1, tm2;
-	time_t seconds_lo, seconds_hi;
-	char *p; // , datestr[64];
+	struct tm tmfile, *tm;
+	int lo_year, lo_mon, hi_year, hi_mon;
 
 	/* if the filename doesn't look like YYYY-MM.rec we can safely ignore it.
 	 * Needs modifying after the year 2999 ;-) */
@@ -147,49 +148,38 @@ static int filter_filename(const struct dirent *d)
 		return (0);
 
 	/* Try converting filename to seconds; normalize other bits of `tm' */
-	memset(&tm1, 0, sizeof(struct tm));
-	memset(&tm2, 0, sizeof(struct tm));
-	if ((p = strptime(d->d_name, "%Y-%m", &tm1)) == NULL) {
-		puts("filter: convert err");
+	memset(&tmfile, 0, sizeof(struct tm));
+	if (strptime(d->d_name, "%Y-%m", &tmfile) == NULL) {
+		fprintf(stderr, "filter: convert err");
 		return (0);
 	}
 
-	tm2 = tm1;
+	tm = gmtime(&t_lo);
+	lo_year = tm->tm_year;
+	lo_mon = tm->tm_mon;
 
-	/* We're only interested in YYYY-MM */
-	tm1.tm_mday = 28; // 28 b/c of Feb, otherwise overflow into next month
-	tm1.tm_hour = 23;
-	tm1.tm_min = tm1.tm_sec = 59;
+	tm = gmtime(&t_hi);
+	hi_year = tm->tm_year;
+	hi_mon = tm->tm_mon;
 
-	// tm.tm_mday = 21;
-	// tm.tm_mon -= 1;
-	// tm.tm_hour = 1;
-	// tm.tm_hour = tm.tm_min = tm.tm_sec = 1;
-	tm1.tm_isdst = -1;
-	seconds_hi = mktime(&tm1);
-
-	tm2.tm_mday = 01;
-	tm2.tm_hour = 00;
-	tm2.tm_min = tm2.tm_sec = 01;
-	tm2.tm_isdst = -1;
-	seconds_lo = mktime(&tm2);
+	/*
+	printf("lo   year: %d, %d\n", lo_year, lo_mon);
+	printf("file year: %d, %d\n", tmfile.tm_year, tmfile.tm_mon);
+	printf("hi   year: %d, %d\n", hi_year, hi_mon);
+	puts("");
 
 	printf("filter: file %s has %04d-%02d-%02d %02d:%02d:%02d\n",
 		d->d_name,
-		tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday,
-		tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
+		tmfile.tm_year + 1900, tmfile.tm_mon + 1, tmfile.tm_mday,
+		tmfile.tm_hour, tmfile.tm_min, tmfile.tm_sec);
+	*/
 	
-
-	printf("seconds_lo    = %ld %s", seconds_lo, ctime(&seconds_lo));
-	printf("t_lo          = %ld %s", t_lo, ctime(&t_lo));
-	printf("seconds_hi    = %ld %s", seconds_hi, ctime(&seconds_hi));
-	printf("t_hi          = %ld %s", t_hi, ctime(&t_hi));
-	puts("");
-
-	if (seconds_hi >= t_hi && seconds_lo <= t_lo) {
-		printf("filter: returns: %s\n", d->d_name);
+	if (tmfile.tm_year >= lo_year && tmfile.tm_year <= hi_year &&
+		tmfile.tm_mon >= lo_mon && tmfile.tm_mon <= hi_mon) {
+		// fprintf(stderr, "filter: returns: %s\n", d->d_name);
 		return (1);
 	}
+
 	return (0);
 }
 
@@ -222,6 +212,9 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
 	struct dirent **namelist;
 	int i, n;
 	JsonNode *jarr = json_mkarray();
+	static UT_string *path = NULL;
+
+	utstring_renew(path);
 
 	/* Set global t_ values */
 	t_lo = s_lo; //month_part(s_lo);
@@ -233,8 +226,9 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
 	}
 
 	for (i = 0; i < n; i++) {
-		printf("%s\n", namelist[i]->d_name);
-		json_append_element(jarr, json_mkstring(namelist[i]->d_name));
+		utstring_clear(path);
+		utstring_printf(path, "%s/%s", pathpat, namelist[i]->d_name);
+		json_append_element(jarr, json_mkstring(utstring_body(path)));
 		free(namelist[i]);
 	}
 	free(namelist);
@@ -257,7 +251,7 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 
 	utstring_renew(path);
 
-	printf("%ld %ld\n", s_lo, s_hi);
+	// printf("%ld %ld\n", s_lo, s_hi);
 
 	for (bp = user; bp && *bp; bp++) {
 		if (isupper(*bp))
