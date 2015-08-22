@@ -77,6 +77,12 @@ static int str_time_to_secs(char *s, time_t *secs)
 	return (1);
 }
 
+/*
+ * For each of the strings, create an epoch time at the s_ pointers. If
+ * a string is NULL, use a default time (from: HOURS previous, to: now)
+ * Return 1 if the time conversion was successful and from <= to.
+ */
+
 int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
 {
 	time_t now;
@@ -129,9 +135,9 @@ static void ls(char *path, JsonNode *obj)
 }
 
 /*
- * List the files (glob pattern) in the directory at `pathpat' and
+ * List the files in the directory at `pathpat' and
  * put the names into a new JSON array in obj. Filenames (2015-08.rec)
- * are checked whether they fall (time-wise) into the seconds between
+ * are checked whether they fall (time-wise) into the times between
  * s_lo and s_hi.
  */
 
@@ -147,7 +153,9 @@ static int filter_filename(const struct dirent *d)
 	if (fnmatch("2[0-9][0-9][0-9]-[0-3][0-9].rec", d->d_name, 0) != 0)
 		return (0);
 
-	/* Try converting filename to seconds; normalize other bits of `tm' */
+	/* Convert filename (YYYY-MM) to a tm; see if months falls between
+	 * from months and to months. */
+
 	memset(&tmfile, 0, sizeof(struct tm));
 	if (strptime(d->d_name, "%Y-%m", &tmfile) == NULL) {
 		fprintf(stderr, "filter: convert err");
@@ -179,25 +187,6 @@ static int cmp( const struct dirent **a, const struct dirent **b)
 {
 	return strcmp((*a)->d_name, (*b)->d_name);
 }
-
-#if 0
-static time_t month_part(time_t secs)
-{
-	struct tm *tm;
-
-	tm = gmtime(&secs);
-	// tm->tm_mday = 1;
-	// tm->tm_min = tm->tm_sec = 1;
-	tm->tm_isdst = -1;
-
-	printf("month_part: s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
-		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-		tm->tm_hour, tm->tm_min, tm->tm_sec);
-
-	return mktime(tm);
-
-}
-#endif
 
 static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
 {
@@ -242,8 +231,6 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 	char *bp;
 
 	utstring_renew(path);
-
-	// printf("%ld %ld\n", s_lo, s_hi);
 
 	for (bp = user; bp && *bp; bp++) {
 		if (isupper(*bp))
