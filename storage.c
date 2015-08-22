@@ -11,7 +11,7 @@
 #include "config.h"
 #include "storage.h"
 #include "geohash.h"
-
+#include "util.h"
 #include "udata.h"
 
 int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *cc);
@@ -299,7 +299,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 		char *bp, *ghash, *p;
 		double lat, lon;
 		struct tm tmline;
-		time_t secs;
+		time_t secs, tst;
 
 		if ((p = strptime(buf, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
 			fprintf(stderr, "no strptime on %s", buf);
@@ -356,7 +356,14 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 
 			ghash = geohash_encode(lat, lon, GEOHASH_PREC);
 			json_append_member(o, "ghash", json_mkstring(ghash));
-			json_append_member(o, "isodt", json_mkstring(utstring_body(tstamp)));
+			json_append_member(o, "isorcv", json_mkstring(utstring_body(tstamp)));
+
+			tst = 0L;
+			if ((j = json_find_member(o, "tst")) != NULL) {
+				tst = j->number_;
+			}
+			json_append_member(o, "isotst", json_mkstring(isotime(tst)));
+
 
 			get_geo(o, ghash);
 
