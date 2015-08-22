@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		int n;
 
 		for (n = 0; n < argc; n++) {
-			locations(argv[n], obj, locs);
+			locations(argv[n], obj, locs, s_lo, s_hi);
 		}
 	} else {
 		JsonNode *arr, *f;
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
 				json_foreach(f, arr) {
 					printf("%s\n", f->string_);
-					locations(f->string_, obj, locs);
+					locations(f->string_, obj, locs, s_lo, s_hi);
 				}
 			}
 			json_delete(json);

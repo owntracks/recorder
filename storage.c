@@ -262,7 +262,7 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
  * contains `arr'.
  */
 
-void locations(char *filename, JsonNode *obj, JsonNode *arr)
+void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi)
 {
 	JsonNode *o, *json, *j;
 	FILE *fp;
@@ -272,7 +272,9 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr)
 	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", NULL };
 	static char *strings[] = { "tid", "t", NULL };
 	extern int errno;
+	static UT_string *tstamp = NULL;
 
+	utstring_renew(tstamp);
 
 	if (!strcmp(filename, "-")) {
 		fp = stdin;
@@ -294,8 +296,22 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr)
 
 
 	while (fgets(buf, sizeof(buf)-1, fp) != NULL) {
-		char *bp, *ghash;
+		char *bp, *ghash, *p;
 		double lat, lon;
+		struct tm tmline;
+		time_t secs;
+
+		if ((p = strptime(buf, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
+			fprintf(stderr, "no strptime on %s", buf);
+			continue;
+		}
+		utstring_clear(tstamp);
+		utstring_printf(tstamp, "%-20.20s", buf);
+		secs = mktime(&tmline);
+
+		if (secs <= s_lo || secs >= s_hi) {
+			continue;
+		}
 
 		if ((bp = strstr(buf, "Z\t* ")) != NULL) {
 			if ((bp = strrchr(bp, '\t')) == NULL) {
@@ -340,6 +356,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr)
 
 			ghash = geohash_encode(lat, lon, GEOHASH_PREC);
 			json_append_member(o, "ghash", json_mkstring(ghash));
+			json_append_member(o, "isodt", json_mkstring(utstring_body(tstamp)));
 
 			get_geo(o, ghash);
 
