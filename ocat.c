@@ -7,7 +7,14 @@
 #include "storage.h"
 #include "util.h"
 
-void csv_output(JsonNode *json)
+typedef enum {
+	TABULAR   = 0,
+	GEOJSON,
+	CSV,
+	JSON,
+} output_type;
+
+void csv_output(JsonNode *json, output_type otype)
 {
 	JsonNode *arr, *one, *j;
 	time_t tst = 0L;
@@ -39,12 +46,21 @@ void csv_output(JsonNode *json)
 			lon = j->number_;
 		}
 
-		printf("%s,%s,%lf,%lf,%s\n",
-			isotime(tst),
-			tid,
-			lat,
-			lon,
-			addr);
+		if (otype == CSV) {
+			printf("%s,%s,%lf,%lf,%s\n",
+				isotime(tst),
+				tid,
+				lat,
+				lon,
+				addr);
+		} else {
+			printf("%s  %-2.2s %9.5lf %9.5lf %s\n",
+				isotime(tst),
+				tid,
+				lat,
+				lon,
+				addr);
+		}
 	}
 }
 
@@ -62,7 +78,10 @@ void usage(char *prog)
 	printf("                               YYYY-MM-DDTHH\n");
 	printf("                               YYYY-MM-DD\n");
 	printf("                               YYYY-MM\n");
-	printf("  --format json|csv	-f     output format (default: JSON)\n");
+	printf("  --format json    	-f     output format (default: JSON)\n");
+	printf("           csv\n");
+	printf("           geojson\n");
+	printf("           tab\n");
 
 	exit(1);
 }
@@ -75,12 +94,6 @@ int main(int argc, char **argv)
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
-        typedef enum {
-                PLAIN   = 0,
-                GEOJSON,
-                CSV,
-                JSON,
-        } output_type;
 	output_type otype = JSON;
 
 
@@ -122,6 +135,8 @@ int main(int argc, char **argv)
 			case 'f':
 				if (!strcmp(optarg, "json"))
 					otype = JSON;
+				else if (!strcmp(optarg, "tabular"))
+					otype = TABULAR;
 				else if (!strcmp(optarg, "geojson"))
 					otype = GEOJSON;
 				else if (!strcmp(optarg, "csv"))
@@ -225,8 +240,10 @@ int main(int argc, char **argv)
 			free(js);
 		}
 
+	} else if (otype == TABULAR) {
+		csv_output(obj, TABULAR);
 	} else if (otype == CSV) {
-		csv_output(obj);
+		csv_output(obj, CSV);
 	} else if (otype == GEOJSON) {
 		JsonNode *geojson = geo_json(locs);
 		char *js;
