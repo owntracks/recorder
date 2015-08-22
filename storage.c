@@ -56,7 +56,7 @@ static int str_time_to_secs(char *s, time_t *secs)
 	for (f = formats; f && *f; f++) {
 		if (strptime(s, *f, &tm) != NULL) {
 			success = 1;
-			fprintf(stderr, "str_time_to_secs succeeds with %s\n", *f);
+			// fprintf(stderr, "str_time_to_secs succeeds with %s\n", *f);
 			break;
 		}
 	}
@@ -71,10 +71,11 @@ static int str_time_to_secs(char *s, time_t *secs)
 					 * effect for the specified time. */
 
 	*secs = mktime(&tm);
-	printf("str_time_to_secs: %s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
-		s,
-		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-		tm.tm_hour, tm.tm_min, tm.tm_sec);
+	// fprintf(stderr, "str_time_to_secs: %s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
+	// 	s,
+	// 	tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+	// 	tm.tm_hour, tm.tm_min, tm.tm_sec);
+
 	return (1);
 }
 

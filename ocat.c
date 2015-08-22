@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 		if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
 				json_foreach(f, arr) {
-					printf("%s\n", f->string_);
+					// fprintf(stderr, "%s\n", f->string_);
 					locations(f->string_, obj, locs, s_lo, s_hi);
 				}
 			}
