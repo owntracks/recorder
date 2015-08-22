@@ -1,5 +1,5 @@
-// #define __USE_XOPEN 1
-// #define _GNU_SOURCE 1
+#define __USE_XOPEN 1
+#define _GNU_SOURCE 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
