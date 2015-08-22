@@ -390,7 +390,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	utstring_printf(device, "%s", topics[2]);
 
 	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], TOPIC_SUFFIX) == 0)) {
-		do_info(ud, username, device, m->payload);
+		if (m->retain == FALSE || ud->ignoreretained == FALSE) {
+			do_info(ud, username, device, m->payload);
+		}
 	}
 
 	/* owntracks/user/device/msg */
