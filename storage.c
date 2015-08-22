@@ -140,7 +140,7 @@ static time_t t_lo, t_hi;	/* must be global so that filter() can access them */
 static int filter_filename(const struct dirent *d)
 {
 	struct tm tmfile, *tm;
-	int lo_year, lo_mon, hi_year, hi_mon;
+	int lo_months, hi_months, file_months;
 
 	/* if the filename doesn't look like YYYY-MM.rec we can safely ignore it.
 	 * Needs modifying after the year 2999 ;-) */
@@ -153,33 +153,25 @@ static int filter_filename(const struct dirent *d)
 		fprintf(stderr, "filter: convert err");
 		return (0);
 	}
+	file_months = (tmfile.tm_year + 1900) * 12 + tmfile.tm_mon;
 
 	tm = gmtime(&t_lo);
-	lo_year = tm->tm_year;
-	lo_mon = tm->tm_mon;
+	lo_months = (tm->tm_year + 1900) * 12 + tm->tm_mon;
 
 	tm = gmtime(&t_hi);
-	hi_year = tm->tm_year;
-	hi_mon = tm->tm_mon;
+	hi_months = (tm->tm_year + 1900) * 12 + tm->tm_mon;
 
 	/*
-	printf("lo   year: %d, %d\n", lo_year, lo_mon);
-	printf("file year: %d, %d\n", tmfile.tm_year, tmfile.tm_mon);
-	printf("hi   year: %d, %d\n", hi_year, hi_mon);
-	puts("");
-
 	printf("filter: file %s has %04d-%02d-%02d %02d:%02d:%02d\n",
 		d->d_name,
 		tmfile.tm_year + 1900, tmfile.tm_mon + 1, tmfile.tm_mday,
 		tmfile.tm_hour, tmfile.tm_min, tmfile.tm_sec);
 	*/
-	
-	if (tmfile.tm_year >= lo_year && tmfile.tm_year <= hi_year &&
-		tmfile.tm_mon >= lo_mon && tmfile.tm_mon <= hi_mon) {
+
+	if (file_months >= lo_months && file_months <= hi_months) {
 		// fprintf(stderr, "filter: returns: %s\n", d->d_name);
 		return (1);
 	}
-
 	return (0);
 }
 
