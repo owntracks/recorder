@@ -21,6 +21,10 @@ void csv_output(JsonNode *json, output_type otype)
 	double lat = 0.0, lon = 0.0;
 	char *tid = "", *addr;
 
+	if (otype == CSV) {
+		printf("tst,tid,lat,lon,addr\n");
+	}
+
 	arr = json_find_member(json, "locations");
 	json_foreach(one, arr) {
 		tid = addr = "";
@@ -81,7 +85,7 @@ void usage(char *prog)
 	printf("  --format json    	-f     output format (default: JSON)\n");
 	printf("           csv\n");
 	printf("           geojson\n");
-	printf("           tab\n");
+	printf("           tabular\n");
 
 	exit(1);
 }
@@ -248,10 +252,12 @@ int main(int argc, char **argv)
 		JsonNode *geojson = geo_json(locs);
 		char *js;
 
-		js = json_stringify(geojson, " ");
-		if (js != NULL) {
-			printf("%s\n", js);
-			free(js);
+		if (geojson != NULL) {
+			js = json_stringify(geojson, " ");
+			if (js != NULL) {
+				printf("%s\n", js);
+				free(js);
+			}
 		}
 	}
 
