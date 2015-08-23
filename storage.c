@@ -264,7 +264,7 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
  * contains `arr'.
  */
 
-void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi)
+void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, int rawmode)
 {
 	JsonNode *o, *json, *j;
 	FILE *fp;
@@ -311,6 +311,11 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 		secs = mktime(&tmline);
 
 		if (secs <= s_lo || secs >= s_hi) {
+			continue;
+		}
+
+		if (rawmode) {
+			printf("%s", buf);
 			continue;
 		}
 

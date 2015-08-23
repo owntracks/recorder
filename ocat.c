@@ -12,6 +12,7 @@ typedef enum {
 	GEOJSON,
 	CSV,
 	JSON,
+	RAW,
 } output_type;
 
 void csv_output(JsonNode *json, output_type otype)
@@ -85,6 +86,7 @@ void usage(char *prog)
 	printf("  --format json    	-f     output format (default: JSON)\n");
 	printf("           csv\n");
 	printf("           geojson\n");
+	printf("           raw\n");
 	printf("           tabular\n");
 
 	exit(1);
@@ -143,6 +145,8 @@ int main(int argc, char **argv)
 					otype = TABULAR;
 				else if (!strcmp(optarg, "geojson"))
 					otype = GEOJSON;
+				else if (!strcmp(optarg, "raw"))
+					otype = RAW;
 				else if (!strcmp(optarg, "csv"))
 					otype = CSV;
 				else {
@@ -217,7 +221,7 @@ int main(int argc, char **argv)
 		int n;
 
 		for (n = 0; n < argc; n++) {
-			locations(argv[n], obj, locs, s_lo, s_hi);
+			locations(argv[n], obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
 		}
 	} else {
 		JsonNode *arr, *f;
@@ -226,7 +230,7 @@ int main(int argc, char **argv)
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
 				json_foreach(f, arr) {
 					// fprintf(stderr, "%s\n", f->string_);
-					locations(f->string_, obj, locs, s_lo, s_hi);
+					locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
 				}
 			}
 			json_delete(json);
@@ -248,6 +252,8 @@ int main(int argc, char **argv)
 		csv_output(obj, TABULAR);
 	} else if (otype == CSV) {
 		csv_output(obj, CSV);
+	} else if (otype == RAW) {
+		/* We've already done what we need to do in locations() */
 	} else if (otype == GEOJSON) {
 		JsonNode *geojson = geo_json(locs);
 		char *js;
