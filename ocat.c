@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 	if (list) {
 		char *js;
 
-		json = lister(username, device, s_lo, s_hi);
+		json = lister(username, device, 0, s_hi);
 		if (json == NULL) {
 			fprintf(stderr, "%s: cannot list\n", progname);
 			exit(2);
