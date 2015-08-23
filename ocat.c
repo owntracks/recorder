@@ -103,6 +103,13 @@ int main(int argc, char **argv)
 	time_t now, s_lo, s_hi;
 	output_type otype = JSON;
 
+	if ((p = getenv("OCAT_USERNAME")) != NULL) {
+		username = strdup(p);
+	}
+	if ((p = getenv("OCAT_DEVICE")) != NULL) {
+		device = strdup(p);
+	}
+
 	if ((p = getenv("OCAT_FORMAT")) != NULL) {
 		switch (tolower(*p)) {
 			case 'j': otype = JSON; break;

@@ -53,3 +53,5 @@ _ocat_ is a CLI driver for _recorder_: it prints data stored by the _recorder_ i
 The following environment variables control _ocat_'s behaviour:
 
 * `OCAT_FORMAT` can be set to the preferred output format. If unset, JSON is used. The `--format` option overrides this setting.
+* `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
+* `OCAT_DEVICE` can be set to the preferred device name. The `--device` option overrides this environment variable.
