@@ -271,7 +271,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 	int doclose;
 	char buf[BUFSIZ], **element;
 	long counter = 0L;
-	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", NULL };
+	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", "p", NULL };
 	static char *strings[] = { "tid", "t", NULL };
 	static UT_string *tstamp = NULL;
 
