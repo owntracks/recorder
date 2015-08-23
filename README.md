@@ -43,3 +43,13 @@ The `monitor` file is located relative to STORE and contains a single line, the 
 ```
 1439738692 owntracks/jjolie/ipad
 ```
+
+## `ocat`
+
+_ocat_ is a CLI driver for _recorder_: it prints data stored by the _recorder_ in a variety of output formats.
+
+#### Environment
+
+The following environment variables control _ocat_'s behaviour:
+
+* `OCAT_FORMAT` can be set to the preferred output format. If unset, JSON is used. The `--format` option overrides this setting.

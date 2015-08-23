@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <ctype.h>
 #include <time.h>
 #include "json.h"
 #include "storage.h"
@@ -94,7 +95,7 @@ void usage(char *prog)
 
 int main(int argc, char **argv)
 {
-	char *progname = *argv;
+	char *progname = *argv, *p;
 	int c;
 	int list = 0;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
@@ -102,6 +103,15 @@ int main(int argc, char **argv)
 	time_t now, s_lo, s_hi;
 	output_type otype = JSON;
 
+	if ((p = getenv("OCAT_FORMAT")) != NULL) {
+		switch (tolower(*p)) {
+			case 'j': otype = JSON; break;
+			case 'c': otype = CSV; break;
+			case 'g': otype = GEOJSON; break;
+			case 'r': otype = RAW; break;
+			case 't': otype = TABULAR; break;
+		}
+	}
 
 	time(&now);
 
