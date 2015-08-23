@@ -89,6 +89,7 @@ void usage(char *prog)
 	printf("           geojson\n");
 	printf("           raw\n");
 	printf("           tabular\n");
+	printf("  --killdata                   requires -u and -d\n");
 
 	exit(1);
 }
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
 {
 	char *progname = *argv, *p;
 	int c;
-	int list = 0;
+	int list = 0, killdata = 0;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
@@ -131,11 +132,12 @@ int main(int argc, char **argv)
 			{ "from",	required_argument, 0, 	'F'},
 			{ "to",		required_argument, 0, 	'T'},
 			{ "format",	required_argument, 0, 	'f'},
+			{ "killdata",	no_argument, 0, 	'K'},
 		  	{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:f:", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:K", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -171,6 +173,9 @@ int main(int argc, char **argv)
 					exit(2);
 				}
 				break;
+			case 'K':
+				killdata = 1;
+				break;
 			case 'h':
 			case '?':
 				/* getopt_long already printed message */
@@ -184,6 +189,22 @@ int main(int argc, char **argv)
 
 	argc -= (optind);
 	argv += (optind);
+
+	if (killdata) {
+		JsonNode *killed, *f;
+
+		if (!username || !device) {
+			fprintf(stderr, "%s: killdata requires username and device\n", progname);
+			return (-2);
+		}
+
+		fprintf(stderr, "Storage deleted these files:\n");
+		killed = kill_datastore(username, device);
+		json_foreach(f, killed) {
+			fprintf(stderr, "  %s\n", f->string_);
+		}
+		return (0);
+	}
 
 	if (!username && device) {
 		fprintf(stderr, "%s: device name without username doesn't make sense\n", progname);
@@ -232,8 +253,6 @@ int main(int argc, char **argv)
 		usage(progname);
 	}
 
-
-	
 
 	/*
 	 * If any files were passed on the command line, we assume these are *.rec

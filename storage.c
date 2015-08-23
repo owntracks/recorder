@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fnmatch.h>
+#include <unistd.h>
 #include <ctype.h>
 #include "utstring.h"
 #include "config.h"
@@ -480,4 +481,67 @@ JsonNode *geo_json(JsonNode *location_array)
 	json_append_member(fcollection, "features", feature_array);
 
 	return (fcollection);
+}
+
+/*
+ * Remove all data for a user's device. Return a JSON array of deleted files.
+ */
+
+static int kill_datastore_filter(const struct dirent *d)
+{
+	return (*d->d_name == '.') ? 0 : 1;
+}
+
+JsonNode *kill_datastore(char *user, char *device)
+{
+	static UT_string *path = NULL, *fname = NULL;
+	JsonNode *killed = json_mkarray();
+	char *bp;
+	struct dirent **namelist;
+	int i, n;
+
+	utstring_renew(path);
+	utstring_renew(fname);
+
+	if (!user || !*user || !device || !*device)
+		return (killed);
+
+	for (bp = user; bp && *bp; bp++) {
+		if (isupper(*bp))
+			*bp = tolower(*bp);
+	}
+	for (bp = device; bp && *bp; bp++) {
+		if (isupper(*bp))
+			*bp = tolower(*bp);
+	}
+
+	utstring_printf(path, "%s/rec/%s/%s", STORAGEDIR, user, device);
+
+	if ((n = scandir(utstring_body(path), &namelist, kill_datastore_filter, NULL)) < 0) {
+		perror(utstring_body(path));
+                return (killed);
+	}
+
+	for (i = 0; i < n; i++) {
+		char *p;
+
+		utstring_clear(fname);
+		utstring_printf(fname, "%s/%s", utstring_body(path), namelist[i]->d_name);
+
+		p = utstring_body(fname);
+		if (remove(p) == 0) {
+			json_append_element(killed, json_mkstring(namelist[i]->d_name));
+		} else {
+			perror(p);
+		}
+
+		free(namelist[i]);
+	}
+	free(namelist);
+
+	if (rmdir(utstring_body(path)) != 0) {
+		perror(utstring_body(path));
+	}
+
+	return (killed);
 }
