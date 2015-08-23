@@ -484,7 +484,8 @@ JsonNode *geo_json(JsonNode *location_array)
 }
 
 /*
- * Remove all data for a user's device. Return a JSON array of deleted files.
+ * Remove all data for a user's device. Return a JSON object with a status
+ * and an array of deleted files.
  */
 
 static int kill_datastore_filter(const struct dirent *d)
@@ -495,7 +496,7 @@ static int kill_datastore_filter(const struct dirent *d)
 JsonNode *kill_datastore(char *user, char *device)
 {
 	static UT_string *path = NULL, *fname = NULL;
-	JsonNode *killed = json_mkarray();
+	JsonNode *obj = json_mkobject(), *killed = json_mkarray();
 	char *bp;
 	struct dirent **namelist;
 	int i, n;
@@ -504,7 +505,7 @@ JsonNode *kill_datastore(char *user, char *device)
 	utstring_renew(fname);
 
 	if (!user || !*user || !device || !*device)
-		return (killed);
+		return (obj);
 
 	for (bp = user; bp && *bp; bp++) {
 		if (isupper(*bp))
@@ -516,10 +517,13 @@ JsonNode *kill_datastore(char *user, char *device)
 	}
 
 	utstring_printf(path, "%s/rec/%s/%s", STORAGEDIR, user, device);
+	json_append_member(obj, "path", json_mkstring(utstring_body(path)));
 
 	if ((n = scandir(utstring_body(path), &namelist, kill_datastore_filter, NULL)) < 0) {
-		perror(utstring_body(path));
-                return (killed);
+		json_append_member(obj, "status", json_mkstring("ERROR"));
+		json_append_member(obj, "error", json_mkstring(strerror(errno)));
+		json_append_member(obj, "reason", json_mkstring("cannot scandir"));
+                return (obj);
 	}
 
 	for (i = 0; i < n; i++) {
@@ -539,9 +543,12 @@ JsonNode *kill_datastore(char *user, char *device)
 	}
 	free(namelist);
 
+	json_append_member(obj, "status", json_mkstring("OK"));
 	if (rmdir(utstring_body(path)) != 0) {
-		perror(utstring_body(path));
+		json_append_member(obj, "status", json_mkstring("ERROR"));
+		json_append_member(obj, "error", json_mkstring( strerror(errno)));
 	}
 
-	return (killed);
+	json_append_member(obj, "killed", killed);
+	return (obj);
 }

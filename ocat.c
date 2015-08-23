@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 	argv += (optind);
 
 	if (killdata) {
-		JsonNode *killed, *f;
+		JsonNode *obj; //, *killed, *f;
 
 		if (!username || !device) {
 			fprintf(stderr, "%s: killdata requires username and device\n", progname);
@@ -199,9 +199,18 @@ int main(int argc, char **argv)
 		}
 
 		fprintf(stderr, "Storage deleted these files:\n");
-		killed = kill_datastore(username, device);
-		json_foreach(f, killed) {
-			fprintf(stderr, "  %s\n", f->string_);
+		if ((obj = kill_datastore(username, device)) != NULL) {
+			char *js;
+			// if ((killed = json_find_member(obj, "results")) != NULL) { // get array
+			// 	json_foreach(f, killed) {
+			// 		fprintf(stderr, "  %s\n", f->string_);
+			// 	}
+			// }
+
+			js = json_stringify(obj, " ");
+			puts(js);
+			free(js);
+			json_delete(obj);
 		}
 		return (0);
 	}
