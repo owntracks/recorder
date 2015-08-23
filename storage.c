@@ -119,7 +119,6 @@ static void ls(char *path, JsonNode *obj)
         struct dirent *dp;
 	JsonNode *jarr = json_mkarray();
 
-	printf("opendir %s\n", path);
         if ((dirp = opendir(path)) == NULL) {
 		json_append_member(obj, "error", json_mkstring("Cannot open requested directory"));
                 return;

@@ -186,10 +186,21 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: cannot list\n", progname);
 			exit(2);
 		}
-		js = json_stringify(json, " ");
-		printf("%s\n", js);
+		if (otype == JSON) {
+			js = json_stringify(json, " ");
+			printf("%s\n", js);
+			free(js);
+		} else {
+			JsonNode *f, *arr;
+
+			if ((arr = json_find_member(json, "results")) != NULL) { // get array
+				json_foreach(f, arr) {
+					printf("%s\n", f->string_);
+				}
+			}
+		}
+
 		json_delete(json);
-		free(js);
 
 		return (0);
 	}
