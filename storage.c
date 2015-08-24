@@ -15,6 +15,8 @@
 #include "util.h"
 #include "udata.h"
 
+#define LINESIZE	8192
+
 int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *cc);
 
 void get_geo(JsonNode *o, char *ghash)
@@ -120,6 +122,9 @@ static void ls(char *path, JsonNode *obj)
         struct dirent *dp;
 	JsonNode *jarr = json_mkarray();
 
+	if (obj == NULL || obj->tag != JSON_OBJECT)
+		return;
+
         if ((dirp = opendir(path)) == NULL) {
 		json_append_member(obj, "error", json_mkstring("Cannot open requested directory"));
                 return;
@@ -197,6 +202,9 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
 	JsonNode *jarr = json_mkarray();
 	static UT_string *path = NULL;
 
+	if (obj == NULL || obj->tag != JSON_OBJECT)
+		return;
+
 	utstring_renew(path);
 
 	/* Set global t_ values */
@@ -269,11 +277,14 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 	JsonNode *o, *json, *j;
 	FILE *fp;
 	int doclose;
-	char buf[BUFSIZ], **element;
+	char buf[LINESIZE], **element;
 	long counter = 0L;
 	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", "p", NULL };
 	static char *strings[] = { "tid", "t", NULL };
 	static UT_string *tstamp = NULL;
+
+	if (obj == NULL || obj->tag != JSON_OBJECT)
+		return;
 
 	utstring_renew(tstamp);
 
