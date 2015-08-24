@@ -535,21 +535,20 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		if (ud->usefiles) {
 			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 
-				// fprintf(fp, "%s\n", jsonstring);
 				fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
-
-				/* Now safewrite the last location */
-				utstring_printf(ts, "%s/last/%s/%s",
-					STORAGEDIR, utstring_body(username), utstring_body(device));
-				if (mkpath(utstring_body(ts)) < 0) {
-					perror(utstring_body(ts));
-				}
-				utstring_printf(ts, "/%s-%s.json",
-					utstring_body(username), utstring_body(device));
-
-				safewrite(utstring_body(ts), jsonstring);
 				fclose(fp);
 			}
+
+			/* Now safewrite the last location */
+			utstring_printf(ts, "%s/last/%s/%s",
+				STORAGEDIR, utstring_body(username), utstring_body(device));
+			if (mkpath(utstring_body(ts)) < 0) {
+				perror(utstring_body(ts));
+			}
+			utstring_printf(ts, "/%s-%s.json",
+				utstring_body(username), utstring_body(device));
+
+			safewrite(utstring_body(ts), jsonstring);
 		}
 		free(jsonstring);
 	}
