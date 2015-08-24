@@ -16,6 +16,37 @@ typedef enum {
 	RAW,
 } output_type;
 
+#if 0
+void csv_output(JsonNode *json, output_type otype)
+{
+	JsonNode *arr, *one, *j;
+	short virgin = 1;
+
+	arr = json_find_member(json, "locations");
+	json_foreach(one, arr) {
+		if (virgin) {
+			virgin = !virgin;
+
+			/* Print headings from key names */
+			json_foreach(j, one) {
+				if (j->key)
+					printf("%s%c", j->key, (j->next) ? ',' : '\n');
+			}
+		}
+		/* Now the values */
+		json_foreach(j, one) {
+			if (j->tag == JSON_STRING) {
+				printf("%s%c", j->string_, (j->next) ? ',' : '\n');
+			} else if (j->tag == JSON_NUMBER) {
+				/* hmm; what do I do with ints ? */
+				printf("%lf%c", j->number_, (j->next) ? ',' : '\n');
+			}
+		}
+	}
+}
+#endif
+
+#if 1
 void csv_output(JsonNode *json, output_type otype)
 {
 	JsonNode *arr, *one, *j;
@@ -69,6 +100,7 @@ void csv_output(JsonNode *json, output_type otype)
 		}
 	}
 }
+#endif
 
 void usage(char *prog)
 {
@@ -255,11 +287,12 @@ int main(int argc, char **argv)
 	if (argc == 0 && !username && !device) {
 		fprintf(stderr, "%s: nothing to do. Specify filename or --user and --device\n", progname);
 		return (-1);
-	} else if (username && device && (argc > 0)) {
+	} else if (argc == 0 && (!username || !device)) {
+		fprintf(stderr, "%s: must specify username and device\n", progname);
+		return (-1);
+	} else if ((username || device) && (argc > 0)) {
 		fprintf(stderr, "%s: filename with --user and --device is not supported\n", progname);
 		return (-1);
-	} else if (!username || !device) {
-		usage(progname);
 	}
 
 
