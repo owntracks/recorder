@@ -119,7 +119,12 @@ static const char *ltime(time_t t) {
 	return(buf);
 }
 
-void do_info(void *userdata, UT_string *username, UT_string *device, char *payload)
+/*
+ * Process info/ message containing a CARD. If the payload is not a card, return FALSE
+ * else TRUE.
+ */
+
+int do_info(void *userdata, UT_string *username, UT_string *device, char *payload)
 {
 	struct udata *ud = (struct udata *)userdata;
 	JsonNode *json, *j;
@@ -129,13 +134,14 @@ void do_info(void *userdata, UT_string *username, UT_string *device, char *paylo
 #endif
 	FILE *fp;
 	char *img;
+	int rc = FALSE;
 
 	utstring_renew(name);
 	utstring_renew(face);
 
         if ((json = json_decode(payload)) == NULL) {
 		fprintf(stderr, "Can't decode INFO payload for username=%s\n", utstring_body(username));
-		return;
+		return (FALSE);
 	}
 
 	if (ud->skipdemo && (json_find_member(json, "_demo") != NULL)) {
@@ -156,6 +162,7 @@ void do_info(void *userdata, UT_string *username, UT_string *device, char *paylo
 			fprintf(fp, "%s\n", payload);
 			fclose(fp);
 		}
+		rc = TRUE;
 	}
 
 	if ((j = json_find_member(json, "name")) != NULL) {
@@ -210,6 +217,7 @@ void do_info(void *userdata, UT_string *username, UT_string *device, char *paylo
 
     cleanup:
 	json_delete(json);
+	return (rc);
 }
 
 void do_msg(void *userdata, UT_string *username, UT_string *device, char *payload)
@@ -385,7 +393,8 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], TOPIC_SUFFIX) == 0)) {
 		if (m->retain == FALSE || ud->ignoreretained == FALSE) {
-			do_info(ud, username, device, m->payload);
+			if (do_info(ud, username, device, m->payload) == TRUE)	/* this was a card */
+				return;
 		}
 	}
 
