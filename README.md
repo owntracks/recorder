@@ -8,6 +8,7 @@ We took a number of decisions for the design of the recorder and its utilities:
 * Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups you can employ Redis as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
 * Storage format is typically JSON because it's extensible. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs have a leading timestamp and a relative topic; see below.
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
+* All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
 
 ## Storage
 
