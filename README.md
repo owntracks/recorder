@@ -1,6 +1,29 @@
 # recorder
 Recorder
 
+## Design decisions
+
+We took a number of decisions for the design of the recorder and its utilities:
+
+* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups you can employ Redis as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
+* Storage format is typically JSON because it's extensible. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs have a leading timestamp and a relative topic; see below.
+* File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
+
+## Storage
+
+As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
+
+* `cards/`, optional, contain user cards.
+* `ghash/`, unless disabled, reverse Geo data is collected in files named after the geohash in directories named with the first three characters of the geohash.
+* `last/` contains the last location publish from a device. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`.
+* `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
+* `msg/` contains messages received by the Messaging system.
+* `photos/` optional; contains the binary photos from a _card_.
+* `rec/` the recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
+
+
+
+
 ## Requirements
 
 * [hiredis](https://github.com/redis/hiredis) unless `HAVE_REDIS` is false.
