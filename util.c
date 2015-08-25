@@ -42,16 +42,15 @@ char *slurp_file(char *filename, int fold_newlines)
 	return (buf);
 }
 
-int json_copy_to_object(JsonNode * obj, JsonNode * object_or_array)
+int json_copy_to_object(JsonNode * obj, JsonNode * object_or_array, int clobber)
 {
 	JsonNode *node;
 
 	if (obj->tag != JSON_OBJECT && obj->tag != JSON_ARRAY)
 		return (FALSE);
 
-	/* should we delete keys which already exist in `obj' ? */
 	json_foreach(node, object_or_array) {
-		if (json_find_member(obj, node->key) != NULL)
+		if (!clobber & (json_find_member(obj, node->key) != NULL))
 			continue;	/* Don't clobber existing keys */
 		if (obj->tag == JSON_OBJECT) {
 			if (node->tag == JSON_STRING)
@@ -64,11 +63,11 @@ int json_copy_to_object(JsonNode * obj, JsonNode * object_or_array)
 				json_append_member(obj, node->key, json_mknull());
 			else if (node->tag == JSON_ARRAY) {
 				JsonNode       *array = json_mkarray();
-				json_copy_to_object(array, node);
+				json_copy_to_object(array, node, clobber);
 				json_append_member(obj, node->key, array);
 			} else if (node->tag == JSON_OBJECT) {
 				JsonNode       *newobj = json_mkobject();
-				json_copy_to_object(newobj, node);
+				json_copy_to_object(newobj, node, clobber);
 				json_append_member(obj, node->key, newobj);
 			} else
 				printf("PANIC: unhandled JSON type %d\n", node->tag);
@@ -104,7 +103,7 @@ int json_copy_from_file(JsonNode *obj, char *filename)
 		fprintf(stderr, "json_copy_from_file can't decode JSON from %s\n", filename);
 		return (FALSE);
 	}
-	json_copy_to_object(obj, node);
+	json_copy_to_object(obj, node, FALSE);
 	json_delete(node);
 
 	return (TRUE);
