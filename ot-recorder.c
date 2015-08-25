@@ -555,6 +555,8 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			/* Keep track of original username & device name in LAST. */
 			json_append_member(json, "username",    json_mkstring(utstring_body(username)));
 			json_append_member(json, "device",    json_mkstring(utstring_body(device)));
+			json_append_member(json, "topic",    json_mkstring(m->topic));
+			json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
 
 			if ((js = json_stringify(json, NULL)) != NULL) {
 				/* Now safewrite the last location */
