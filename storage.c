@@ -86,8 +86,8 @@ static int user_device_list(char *name, int level, JsonNode *obj)
 
 void append_device_details(JsonNode *userlist, char *user, char *device)
 {
-	char path[BUFSIZ];
-	JsonNode *last, *card;
+	char path[BUFSIZ], *ghash;
+	JsonNode *node, *last, *card, *geo;
 
 	snprintf(path, BUFSIZ, "%s/last/%s/%s/%s-%s.json",
 		STORAGEDIR, user, device, user, device);
@@ -106,8 +106,28 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 	if (json_copy_from_file(card, path) == TRUE) {
 		json_copy_to_object(last, card);
 	} else {
+		/* No CARD? Discontinue */
 		json_delete(card);
+
+		json_remove_from_parent(last);
+		json_delete(last);
+		return;
 	}
+
+	if ((node = json_find_member(last, "ghash")) != NULL) {
+		ghash = node->string_;
+		snprintf(path, BUFSIZ, "%s/ghash/%-3.3s/%s.json",
+			STORAGEDIR, ghash, ghash);
+
+		geo = json_mkobject();
+		if (json_copy_from_file(geo, path) == TRUE) {
+			json_copy_to_object(last, geo);
+		} else {
+			json_delete(geo);
+		}
+	}
+
+
 }
 
 JsonNode *last_users()
