@@ -721,6 +721,10 @@ int main(int argc, char **argv)
 		port = atoi(p);
 	}
 
+	if ((p = getenv("OTR_STORAGEDIR")) != NULL) {
+		strcpy(STORAGEDIR, p);
+	}
+
 	if (ud->revgeo == TRUE) {
 		revgeo_init();
 	}
