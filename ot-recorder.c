@@ -531,6 +531,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * Add a few bits to the JSON, and record it on a per-user/device basis.
         json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
 	 */
+
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
 
@@ -542,22 +543,32 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 #endif
 
 		if (ud->usefiles) {
+			char *js;
+
 			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 
 				fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
 				fclose(fp);
 			}
 
-			/* Now safewrite the last location */
-			utstring_printf(ts, "%s/last/%s/%s",
-				STORAGEDIR, utstring_body(username), utstring_body(device));
-			if (mkpath(utstring_body(ts)) < 0) {
-				perror(utstring_body(ts));
-			}
-			utstring_printf(ts, "/%s-%s.json",
-				utstring_body(username), utstring_body(device));
 
-			safewrite(utstring_body(ts), jsonstring);
+			/* Keep track of original username & device name in LAST. */
+			json_append_member(json, "username",    json_mkstring(utstring_body(username)));
+			json_append_member(json, "device",    json_mkstring(utstring_body(device)));
+
+			if ((js = json_stringify(json, NULL)) != NULL) {
+				/* Now safewrite the last location */
+				utstring_printf(ts, "%s/last/%s/%s",
+					STORAGEDIR, utstring_body(username), utstring_body(device));
+				if (mkpath(utstring_body(ts)) < 0) {
+					perror(utstring_body(ts));
+				}
+				utstring_printf(ts, "/%s-%s.json",
+					utstring_body(username), utstring_body(device));
+
+				safewrite(utstring_body(ts), js);
+				free(js);
+			}
 		}
 		free(jsonstring);
 	}
