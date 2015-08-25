@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:", long_options, &optindex);
 		if (c == -1)
 			break;
 
