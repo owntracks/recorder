@@ -104,7 +104,7 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 	card = json_mkobject();
 	if (json_copy_from_file(card, path) == TRUE) {
-		json_copy_to_object(last, card);
+		json_copy_to_object(last, card, FALSE);
 	} else {
 		/* No CARD? Discontinue */
 		json_delete(card);
@@ -121,7 +121,7 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 		geo = json_mkobject();
 		if (json_copy_from_file(geo, path) == TRUE) {
-			json_copy_to_object(last, geo);
+			json_copy_to_object(last, geo, FALSE);
 		} else {
 			json_delete(geo);
 		}
@@ -129,6 +129,10 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 
 }
+
+/*
+ * Return an array of users gleaned from LAST with merged details
+ */
 
 JsonNode *last_users()
 {
