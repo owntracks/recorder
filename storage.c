@@ -16,6 +16,8 @@
 #include "util.h"
 #include "udata.h"
 
+char STORAGEDIR[BUFSIZ] = "./store";
+
 #define LINESIZE	8192
 
 int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *cc);

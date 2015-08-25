@@ -13,7 +13,7 @@ We took a number of decisions for the design of the recorder and its utilities:
 
 ## Storage
 
-As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
+As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
 
 * `cards/`, optional, contain user cards.
 * `ghash/`, unless disabled, reverse Geo data is collected in files named after the geohash in directories named with the first three characters of the geohash.

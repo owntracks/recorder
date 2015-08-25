@@ -7,6 +7,7 @@
 #include "json.h"
 #include "storage.h"
 #include "util.h"
+#include "misc.h"
 
 typedef enum {
 	TABULAR   = 0,
@@ -123,6 +124,7 @@ void usage(char *prog)
 	printf("           tabular\n");
 	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
+	printf("  --storage		-S     storage dir (./store)\n");
 
 	exit(1);
 }
@@ -154,6 +156,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if ((p = getenv("OCAT_STORAGEDIR")) != NULL) {
+		strcpy(STORAGEDIR, p);
+	}
+
 	time(&now);
 
 	while (1) {
@@ -165,6 +171,7 @@ int main(int argc, char **argv)
 			{ "from",	required_argument, 0, 	'F'},
 			{ "to",		required_argument, 0, 	'T'},
 			{ "format",	required_argument, 0, 	'f'},
+			{ "storage",	required_argument, 0, 	'S'},
 			{ "last",	no_argument, 0, 	'L'},
 			{ "killdata",	no_argument, 0, 	'K'},
 		  	{0, 0, 0, 0}
@@ -187,6 +194,9 @@ int main(int argc, char **argv)
 				break;
 			case 'F':
 				time_from = strdup(optarg);
+				break;
+			case 'S':
+				strcpy(STORAGEDIR, optarg);
 				break;
 			case 'T':
 				time_to = strdup(optarg);

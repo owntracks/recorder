@@ -4,6 +4,8 @@
 #include <time.h>
 #include "udata.h"
 
+extern char STORAGEDIR[];
+
 #ifndef TRUE
 # define TRUE (1)
 # define FALSE (0)
