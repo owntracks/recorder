@@ -8,6 +8,7 @@
 #include <fnmatch.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #include "utstring.h"
 #include "config.h"
 #include "storage.h"
@@ -34,6 +35,109 @@ void get_geo(JsonNode *o, char *ghash)
 		json_append_member(o, "addr", json_mkstring(utstring_body(addr)));
 		json_append_member(o, "cc", json_mkstring(utstring_body(cc)));
 	}
+}
+
+
+/*
+ * Populate a JSON object (`node') keyed by directory name; each element points
+ * to a JSON array with a list of subdirectories on the first level.
+ *
+ * { "jpm": [ "5s", "nex4" ], "jjolie": [ "iphone5" ] }
+ *
+ * Returns 1 on failure.
+ */
+
+static int user_device_list(char *name, int level, JsonNode *obj)
+{
+	DIR *dirp;
+	struct dirent *dp;
+	char path[BUFSIZ];
+	JsonNode *devlist;
+	int rc = 0;
+	struct stat sb;
+
+	if ((dirp = opendir(name)) == NULL) {
+		perror(name);
+		return (1);
+	}
+	while ((dp = readdir(dirp)) != NULL) {
+		if (*dp->d_name != '.') {
+			sprintf(path, "%s/%s", name, dp->d_name);
+
+			if (stat(path, &sb) != 0) {
+				continue;
+			}
+			if (!S_ISDIR(sb.st_mode))
+				continue;
+
+
+			if (level == 0) {
+				devlist = json_mkarray();
+				json_append_member(obj, dp->d_name, devlist);
+				rc = user_device_list(path, level + 1, devlist);
+			} else if (level == 1) {
+				json_append_element(obj, json_mkstring(dp->d_name));
+			}
+		}
+	}
+	closedir(dirp);
+	return (rc);
+}
+
+void append_device_details(JsonNode *userlist, char *user, char *device)
+{
+	char path[BUFSIZ];
+	JsonNode *last, *card;
+
+	snprintf(path, BUFSIZ, "%s/last/%s/%s/%s-%s.json",
+		STORAGEDIR, user, device, user, device);
+
+	last = json_mkobject();
+	if (json_copy_from_file(last, path) == TRUE) {
+		json_append_element(userlist, last);
+	} else {
+		json_delete(last);
+	}
+
+	snprintf(path, BUFSIZ, "%s/cards/%s/%s.json",
+		STORAGEDIR, user, user);
+
+	card = json_mkobject();
+	if (json_copy_from_file(card, path) == TRUE) {
+		json_copy_to_object(last, card);
+	} else {
+		json_delete(card);
+	}
+}
+
+JsonNode *last_users()
+{
+	JsonNode *obj = json_mkobject();
+	JsonNode *un, *dn, *userlist = json_mkarray();
+	char path[BUFSIZ], user[BUFSIZ], device[BUFSIZ];
+
+	snprintf(path, BUFSIZ, "%s/last", STORAGEDIR);
+
+	if (user_device_list(path, 0, obj) == 1)
+		return (obj);
+
+	/* Loop through users, devices */
+	json_foreach(un, obj) {
+		if (un->tag != JSON_ARRAY)
+			continue;
+		strcpy(user, un->key);
+		json_foreach(dn, un) {
+			if (dn->tag == JSON_STRING) {
+				strcpy(device, dn->string_);
+			} else if (dn->tag == JSON_NUMBER) {	/* all digits? */
+				sprintf(device, "%.lf", dn->number_);
+			}
+			append_device_details(userlist, user, device);
+		}
+	}
+	json_delete(obj);
+
+	return (userlist);
 }
 
 /*

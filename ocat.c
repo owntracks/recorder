@@ -121,6 +121,7 @@ void usage(char *prog)
 	printf("           geojson\n");
 	printf("           raw\n");
 	printf("           tabular\n");
+	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
 
 	exit(1);
@@ -130,7 +131,7 @@ int main(int argc, char **argv)
 {
 	char *progname = *argv, *p;
 	int c;
-	int list = 0, killdata = 0;
+	int list = 0, killdata = 0, last = 0;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
@@ -164,12 +165,13 @@ int main(int argc, char **argv)
 			{ "from",	required_argument, 0, 	'F'},
 			{ "to",		required_argument, 0, 	'T'},
 			{ "format",	required_argument, 0, 	'f'},
+			{ "last",	no_argument, 0, 	'L'},
 			{ "killdata",	no_argument, 0, 	'K'},
 		  	{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:f:K", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:KL", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -208,6 +210,9 @@ int main(int argc, char **argv)
 			case 'K':
 				killdata = 1;
 				break;
+			case 'L':
+				last = 1;
+				break;
 			case 'h':
 			case '?':
 				/* getopt_long already printed message */
@@ -244,6 +249,19 @@ int main(int argc, char **argv)
 			free(js);
 			json_delete(obj);
 		}
+		return (0);
+	}
+
+	if (last) {
+		JsonNode *obj;
+		char *js;
+
+		obj = last_users();
+		js = json_stringify(obj, " ");
+		printf("%s\n", js);
+
+		free(js);
+		json_delete(obj);
 		return (0);
 	}
 
