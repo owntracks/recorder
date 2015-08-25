@@ -182,7 +182,7 @@ void ghash_storecache(struct udata *ud, JsonNode *geo, char *ghash, char *addr, 
 			char *js;
 
 			/* I am storing the ghash *in* the JSON purpose */
-			json_append_member(geo, "cc", json_mkstring(ghash));
+			json_append_member(geo, "ghash", json_mkstring(ghash));
 
 			if ((js = json_stringify(geo, NULL)) != NULL) {
 				snprintf(gfile, BUFSIZ, "%s/ghash/%-3.3s", STORAGEDIR, ghash);
