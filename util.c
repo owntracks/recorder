@@ -51,6 +51,8 @@ int json_copy_to_object(JsonNode * obj, JsonNode * object_or_array)
 
 	/* should we delete keys which already exist in `obj' ? */
 	json_foreach(node, object_or_array) {
+		if (json_find_member(obj, node->key) != NULL)
+			continue;	/* Don't clobber existing keys */
 		if (obj->tag == JSON_OBJECT) {
 			if (node->tag == JSON_STRING)
 				json_append_member(obj, node->key, json_mkstring(node->string_));
@@ -94,15 +96,16 @@ int json_copy_from_file(JsonNode *obj, char *filename)
 	char *js_string;
 	JsonNode *node;
 
-	if ((js_string = slurp_file(filename, TRUE)) != NULL) {
-		if ((node = json_decode(js_string)) == NULL) {
-			fprintf(stderr, "json_copy_from_file can't decode JSON from %s\n", filename);
-			return (FALSE);
-		}
-		json_copy_to_object(obj, node);
-		json_delete(node);
-
-		free(js_string);
+	if ((js_string = slurp_file(filename, TRUE)) == NULL) {
+		return (FALSE);
 	}
+
+	if ((node = json_decode(js_string)) == NULL) {
+		fprintf(stderr, "json_copy_from_file can't decode JSON from %s\n", filename);
+		return (FALSE);
+	}
+	json_copy_to_object(obj, node);
+	json_delete(node);
+
 	return (TRUE);
 }
