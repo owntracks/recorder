@@ -16,35 +16,48 @@ typedef enum {
 	RAW,
 } output_type;
 
-static void print_one(JsonNode *j)
-{
-	static char *ints[] = { "batt", "vel", "cog", "tst", "alt", NULL };
-	char **p;
+/*
+ * Print the value in a single JSON node. If string, easy. If number account for
+ * what we call 'integer' types which shouldn't be printed as floats.
+ */
 
+static void print_one(JsonNode *j, JsonNode *inttypes)
+{
 	/* Check if the value should be an "integer" (ie not float) */
 	if (j->tag == JSON_NUMBER) {
-		int isint = FALSE;
-		for (p = ints; p && *p; p++) {
-			if (!strcmp(j->key, *p)) {
-				isint = TRUE;
-				printf("%.lf", j->number_);
-				break;
-			}
-		}
-		if (!isint) {
+		if (json_find_member(inttypes, j->key)) {
+			printf("%.lf", j->number_);
+		} else {
 			printf("%lf", j->number_);
 		}
 	} else if (j->tag == JSON_STRING) {
 		printf("%s", j->string_);
-
+	} else if (j->tag == JSON_BOOL) {
+		printf("%s", (j->bool_) ? "true" : "false");
+	} else if (j->tag == JSON_NULL) {
+		printf("null");
 	}
 }
 
+/*
+ * Output location data as CSV. If `fields' is not NULL, it's a JSON
+ * array of JSON elment names which should be printed instead of the
+ * default ALL.
+ */
+
 void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
 {
-	JsonNode *node;
+	JsonNode *node, *inttypes;
 	JsonNode *arr, *one, *j;
 	short virgin = 1;
+
+	/* Prime the inttypes object with types we consider "integer" */
+	inttypes = json_mkobject();
+	json_append_member(inttypes, "batt", json_mkbool(1));
+	json_append_member(inttypes, "vel", json_mkbool(1));
+	json_append_member(inttypes, "cog", json_mkbool(1));
+	json_append_member(inttypes, "tst", json_mkbool(1));
+	json_append_member(inttypes, "alt", json_mkbool(1));
 
 	arr = json_find_member(json, "locations");
 	json_foreach(one, arr) {
@@ -68,17 +81,18 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
 		if (fields) {
 			json_foreach(node, fields) {
 				if ((j = json_find_member(one, node->string_)) != NULL) {
-					print_one(j);
+					print_one(j, inttypes);
 					printf("%c", node->next ? ',' : '\n');
 				}
 			}
 		} else {
 			json_foreach(j, one) {
-				print_one(j);
+				print_one(j, inttypes);
 				printf("%c", j->next ? ',' : '\n');
 			}
 		}
 	}
+	json_delete(inttypes);
 }
 
 void usage(char *prog)
@@ -99,7 +113,7 @@ void usage(char *prog)
 	printf("           csv                 (overrides $OCAT_FORMAT\n");
 	printf("           geojson\n");
 	printf("           raw\n");
-	printf("  --fields tst,lat,lon,...     Choose fields for CSV\n");
+	printf("  --fields tst,lat,lon,...     Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
 	printf("  --storage		-S     storage dir (./store)\n");
@@ -163,7 +177,8 @@ int main(int argc, char **argv)
 
 		switch (c) {
 			case 1:	/* No short option */
-				fields = json_splitter(optarg, ",");
+				if (strcmp(optarg, "ALL") != 0)
+					fields = json_splitter(optarg, ",");
 				break;
 			case 'l':
 				list = 1;
@@ -359,8 +374,13 @@ int main(int argc, char **argv)
 				printf("%s\n", js);
 				free(js);
 			}
+			json_delete(geojson);
 		}
 	}
+
+	json_delete(obj);
+	if (fields)
+		json_delete(fields);
 
 	return (0);
 }
