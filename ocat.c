@@ -10,8 +10,7 @@
 #include "misc.h"
 
 typedef enum {
-	TABULAR   = 0,
-	GEOJSON,
+	GEOJSON = 0,
 	CSV,
 	JSON,
 	RAW,
@@ -100,8 +99,7 @@ void usage(char *prog)
 	printf("           csv                 (overrides $OCAT_FORMAT\n");
 	printf("           geojson\n");
 	printf("           raw\n");
-	printf("           tabular\n");
-	printf("  --fields tst,lat,lon,...     Choose fields for CSV and tabular\n");
+	printf("  --fields tst,lat,lon,...     Choose fields for CSV\n");
 	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
 	printf("  --storage		-S     storage dir (./store)\n");
@@ -133,7 +131,6 @@ int main(int argc, char **argv)
 			case 'c': otype = CSV; break;
 			case 'g': otype = GEOJSON; break;
 			case 'r': otype = RAW; break;
-			case 't': otype = TABULAR; break;
 		}
 	}
 
@@ -189,8 +186,6 @@ int main(int argc, char **argv)
 			case 'f':
 				if (!strcmp(optarg, "json"))
 					otype = JSON;
-				else if (!strcmp(optarg, "tabular"))
-					otype = TABULAR;
 				else if (!strcmp(optarg, "geojson"))
 					otype = GEOJSON;
 				else if (!strcmp(optarg, "raw"))
@@ -350,8 +345,6 @@ int main(int argc, char **argv)
 			free(js);
 		}
 
-	} else if (otype == TABULAR) {
-		csv_output(obj, TABULAR, fields);
 	} else if (otype == CSV) {
 		csv_output(obj, CSV, fields);
 	} else if (otype == RAW) {
