@@ -58,6 +58,8 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
 	json_append_member(inttypes, "cog", json_mkbool(1));
 	json_append_member(inttypes, "tst", json_mkbool(1));
 	json_append_member(inttypes, "alt", json_mkbool(1));
+	json_append_member(inttypes, "dist", json_mkbool(1));
+	json_append_member(inttypes, "trip", json_mkbool(1));
 
 	arr = json_find_member(json, "locations");
 	json_foreach(one, arr) {
@@ -337,6 +339,11 @@ int main(int argc, char **argv)
 		}
 	} else {
 		JsonNode *arr, *f;
+
+		/*
+		 * Obtain a list of .rec files from lister(), possibly limited by s_lo/s_hi times,
+		 * process each and build the JSON `obj' with an array of locations.
+		 */
 
 		if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
