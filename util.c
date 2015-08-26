@@ -143,7 +143,7 @@ int splitter(char *s, char *sep, char **parts)
 
 /*
  * Split a string separated by characters in `sep' into a JSON
- * array and return that.
+ * array and return that or NULL on error.
  */
 
 JsonNode *json_splitter(char *s, char *sep)
