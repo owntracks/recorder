@@ -120,8 +120,7 @@ static const char *ltime(time_t t) {
 }
 
 /*
- * Process info/ message containing a CARD. If the payload is not a card, return FALSE
- * else TRUE.
+ * Process info/ message containing a CARD. If the payload is a card, return TRUE.
  */
 
 int do_info(void *userdata, UT_string *username, UT_string *device, char *payload)
@@ -366,7 +365,14 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * 	 bool retain;
 	 */
 
+	time(&now);
+	monitorhook(ud, now, m->topic);
+
 	if (m->payloadlen == 0) {
+		return;
+	}
+
+	if (m->retain == TRUE && ud->ignoreretained) {
 		return;
 	}
 
@@ -382,9 +388,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
-	time(&now);
-
-	monitorhook(ud, now, m->topic);
 
 	/* FIXME: handle null leading topic `/` */
 	utstring_printf(basetopic, "%s/%s/%s", topics[0], topics[1], topics[2]);
@@ -392,17 +395,14 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	utstring_printf(device, "%s", topics[2]);
 
 	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], TOPIC_SUFFIX) == 0)) {
-		if (m->retain == FALSE || ud->ignoreretained == FALSE) {
-			if (do_info(ud, username, device, m->payload) == TRUE)	/* this was a card */
-				return;
+		if (do_info(ud, username, device, m->payload) == TRUE) {  /* this was a card */
+			return;
 		}
 	}
 
 	/* owntracks/user/device/msg */
 	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], "msg") == 0)) {
-		if (m->retain == FALSE || ud->ignoreretained == FALSE) {
-			do_msg(ud, username, device, m->payload);
-		}
+		do_msg(ud, username, device, m->payload);
 	}
 
 	/*
@@ -442,9 +442,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	mosquitto_sub_topic_tokens_free(&topics, count);
 
-	if (m->retain == TRUE && ud->ignoreretained) {
-		return;
-	}
 
 	/*
 	 * Try to decode JSON payload to find _type: location. If that doesn't work,
