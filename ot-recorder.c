@@ -631,9 +631,23 @@ static void catcher(int sig)
 
 void usage(char *prog)
 {
-	fprintf(stderr, "Usage: %s [-D] [-F] [-G] [-i clientid] [-N] [-P prefix] [-q qos] [-R] topic [topic...]\n", prog);
-	exit(2);
+	printf("Usage: %s [options..] topic [topic ...]\n", prog);
+	printf("  --help		-h	this message\n");
+	printf("  --storage		-S     storage dir (./store)\n");
+	printf("  --nofiles		-F     do not use file storage\n");
+	printf("  --norevgeo		-G     disable ghash to reverge-geo lookups\n");
+	printf("  --skipdemo 		-D     do not handle objects with _demo\n");
+	printf("  --noredis		-N     disable Redis even if compiled in\n");
+	printf("  --useretained		-R     process retained messages (default: no)\n");
+	printf("  --clientid		-i     MQTT client-ID\n");
+	printf("  --qos			-q     MQTT QoS (dflt: 2)\n");
+	printf("  --pubprefix		-P     republish prefix (dflt: no republish)\n");
+	printf("  --host		-H     MQTT host (localhost)\n");
+	printf("  --port		-p     MQTT port (1883)\n");
+
+	exit(1);
 }
+
 
 int main(int argc, char **argv)
 {
@@ -658,6 +672,18 @@ int main(int argc, char **argv)
 	udata.useredis		= TRUE;
 	udata.revgeo		= TRUE;
 
+	if ((p = getenv("OTR_HOST")) != NULL) {
+		hostname = strdup(p);
+	}
+
+	if ((p = getenv("OTR_PORT")) != NULL) {
+		port = atoi(p);
+	}
+
+	if ((p = getenv("OTR_STORAGEDIR")) != NULL) {
+		strcpy(STORAGEDIR, p);
+	}
+
 	utstring_new(clientid);
 	utstring_printf(clientid, "ot-recorder");
 	if (uname(&uts) == 0) {
@@ -665,7 +691,28 @@ int main(int argc, char **argv)
 	}
 	utstring_printf(clientid, "-%d", getpid());
 
-	while ((ch = getopt(argc, argv, "DFGi:q:RNP:")) != EOF) {
+	while (1) {
+		static struct option long_options[] = {
+			{ "help",	no_argument,		0, 	'h'},
+			{ "skipdemo",	no_argument,		0, 	'D'},
+			{ "nofiles",	no_argument,		0, 	'F'},
+			{ "norevgeo",	no_argument,		0, 	'G'},
+			{ "noredis",	no_argument,		0, 	'N'},
+			{ "useretained",	no_argument,		0, 	'R'},
+			{ "clientid",	required_argument,	0, 	'i'},
+			{ "pubprefix",	required_argument,	0, 	'P'},
+			{ "qos",	required_argument,	0, 	'q'},
+			{ "host",	required_argument,	0, 	'H'},
+			{ "port",	required_argument,	0, 	'p'},
+			{ "storage",	required_argument,	0, 	'S'},
+			{0, 0, 0, 0}
+		  };
+		int optindex = 0;
+
+		ch = getopt_long(argc, argv, "hDFGNRi:P:q:S:H:p:", long_options, &optindex);
+		if (ch == -1)
+			break;
+
 		switch (ch) {
 			case 'D':
 				ud->skipdemo = FALSE;
@@ -684,7 +731,7 @@ int main(int argc, char **argv)
 				ud->useredis = FALSE;
 				break;
 			case 'P':
-				udata.pubprefix = strdup(optarg);
+				udata.pubprefix = strdup(optarg);	/* TODO: do we want this? */
 				break;
 			case 'q':
 				ud->qos = atoi(optarg);
@@ -696,30 +743,30 @@ int main(int argc, char **argv)
 			case 'R':
 				ud->ignoreretained = FALSE;
 				break;
-			default:
-				usage(*argv);
+			case 'H':
+				hostname = strdup(optarg);
 				break;
+			case 'p':
+				port = atoi(optarg);
+				break;
+			case 'S':
+				strcpy(STORAGEDIR, optarg);
+				break;
+			case 'h':
+				usage(progname);
+				exit(0);
+			default:
+				abort();
 		}
+
 	}
 
-	argc -= (optind - 1);
-	argv += (optind - 1);
+	argc -= (optind);
+	argv += (optind);
 
-	if (argc < 2) {
+	if (argc < 1) {
 		usage(progname);
 		return (-1);
-	}
-
-	if ((p = getenv("OTR_HOST")) != NULL) {
-		hostname = strdup(p);
-	}
-
-	if ((p = getenv("OTR_PORT")) != NULL) {
-		port = atoi(p);
-	}
-
-	if ((p = getenv("OTR_STORAGEDIR")) != NULL) {
-		strcpy(STORAGEDIR, p);
 	}
 
 	if (ud->revgeo == TRUE) {
@@ -748,7 +795,7 @@ int main(int argc, char **argv)
 	 */
 
 	utarray_new(ud->topics, &ut_str_icd);
-	for (i = 1; i < argc; i++) {
+	for (i = 0; i < argc; i++) {
 		utarray_push_back(ud->topics, &argv[i]);
 	}
 
