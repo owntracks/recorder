@@ -13,5 +13,6 @@ const char *isotime(time_t t);
 char *slurp_file(char *filename, int fold_newlines);
 int json_copy_to_object(JsonNode * obj, JsonNode * object_or_array, int clobber);
 int json_copy_from_file(JsonNode * obj, char *filename);
+int splitter(char *s, char *sep, char **parts);
 
 #endif

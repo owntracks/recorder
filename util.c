@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "util.h"
 
 const char *isotime(time_t t) {
@@ -107,4 +108,35 @@ int json_copy_from_file(JsonNode *obj, char *filename)
 	json_delete(node);
 
 	return (TRUE);
+}
+
+#define strprefix(s, pfx) (strncmp((s), (pfx), strlen(pfx)) == 0)
+
+#define MAXPARTS 40
+
+/*
+ * Split the string at `s', separated by characters in `sep'
+ * into individual strings, in array `parts'. The caller must
+ * free `parts'.
+ * Returns -1 on error, or the number of parts.
+ */
+
+int splitter(char *s, char *sep, char **parts)
+{
+        char *token, *p, *ds = strdup(s);
+        int nt = 0;
+
+	if (!ds)
+		return (-1);
+
+	for (token = strtok(ds, sep);
+		token && *token && nt < (MAXPARTS - 1); token = strtok(NULL, sep)) {
+		if ((p = strdup(token)) == NULL)
+			return (-1);
+		parts[nt++] = p;
+        }
+	parts[nt] = NULL;
+
+        free(ds);
+        return (nt);
 }

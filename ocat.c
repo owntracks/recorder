@@ -17,91 +17,70 @@ typedef enum {
 	RAW,
 } output_type;
 
-#if 0
-void csv_output(JsonNode *json, output_type otype)
+static void print_one(JsonNode *j)
 {
+	static char *ints[] = { "batt", "vel", "cog", "tst", "alt", NULL };
+	char **p;
+
+	/* Check if the value should be an "integer" (ie not float) */
+	if (j->tag == JSON_NUMBER) {
+		int isint = FALSE;
+		for (p = ints; p && *p; p++) {
+			if (!strcmp(j->key, *p)) {
+				isint = TRUE;
+				printf("%.lf", j->number_);
+				break;
+			}
+		}
+		if (!isint) {
+			printf("%lf", j->number_);
+		}
+	} else if (j->tag == JSON_STRING) {
+		printf("%s", j->string_);
+
+	}
+}
+
+void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
+{
+	JsonNode *node;
 	JsonNode *arr, *one, *j;
 	short virgin = 1;
 
 	arr = json_find_member(json, "locations");
 	json_foreach(one, arr) {
+		/* Headings */
 		if (virgin) {
 			virgin = !virgin;
 
-			/* Print headings from key names */
-			json_foreach(j, one) {
-				if (j->key)
-					printf("%s%c", j->key, (j->next) ? ',' : '\n');
+			if (fields) {
+				json_foreach(node, fields) {
+					printf("%s%c", node->string_, (node->next) ? ',' : '\n');
+				}
+			} else {
+				json_foreach(j, one) {
+					if (j->key)
+						printf("%s%c", j->key, (j->next) ? ',' : '\n');
+				}
 			}
 		}
+
 		/* Now the values */
-		json_foreach(j, one) {
-			if (j->tag == JSON_STRING) {
-				printf("%s%c", j->string_, (j->next) ? ',' : '\n');
-			} else if (j->tag == JSON_NUMBER) {
-				/* hmm; what do I do with ints ? */
-				printf("%lf%c", j->number_, (j->next) ? ',' : '\n');
+		if (fields) {
+			json_foreach(node, fields) {
+				if ((j = json_find_member(one, node->string_)) != NULL) {
+					print_one(j);
+					printf("%c", node->next ? ',' : '\n');
+				}
+			}
+		} else {
+			json_foreach(j, one) {
+				print_one(j);
+				printf("%c", j->next ? ',' : '\n');
 			}
 		}
 	}
 }
-#endif
-
-#if 1
-void csv_output(JsonNode *json, output_type otype)
-{
-	JsonNode *arr, *one, *j;
-	time_t tst = 0L;
-	double lat = 0.0, lon = 0.0;
-	char *tid = "", *addr;
-
-	if (otype == CSV) {
-		printf("tst,tid,lat,lon,addr\n");
-	}
-
-	arr = json_find_member(json, "locations");
-	json_foreach(one, arr) {
-		tid = addr = "";
-		lat = lon = 0.0;
-
-		if ((j = json_find_member(one, "tid")) != NULL) {
-			tid = j->string_;
-		}
-
-		if ((j = json_find_member(one, "addr")) != NULL) {
-			addr = j->string_;
-		}
-
-		if ((j = json_find_member(one, "tst")) != NULL) {
-			tst = j->number_;
-		}
-
-		if ((j = json_find_member(one, "lat")) != NULL) {
-			lat = j->number_;
-		}
-
-		if ((j = json_find_member(one, "lon")) != NULL) {
-			lon = j->number_;
-		}
-
-		if (otype == CSV) {
-			printf("%s,%s,%lf,%lf,%s\n",
-				isotime(tst),
-				tid,
-				lat,
-				lon,
-				addr);
-		} else {
-			printf("%s  %-2.2s %9.5lf %9.5lf %s\n",
-				isotime(tst),
-				tid,
-				lat,
-				lon,
-				addr);
-		}
-	}
-}
-#endif
 
 void usage(char *prog)
 {
@@ -122,6 +101,7 @@ void usage(char *prog)
 	printf("           geojson\n");
 	printf("           raw\n");
 	printf("           tabular\n");
+	printf("  --fields tst,lat,lon,...     Choose fields for CSV and tabular\n");
 	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
 	printf("  --storage		-S     storage dir (./store)\n");
@@ -138,6 +118,7 @@ int main(int argc, char **argv)
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
 	output_type otype = JSON;
+	JsonNode *fields = NULL;
 
 	if ((p = getenv("OCAT_USERNAME")) != NULL) {
 		username = strdup(p);
@@ -173,6 +154,7 @@ int main(int argc, char **argv)
 			{ "format",	required_argument, 0, 	'f'},
 			{ "storage",	required_argument, 0, 	'S'},
 			{ "last",	no_argument, 0, 	'L'},
+			{ "fields",	required_argument, 0, 	1},
 			{ "killdata",	no_argument, 0, 	'K'},
 		  	{0, 0, 0, 0}
 		  };
@@ -183,6 +165,14 @@ int main(int argc, char **argv)
 			break;
 
 		switch (c) {
+			case 1:	/* No short option */
+				fields = json_mkarray();
+				char *f[60], **ff;
+				splitter(optarg, ",", f);
+				for (ff = f; ff && *ff; ff++) {
+					json_append_element(fields, json_mkstring(*ff));
+				}
+				break;
 			case 'l':
 				list = 1;
 				break;
@@ -366,9 +356,9 @@ int main(int argc, char **argv)
 		}
 
 	} else if (otype == TABULAR) {
-		csv_output(obj, TABULAR);
+		csv_output(obj, TABULAR, fields);
 	} else if (otype == CSV) {
-		csv_output(obj, CSV);
+		csv_output(obj, CSV, fields);
 	} else if (otype == RAW) {
 		/* We've already done what we need to do in locations() */
 	} else if (otype == GEOJSON) {
