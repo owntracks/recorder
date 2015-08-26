@@ -166,12 +166,7 @@ int main(int argc, char **argv)
 
 		switch (c) {
 			case 1:	/* No short option */
-				fields = json_mkarray();
-				char *f[60], **ff;
-				splitter(optarg, ",", f);
-				for (ff = f; ff && *ff; ff++) {
-					json_append_element(fields, json_mkstring(*ff));
-				}
+				fields = json_splitter(optarg, ",");
 				break;
 			case 'l':
 				list = 1;

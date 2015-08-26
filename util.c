@@ -140,3 +140,24 @@ int splitter(char *s, char *sep, char **parts)
         free(ds);
         return (nt);
 }
+
+/*
+ * Split a string separated by characters in `sep' into a JSON
+ * array and return that.
+ */
+
+JsonNode *json_splitter(char *s, char *sep)
+{
+	char *token, *ds = strdup(s);
+	JsonNode *array = json_mkarray();
+
+	if (!ds || !array)
+		return (NULL);
+
+	for (token = strtok(ds, sep); token && *token; token = strtok(NULL, sep)) {
+		json_append_element(array, json_mkstring(token));
+        }
+
+	free(ds);
+	return (array);
+}
