@@ -4,17 +4,36 @@ LIBS = -L/Users/jpm/Auto/pubgit/MQTT/mosquitto/org.eclipse.mosquitto.git/lib
 LIBS += -lcurl -lmosquitto
 CFLAGS=-Wall -Werror -g
 
+OTR_OBJS = json.o \
+	   geo.o \
+	   geohash.o \
+	   mkpath.o \
+	   file.o \
+	   safewrite.o \
+	   base64.o \
+	   ghash.o \
+	   misc.o \
+	   util.o \
+	   storage.o
+
 ifneq ($(HAVE_REDIS),no)
 	CFLAGS += -DHAVE_REDIS=1
 	LIBS += -lhiredis
 endif
 
+ifeq ($(HAVE_HTTP),yes)
+	CFLAGS += -DHAVE_HTTP=1
+	OTR_OBJS += mongoose.o
+	LIBS += -lssl
+endif
+
 
 all: ot-recorder ocat ghashfind
 
-ot-recorder: ot-recorder.c json.o utarray.h utstring.h geo.o geohash.o mkpath.o file.o safewrite.o base64.o ghash.o config.h udata.h misc.o util.o storage.o
-	$(CC) $(CFLAGS) ot-recorder.c -o ot-recorder json.o geo.o geohash.o mkpath.o file.o safewrite.o base64.o ghash.o misc.o util.o storage.o $(LIBS)
+ot-recorder: ot-recorder.c $(OTR_OBJS)
+	$(CC) $(CFLAGS) ot-recorder.c -o ot-recorder $(OTR_OBJS) $(LIBS)
 
+ot-recorder.o: ot-recorder.c storage.h
 geo.o: geo.h geo.c udata.h Makefile config.mk config.h
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
 file.o: file.h file.c config.h misc.h Makefile config.mk
@@ -34,6 +53,7 @@ storage.o: storage.c storage.h config.h util.h
 ghashfind: ghashfind.o util.o json.o
 	$(CC) $(CFLAGS) -o ghashfind ghashfind.o util.o json.o
 ghashfind.o: ghashfind.c util.h
+mongoose.o: mongoose.c mongoose.h
 
 clean:
 	rm -f *.o

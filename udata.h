@@ -7,6 +7,10 @@
 # include <hiredis/hiredis.h>
 #endif
 
+#ifdef HAVE_HTTP
+# include "mongoose.h"
+#endif
+
 
 struct udata {
 	UT_array *topics;		/* Array of topics to subscribe to */
@@ -20,6 +24,9 @@ struct udata {
 	int useredis;			/* True if we should do Redis (if we have it) */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
 	int qos;			/* Subscribe QoS */
+#ifdef HAVE_HTTP
+	struct mg_server *server;
+#endif
 };
 
 #endif

@@ -20,6 +20,10 @@
 #include "base64.h"
 #include "misc.h"
 #include "util.h"
+#include "storage.h"
+#ifdef HAVE_HTTP
+# include "mongoose.h"
+#endif
 
 
 #define SSL_VERIFY_PEER (1)
@@ -31,6 +35,9 @@
 #define CLEAN_SESSION	false
 
 static int run = 1;
+#ifdef HAVE_HTTP
+static struct mg_server *mgserver;
+#endif
 
 double number(JsonNode *j, char *element)
 {
@@ -629,6 +636,141 @@ static void catcher(int sig)
         exit(1);
 }
 
+#ifdef HAVE_HTTP
+
+#if 0
+static void push_message(struct mg_server *server, time_t current_time)
+{
+	struct mg_connection *c;
+	char buf[90];
+	int len = sprintf(buf, "pussi %lu you", (unsigned long) current_time);
+
+	// Iterate over all connections, and push current time message to websocket ones.
+	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
+		if (c->is_websocket) {
+			mg_websocket_write(c, 1, buf, len);
+		}
+	}
+}
+
+static void ws_push(struct mg_server *server, char *text)
+{
+	struct mg_connection *c;
+	char buf[4096];
+	int len = snprintf(buf, sizeof(buf), "MQTT %s", text);
+
+	// Iterate over all connections, and push current time message to websocket ones.
+	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
+		if (c->is_websocket) {
+			mg_websocket_write(c, 1, buf, len);
+		}
+	}
+}
+#endif
+
+static int send_reply(struct mg_connection *conn)
+{
+	if (conn->is_websocket) {
+		// This handler is called for each incoming websocket frame, one or more
+		// times for connection lifetime.
+		// Echo websocket data back to the client.
+		mg_websocket_write(conn, 1, conn->content, conn->content_len);
+		return conn->content_len == 4 && !memcmp(conn->content, "exit", 4) ?  MG_FALSE : MG_TRUE;
+	} else {
+		mg_send_file(conn, "jp.html", NULL);
+
+		return MG_MORE;
+	}
+}
+static int ev_handler(struct mg_connection *conn, enum mg_event ev)
+{
+	int n;
+	const char *ctype;
+
+	switch (ev) {
+		case MG_AUTH:
+			return MG_TRUE;
+		case MG_REQUEST:
+
+			ctype = mg_get_header(conn, "accept");
+			if (ctype != NULL)
+				fprintf(stderr, "ACCEPT: %s\n", ctype);
+
+			/* GET vars */
+
+			char buffer[1024];
+			int i, ret;
+
+			if ( mg_get_var(conn, "date", buffer, 1024) > 0) {
+				printf("XXXX = %s\n", buffer);
+			}
+
+			for(i=0; (ret = mg_get_var_n(conn, "date", buffer, 1024, i)) > 0; i++)
+				fprintf(stderr, "VAR: date[%d] = %s\n", i, buffer);
+
+
+			/* HEADERS */
+
+
+			for (n = 0; n < conn->num_headers; n++) {
+				struct mg_header *hh;
+
+				hh = &conn->http_headers[n];
+				fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+
+			}
+
+			fprintf(stderr, "Conn from %s: %s %s\n",
+				conn->remote_ip,
+				conn->request_method,
+				conn->uri);
+
+			fprintf(stderr, "content-len = (%ld) %.*s\n",
+				conn->content_len,
+				(int)conn->content_len,
+				conn->content);
+
+			if (strncmp(conn->uri, "/api/", 5) != 0) {
+				return MG_FALSE;		/* serve from document root */
+			}
+
+			if (!strcmp(conn->request_method, "POST")) {
+				return (MG_FALSE);	/* Fail it */
+			}
+
+			/* GET */
+			if (!strcmp(conn->uri, "/api/users")) {
+				JsonNode *json;
+
+				if ((json = lister(NULL, NULL, 0, 0)) != NULL) {
+					char *js;
+
+					js = json_stringify(json, " ");
+					mg_printf_data(conn, js);
+					free(js);
+				}
+#if 0
+				UT_string *text;
+				
+				utstring_new(text);
+				utstring_bincpy(text, conn->content, conn->content_len);
+				printf("PP (%ld) %s\n", conn->content_len, utstring_body(text));
+				ws_push(mgserver, utstring_body(text));
+				mg_printf_data(conn, "Ta.\n");
+
+				utstring_free(text);
+#endif
+				return MG_TRUE;
+			}
+
+			return send_reply(conn);
+		default:
+			return MG_FALSE;
+	}
+}
+
+#endif /* HAVE_HTTP */
+
 void usage(char *prog)
 {
 	printf("Usage: %s [options..] topic [topic ...]\n", prog);
@@ -644,6 +786,10 @@ void usage(char *prog)
 	printf("  --pubprefix		-P     republish prefix (dflt: no republish)\n");
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
+#ifdef HAVE_HTTP
+	printf("  --http-port <port>	-A     HTTP port (8083)\n");
+	printf("  --doc-root <directory>       document root (./wdocs)\n");
+#endif
 
 	exit(1);
 }
@@ -659,6 +805,10 @@ int main(int argc, char **argv)
 	static struct udata udata, *ud = &udata;
 	struct utsname uts;
 	UT_string *clientid;
+#ifdef HAVE_HTTP
+	int http_port = 8083;
+	char *doc_root = "./wdocs";
+#endif
 #ifdef HAVE_REDIS
 	struct timeval timeout = { 1, 500000 }; // 1.5 seconds
 #endif
@@ -671,6 +821,9 @@ int main(int argc, char **argv)
 	udata.skipdemo		= TRUE;
 	udata.useredis		= TRUE;
 	udata.revgeo		= TRUE;
+#ifdef HAVE_HTTP
+	mgserver = udata.server = mg_create_server(NULL, ev_handler);
+#endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
 		hostname = strdup(p);
@@ -705,15 +858,28 @@ int main(int argc, char **argv)
 			{ "host",	required_argument,	0, 	'H'},
 			{ "port",	required_argument,	0, 	'p'},
 			{ "storage",	required_argument,	0, 	'S'},
+#ifdef HAVE_HTTP
+			{ "http-port",	required_argument,	0, 	'A'},
+			{ "doc-root",	required_argument,	0, 	2},
+#endif
 			{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		ch = getopt_long(argc, argv, "hDFGNRi:P:q:S:H:p:", long_options, &optindex);
+		ch = getopt_long(argc, argv, "hDFGNRi:P:q:S:H:p:A:", long_options, &optindex);
 		if (ch == -1)
 			break;
 
 		switch (ch) {
+#ifdef HAVE_HTTP
+			case 'A':	/* API */
+				http_port = atoi(optarg);
+				break;
+			case 2:		/* no short char */
+				doc_root = strdup(optarg);
+				/* FIXME: check if isdir() */
+				break;
+#endif
 			case 'D':
 				ud->skipdemo = FALSE;
 				break;
@@ -852,13 +1018,31 @@ int main(int argc, char **argv)
 		return rc;
 	}
 
+#ifdef HAVE_HTTP
+        mg_set_option(udata.server, "listening_port", "127.0.0.1:8083");
+        // mg_set_option(udata.server, "listening_port", "8090,ssl://8091:cert.pem");
+
+        // mg_set_option(udata.server, "ssl_certificate", "cert.pem");
+        // mg_set_option(udata.server, "listening_port", "8091");
+
+        mg_set_option(udata.server, "document_root", doc_root);
+        mg_set_option(udata.server, "enable_directory_listing", "yes");
+        // mg_set_option(udata.server, "access_log_file", "access.log");
+        // mg_set_option(udata.server, "cgi_pattern", "**.cgi");
+
+        printf("Started on port %s\n", mg_get_option(udata.server, "listening_port"));
+#endif
+
 	while (run) {
-		rc = mosquitto_loop(mosq, /* timeout */ 500, /* max-packets */ 1);
+		rc = mosquitto_loop(mosq, /* timeout */ 200, /* max-packets */ 1);
 		if (run && rc) {
 			fprintf(stderr, "loop sleep: rc=%d [%s]\n", rc, mosquitto_strerror(rc));
 			sleep(10);
 			mosquitto_reconnect(mosq);
 		}
+#ifdef HAVE_HTTP
+		mg_poll_server(udata.server, 10);
+#endif
 	}
 
 	mosquitto_disconnect(mosq);
