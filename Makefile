@@ -10,7 +10,7 @@ ifneq ($(HAVE_REDIS),no)
 endif
 
 
-all: ot-recorder ocat
+all: ot-recorder ocat ghashfind
 
 ot-recorder: ot-recorder.c json.o utarray.h utstring.h geo.o geohash.o mkpath.o file.o safewrite.o base64.o ghash.o config.h udata.h misc.o util.o storage.o
 	$(CC) $(CFLAGS) ot-recorder.c -o ot-recorder json.o geo.o geohash.o mkpath.o file.o safewrite.o base64.o ghash.o misc.o util.o storage.o $(LIBS)
@@ -30,6 +30,10 @@ ocat: ocat.o storage.o json.o geohash.o ghash.o mkpath.o util.o
 
 ocat.o: ocat.c storage.h
 storage.o: storage.c storage.h config.h util.h
+
+ghashfind: ghashfind.o util.o json.o
+	$(CC) $(CFLAGS) -o ghashfind ghashfind.o util.o json.o
+ghashfind.o: ghashfind.c util.h
 
 clean:
 	rm -f *.o
