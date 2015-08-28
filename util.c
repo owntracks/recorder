@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include "util.h"
 
 const char *isotime(time_t t) {
@@ -160,4 +161,43 @@ JsonNode *json_splitter(char *s, char *sep)
 
 	free(ds);
 	return (array);
+}
+
+
+/* Return the numeric LOG_ value for a syslog facilty name.  */
+
+int syslog_facility_code(char *facility)
+{
+	struct _log {
+		char *name;
+		int val;
+	};
+	static struct _log codes[] = {
+		{"kern", LOG_KERN},
+		{"user", LOG_USER},
+		{"mail", LOG_MAIL},
+		{"daemon", LOG_DAEMON},
+		{"auth", LOG_AUTH},
+		{"syslog", LOG_SYSLOG},
+		{"lpr", LOG_LPR},
+		{"news", LOG_NEWS},
+		{"uucp", LOG_UUCP},
+		{"local0", LOG_LOCAL0},
+		{"local1", LOG_LOCAL1},
+		{"local2", LOG_LOCAL2},
+		{"local3", LOG_LOCAL3},
+		{"local4", LOG_LOCAL4},
+		{"local5", LOG_LOCAL5},
+		{"local6", LOG_LOCAL6},
+		{"local7", LOG_LOCAL7},
+		{NULL, -1}
+	},  *lp;
+
+	int n;
+
+	for (n = 0, lp = codes; lp->val != -1; lp++) {
+		if (!strcasecmp(facility, lp->name))
+			return (lp->val);
+	}
+	return (LOG_LOCAL0);
 }
