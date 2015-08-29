@@ -62,7 +62,7 @@ static int send_reply(struct mg_connection *conn)
 void push_geojson(struct mg_connection *conn)
 {
 
-	JsonNode *obj, *locs, *arr, *f, *geojson, *json;
+	JsonNode *obj, *locs, *arr, *f, *geojson, *json, *fields = NULL;
 	time_t s_lo, s_hi;
 	char *time_from = "2015-08-28", *time_to = NULL;
 	char *js;
@@ -85,7 +85,7 @@ void push_geojson(struct mg_connection *conn)
 		if ((arr = json_find_member(json, "results")) != NULL) { // get array
 			json_foreach(f, arr) {
 				// fprintf(stderr, "%s\n", f->string_);
-				locations(f->string_, obj, locs, s_lo, s_hi, GEOJSON, 0);
+				locations(f->string_, obj, locs, s_lo, s_hi, GEOJSON, 0, fields);
 			}
 		}
 		json_delete(json);

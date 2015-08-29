@@ -413,6 +413,7 @@ struct jparam {
 	time_t s_hi;
 	output_type otype;
 	int limit;		/* if non-zero, we're searching backwards */
+	JsonNode *fields;
 };
 
 /*
@@ -485,6 +486,7 @@ static int candidate_line(char *line, void *param)
 	int limit	= jarg->limit;
 	time_t s_lo	= jarg->s_lo;
 	time_t s_hi	= jarg->s_hi;
+	JsonNode *fields = jarg->fields;
 	output_type otype = jarg->otype;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
@@ -539,9 +541,32 @@ static int candidate_line(char *line, void *param)
 	// fprintf(stderr, "-->[%s]\n", line);
 
 	if ((o = line_to_location(line)) != NULL) {
+		if (fields) {
+			/* Create a new object, copying members we're interested in into it */
+			JsonNode *f, *node;
+			JsonNode *newo = json_mkobject();
+
+			json_foreach(f, fields) {
+				char *key = f->string_;
+
+				if ((node = json_find_member(o, key)) != NULL) {
+					if (node->tag == JSON_STRING)
+						json_append_member(newo, key, json_mkstring(node->string_));
+					else if (node->tag == JSON_NUMBER)
+						json_append_member(newo, key, json_mknumber(node->number_));
+					else if (node->tag == JSON_BOOL)
+						json_append_member(newo, key, json_mkbool(node->bool_));
+					else if (node->tag == JSON_NULL)
+						json_append_member(newo, key, json_mknull());
+				}
+			}
+			json_delete(o);
+			o = newo;
+		}
 		json_append_element(locs, o);
 		++counter;
 	}
+
 
 	/* Add the (possibly) incremented counter back into `obj' */
 	json_append_member(obj, "count", json_mknumber(counter));
@@ -553,9 +578,10 @@ static int candidate_line(char *line, void *param)
  * objects at the JSON array `arr`. `obj' is a JSON object which
  * contains `arr'.
  * If limit is zero, we're going forward, else backwards.
+ * Fields, if not NULL, is a JSON array of desired element names.
  */
 
-void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit)
+void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit, JsonNode *fields)
 {
 	int rc;
 	struct jparam jarg;
@@ -569,6 +595,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 	jarg.s_hi	= s_hi;
 	jarg.otype	= otype;
 	jarg.limit	= limit;
+	jarg.fields	= fields;
 
 	if (limit == 0) {
 		rc = cat(filename, candidate_line, &jarg);
