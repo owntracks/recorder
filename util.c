@@ -4,6 +4,10 @@
 #include <syslog.h>
 #include "util.h"
 
+#ifndef LINESIZE
+# define LINESIZE 8192
+#endif
+
 const char *isotime(time_t t) {
         static char buf[] = "YYYY-MM-DDTHH:MM:SSZ";
 
@@ -269,7 +273,7 @@ int tac(char *filename, long lines, int (*func)(char *, void *), void *param)
 {
 	FILE *fp;
 	long file_len;
-	char buf[BUFSIZ], *bp;
+	char buf[LINESIZE], *bp;
 	int rc;
 
 	if ((fp = fopen(filename, "r")) == NULL) {
