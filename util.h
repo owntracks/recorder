@@ -18,5 +18,6 @@ JsonNode *json_splitter(char *s, char *sep);
 int syslog_facility_code(char *facility);
 const char *yyyymm(time_t t);
 int tac(char *filename, long lines, int (*func)(char *, void *), void *param);
+int cat(char *filename, int (*func)(char *, void *), void *param);
 
 #endif

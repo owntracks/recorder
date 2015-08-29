@@ -262,6 +262,40 @@ static char *tac_gets(char *buf, int n, FILE * fp)
 }
 
 /*
+ * Open filename and read lines from it, invoking func() on each line. Func
+ * is passed the line and an arbitrary argument pointer.
+ * If filename is "-", read stdin.
+ */
+
+int cat(char *filename, int (*func)(char *, void *), void *param)
+{
+	FILE *fp;
+	char buf[LINESIZE], *bp;
+	int rc = 0, doclose = FALSE;
+
+	if (strcmp(filename, "-") != 0) {
+		if ((fp = fopen(filename, "r")) == NULL) {
+			fprintf(stderr, "failed to open file \'%s\'\n", filename);
+			return (-1);
+		}
+		doclose = TRUE;
+	} else {
+		fp = stdin;
+	}
+
+	while (fgets(buf, sizeof(buf), fp) != NULL) {
+		if ((bp = strchr(buf, '\n')) != NULL)
+			*bp = 0;
+		rc = func(buf, param);
+		if (rc == -1)
+			break;
+	}
+	if (doclose)
+		fclose(fp);
+	return (rc);
+}
+
+/*
  * Open file and read at most `lines' lines from it in reverse, invoking
  * func() on each line. The user-supplied func() is passed the line and
  * an argument. If func returns 1, the line is considered "printed"; if
