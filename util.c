@@ -48,6 +48,24 @@ char *slurp_file(char *filename, int fold_newlines)
 	return (buf);
 }
 
+/* Copy the node into obj */
+int json_copy_element_to_object(JsonNode *obj, char *key, JsonNode *node)
+{
+	if (obj->tag != JSON_OBJECT)
+		return (FALSE);
+
+	if (node->tag == JSON_STRING)
+		json_append_member(obj, key, json_mkstring(node->string_));
+	else if (node->tag == JSON_NUMBER)
+		json_append_member(obj, key, json_mknumber(node->number_));
+	else if (node->tag == JSON_BOOL)
+		json_append_member(obj, key, json_mkbool(node->bool_));
+	else if (node->tag == JSON_NULL)
+		json_append_member(obj, key, json_mknull());
+
+	return (TRUE);
+}
+
 int json_copy_to_object(JsonNode * obj, JsonNode * object_or_array, int clobber)
 {
 	JsonNode *node;

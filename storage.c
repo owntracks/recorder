@@ -550,14 +550,7 @@ static int candidate_line(char *line, void *param)
 				char *key = f->string_;
 
 				if ((node = json_find_member(o, key)) != NULL) {
-					if (node->tag == JSON_STRING)
-						json_append_member(newo, key, json_mkstring(node->string_));
-					else if (node->tag == JSON_NUMBER)
-						json_append_member(newo, key, json_mknumber(node->number_));
-					else if (node->tag == JSON_BOOL)
-						json_append_member(newo, key, json_mkbool(node->bool_));
-					else if (node->tag == JSON_NULL)
-						json_append_member(newo, key, json_mknull());
+					json_copy_element_to_object(newo, key, node);
 				}
 			}
 			json_delete(o);
