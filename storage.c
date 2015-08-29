@@ -506,6 +506,10 @@ static int candidate_line(char *line, void *param)
 		}
 
 	}
+	if (limit > 0 && otype == RAW) {
+		printf("%s\n", line);
+		return (1); /* make it 'count' or tac() will not decrement line counter and continue until EOF */
+	}
 
 	/* Do we have location line? */
 	if ((bp = strstr(line, "Z\t* ")) == NULL) {	/* Not a location line */
