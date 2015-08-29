@@ -1,5 +1,24 @@
-# recorder
-Recorder
+# OwnTracks Recorder
+
+## `recorder`
+
+## `ocat`
+
+The _ocat_ utility prints data from the _storage_ which is updated by the _recorder_, accessing it directly via the file system (not via the _recorder_'s REST API). _ocat_ has a daunting number of options, some combinations of which make no sense at all.
+
+Some example uses we consider useful:
+
+* `ocat --list`
+   show which uers are in _storage_.
+* `ocat --list --user jjolie`
+   show devices for the specified user
+* `ocat --user jjolie --device ipad`
+   print JSON data for the user's device produced during the last 6 hours.
+* `ocat ... --format csv`
+   produces CSV. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
+* `ocat ... --limit 10`
+   prints data  for the current month, starting now and going backwards; only 10 locations will be printed. Generally, the `--limit` option reads the storage back to front which makes no sense in some combinations.
+
 
 ## Design decisions
 
