@@ -16,5 +16,7 @@ int json_copy_from_file(JsonNode * obj, char *filename);
 int splitter(char *s, char *sep, char **parts);
 JsonNode *json_splitter(char *s, char *sep);
 int syslog_facility_code(char *facility);
+const char *yyyymm(time_t t);
+int tac(char *filename, long lines, int (*func)(char *, void *), void *param);
 
 #endif

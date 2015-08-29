@@ -201,3 +201,97 @@ int syslog_facility_code(char *facility)
 	}
 	return (LOG_LOCAL0);
 }
+
+const char *yyyymm(time_t t) {
+        static char buf[] = "YYYY-MM";
+
+        strftime(buf, sizeof(buf), "%Y-%m", gmtime(&t));
+        return(buf);
+}
+
+/*
+ * Read the open file fp (which must have file poiter at EOF) line by line
+ * backwards.
+ * (http://stackoverflow.com/questions/14834267/)
+ */
+
+static char *tac_gets(char *buf, int n, FILE * fp)
+{
+	long fpos;
+	int cpos;
+	int first = 1;
+
+	if (n <= 1 || (fpos = ftell(fp)) == -1 || fpos == 0)
+		return (NULL);
+
+	cpos = n - 1;
+	buf[cpos] = '\0';
+
+	while (1) {
+		int c;
+
+		if (fseek(fp, --fpos, SEEK_SET) != 0 ||
+		    (c = fgetc(fp)) == EOF)
+			return (NULL);
+
+		if (c == '\n' && first == 0)	/* accept at most one '\n' */
+			break;
+		first = 0;
+
+		if (c != '\r') {/* ignore DOS/Windows '\r' */
+			unsigned char ch = c;
+			if (cpos == 0) {
+				memmove(buf + 1, buf, n - 2);
+				++cpos;
+			}
+			memcpy(buf + --cpos, &ch, 1);
+		}
+		if (fpos == 0) {
+			fseek(fp, 0, SEEK_SET);
+			break;
+		}
+	}
+
+	memmove(buf, buf + cpos, n - cpos);
+
+	return (buf);
+}
+
+/*
+ * Open file and read at most `lines' lines from it in reverse, invoking
+ * func() on each line. The user-supplied func() is passed the line and
+ * an argument. If func returns 1, the line is considered "printed"; if
+ * 0 is returned it is ignored, and if -2 is returned, tac stops reading
+ * the file and returns.
+ */
+
+int tac(char *filename, long lines, int (*func)(char *, void *), void *param)
+{
+	FILE *fp;
+	long file_len;
+	char buf[BUFSIZ], *bp;
+	int rc;
+
+	if ((fp = fopen(filename, "r")) == NULL) {
+		fprintf(stderr, "failed to open file \'%s\'\n", filename);
+		return (-1);
+	}
+	fseek(fp, 0, SEEK_END);
+	file_len = ftell(fp);
+
+	if (file_len > 0) {
+		while (tac_gets(buf, sizeof(buf), fp) != NULL) {
+			if ((bp = strchr(buf, '\n')) != NULL)
+				*bp = 0;
+			rc = func(buf, param);
+			if (rc == 1) {
+				if (--lines <= 0)
+					break;
+			}
+			else if (rc == -1)
+				break;
+		}
+	}
+	fclose(fp);
+	return (0);
+}
