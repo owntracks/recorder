@@ -19,6 +19,8 @@ Some example uses we consider useful:
 * `ocat ... --limit 10`
    prints data  for the current month, starting now and going backwards; only 10 locations will be printed. Generally, the `--limit` option reads the storage back to front which makes no sense in some combinations.
 
+Specifying `--fields lat,tid,lon` will request just those JSON elements from _storage_. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat	 is missing in the list of fields.)
+
 
 ## Design decisions
 
