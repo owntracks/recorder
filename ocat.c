@@ -352,7 +352,6 @@ int main(int argc, char **argv)
 			/* get a list of .rec files from lister() without time limits,
 			 * process them in reverse order */
 
-			printf("*** LIMIT %d\n", limit);
 			if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
 				if ((arr = json_find_member(json, "results")) != NULL) { // get array
 					json_foreach(f, arr) {
