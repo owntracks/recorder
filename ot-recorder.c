@@ -884,18 +884,20 @@ int main(int argc, char **argv)
 	}
 
 #ifdef HAVE_HTTP
-        mg_set_option(udata.server, "listening_port", "127.0.0.1:8083");
-        // mg_set_option(udata.server, "listening_port", "8090,ssl://8091:cert.pem");
+	if (http_port) {
+		mg_set_option(udata.server, "listening_port", "127.0.0.1:8083");
+		// mg_set_option(udata.server, "listening_port", "8090,ssl://8091:cert.pem");
 
-        // mg_set_option(udata.server, "ssl_certificate", "cert.pem");
-        // mg_set_option(udata.server, "listening_port", "8091");
+		// mg_set_option(udata.server, "ssl_certificate", "cert.pem");
+		// mg_set_option(udata.server, "listening_port", "8091");
 
-        mg_set_option(udata.server, "document_root", doc_root);
-        mg_set_option(udata.server, "enable_directory_listing", "yes");
-        // mg_set_option(udata.server, "access_log_file", "access.log");
-        // mg_set_option(udata.server, "cgi_pattern", "**.cgi");
+		mg_set_option(udata.server, "document_root", doc_root);
+		mg_set_option(udata.server, "enable_directory_listing", "yes");
+		// mg_set_option(udata.server, "access_log_file", "access.log");
+		// mg_set_option(udata.server, "cgi_pattern", "**.cgi");
 
-        printf("Started on port %s\n", mg_get_option(udata.server, "listening_port"));
+		printf("Started on port %s\n", mg_get_option(udata.server, "listening_port"));
+	}
 #endif
 
 	while (run) {
@@ -906,10 +908,15 @@ int main(int argc, char **argv)
 			mosquitto_reconnect(mosq);
 		}
 #ifdef HAVE_HTTP
-		mg_poll_server(udata.server, 10);
+		if (http_port) {
+			mg_poll_server(udata.server, 10);
+		}
 #endif
 	}
 
+#ifdef HAVE_HTTP
+	mg_destroy_server(&udata.server);
+#endif
 	mosquitto_disconnect(mosq);
 
 	mosquitto_destroy(mosq);
