@@ -108,6 +108,7 @@ void usage(char *prog)
 	printf("  --format json    	-f     output format (default: JSON)\n");
 	printf("           csv                 (overrides $OCAT_FORMAT\n");
 	printf("           geojson\n");
+	printf("           gpx\n");
 	printf("           raw\n");
 	printf("  --fields tst,lat,lon,...     Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     JSON object with last users\n");
@@ -205,6 +206,8 @@ int main(int argc, char **argv)
 					otype = GEOJSON;
 				else if (!strcmp(optarg, "raw"))
 					otype = RAW;
+				else if (!strcmp(optarg, "gpx"))
+					otype = GPX;
 				else if (!strcmp(optarg, "csv"))
 					otype = CSV;
 				else {
@@ -388,6 +391,11 @@ int main(int argc, char **argv)
 			}
 			json_delete(geojson);
 		}
+	} else if (otype == GPX) {
+		char *xml = gpx_string(locs);
+
+		if (xml)
+			printf("%s\n", xml);
 	}
 
 	json_delete(obj);

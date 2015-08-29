@@ -674,6 +674,46 @@ JsonNode *geo_json(JsonNode *location_array)
 }
 
 /*
+ * Turn our JSON location array into a GPX XML string.
+ */
+
+char *gpx_string(JsonNode *location_array)
+{
+	JsonNode *one;
+        static UT_string *xml = NULL;
+
+	if (location_array->tag != JSON_ARRAY)
+		return (NULL);
+
+	utstring_renew(xml);
+
+	utstring_printf(xml, "%s", "<?xml version='1.0' encoding='UTF-8' standalone='no' ?>\n\
+<gpx version='1.1' creator='OwnTracks-Recorder'>\n\
+  <trk>\n\
+    <trkseg>\n");
+
+      // <trkpt lat="xx.xxx" lon="yy.yyy"> <!-- Attribute des Trackpunkts --> </trkpt>
+
+	json_foreach(one, location_array) {
+		double lat = 0.0, lon = 0.0;
+		JsonNode *j;
+
+                if ((j = json_find_member(one, "lat")) != NULL) {
+                        lat = j->number_;
+                }
+
+                if ((j = json_find_member(one, "lon")) != NULL) {
+                        lon = j->number_;
+                }
+
+		utstring_printf(xml, "<trkpt lat='%lf' lon='%lf' />\n", lat, lon);
+	}
+
+	utstring_printf(xml, "%s", " </trkseg>\n</trk>\n</gpx>\n");
+	return (utstring_body(xml));
+}
+
+/*
  * Remove all data for a user's device. Return a JSON object with a status
  * and an array of deleted files.
  */

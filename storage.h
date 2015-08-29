@@ -9,6 +9,7 @@ typedef enum {
 	CSV,
 	JSON,
 	RAW,
+	GPX,
 } output_type;
 
 JsonNode *lister(char *username, char *device, time_t s_lo, time_t s_hi, int reverse);
@@ -17,5 +18,6 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_to);
 JsonNode *geo_json(JsonNode *json);
 JsonNode *kill_datastore(char *username, char *device);
 JsonNode *last_users();
+char *gpx_string(JsonNode *json);
 
 #endif
