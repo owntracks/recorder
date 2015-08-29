@@ -1,6 +1,7 @@
 *.o
 ot-recorder
 ocat
+ghashfind
 *.dSYM
 .DS_Store
 store/
