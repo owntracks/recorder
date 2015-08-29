@@ -277,7 +277,9 @@ int main(int argc, char **argv)
 
 	/* If no from time specified but limit, set from to this month */
 	if (limit) {
-		time_from = strdup(yyyymm(now));
+		if (time_from == NULL) {
+			time_from = strdup(yyyymm(now));
+		}
 	}
 
 	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
@@ -338,7 +340,7 @@ int main(int argc, char **argv)
 		int n;
 
 		for (n = 0; n < argc; n++) {
-			locations(argv[n], obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
+			locations(argv[n], obj, locs, s_lo, s_hi, otype, 0);
 		}
 	} else {
 		JsonNode *arr, *f;
@@ -348,29 +350,13 @@ int main(int argc, char **argv)
 		 * process each and build the JSON `obj' with an array of locations.
 		 */
 
-		if (limit) {
-			/* get a list of .rec files from lister() without time limits,
-			 * process them in reverse order */
-
-			if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
-				if ((arr = json_find_member(json, "results")) != NULL) { // get array
-					json_foreach(f, arr) {
-						reverse_locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0, limit);
-					}
+		if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
+			if ((arr = json_find_member(json, "results")) != NULL) { // get array
+				json_foreach(f, arr) {
+					locations(f->string_, obj, locs, s_lo, s_hi, otype, limit);
 				}
-				json_delete(json);
 			}
-		} else {
-
-			if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
-				if ((arr = json_find_member(json, "results")) != NULL) { // get array
-					json_foreach(f, arr) {
-						// fprintf(stderr, "%s\n", f->string_);
-						locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
-					}
-				}
-				json_delete(json);
-			}
+			json_delete(json);
 		}
 	}
 

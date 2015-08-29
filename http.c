@@ -66,7 +66,6 @@ void push_geojson(struct mg_connection *conn)
 	time_t s_lo, s_hi;
 	char *time_from = "2015-08-28", *time_to = NULL;
 	char *js;
-	output_type otype = GEOJSON;
 
 	char *username = "jpm", *device = "5s";
 
@@ -86,7 +85,7 @@ void push_geojson(struct mg_connection *conn)
 		if ((arr = json_find_member(json, "results")) != NULL) { // get array
 			json_foreach(f, arr) {
 				// fprintf(stderr, "%s\n", f->string_);
-				locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
+				locations(f->string_, obj, locs, s_lo, s_hi, GEOJSON, 0);
 			}
 		}
 		json_delete(json);

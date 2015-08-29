@@ -399,6 +399,10 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 struct jparam {
 	JsonNode *obj;
 	JsonNode *locs;
+	time_t s_lo;
+	time_t s_hi;
+	output_type otype;
+	int limit;		/* if non-zero, we're searching backwards */
 };
 
 /*
@@ -457,22 +461,53 @@ static JsonNode *line_to_location(char *line)
  * Invoked via tac() and cat(). Verify that line is indeed a location
  * line from a .rec file. Then objectorize it and add to the locations
  * JSON array and update the counter in our JSON object.
+ * Return 0 to tell caller to "ignore" the line, 1 to use it.
  */
 
 static int candidate_line(char *line, void *param)
 {
 	long counter = 0L;
-	JsonNode *j, *obj, *locs, *o;
+	JsonNode *j, *o;
 	struct jparam *jarg = (struct jparam*)param;
 	char *bp;
-
-	obj = jarg->obj;
-	locs = jarg->locs;
+	JsonNode *obj	= jarg->obj;
+	JsonNode *locs	= jarg->locs;
+	int limit	= jarg->limit;
+	time_t s_lo	= jarg->s_lo;
+	time_t s_hi	= jarg->s_hi;
+	output_type otype = jarg->otype;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
 		return (-1);
+	if (locs == NULL || locs->tag != JSON_ARRAY)
+		return (-1);
 
-	/* Do we have candidate lines? */
+
+	if (limit == 0) {
+		/* Reading forwards; account for time */
+
+		char *p;
+		struct tm tmline;
+		time_t secs;
+
+		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
+			fprintf(stderr, "no strptime on %s", line);
+			return (0);
+		}
+		secs = mktime(&tmline);
+
+		if (secs <= s_lo || secs >= s_hi) {
+			return (0);
+		}
+
+		if (otype == RAW) {
+			printf("%s\n", line);
+			return (0);
+		}
+
+	}
+
+	/* Do we have location line? */
 	if ((bp = strstr(line, "Z\t* ")) == NULL) {	/* Not a location line */
 		return (0);
 	}
@@ -499,7 +534,14 @@ static int candidate_line(char *line, void *param)
 	return (1);
 }
 
-void reverse_locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, int rawmode, int limit)
+/*
+ * Read the file at `filename' (- is stdin) and store location
+ * objects at the JSON array `arr`. `obj' is a JSON object which
+ * contains `arr'.
+ * If limit is zero, we're going forward, else backwards.
+ */
+
+void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit)
 {
 	int rc;
 	struct jparam jarg;
@@ -507,144 +549,20 @@ void reverse_locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo
 	if (obj == NULL || obj->tag != JSON_OBJECT)
 		return;
 
-	jarg.obj = obj;
-	jarg.locs = arr;
+	jarg.obj	= obj;
+	jarg.locs	= arr;
+	jarg.s_lo	= s_lo;
+	jarg.s_hi	= s_hi;
+	jarg.otype	= otype;
+	jarg.limit	= limit;
 
-	rc = tac(filename, limit, candidate_line, &jarg);
-}
-
-/*
- * Read the file at `filename' (- is stdin) and store location
- * objects at the JSON array `arr`. `obj' is a JSON object which
- * contains `arr'.
- */
-
-void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, int rawmode)
-{
-	JsonNode *o, *json, *j;
-	FILE *fp;
-	int doclose;
-	char buf[LINESIZE], **element;
-	long counter = 0L;
-	static char *numbers[] = { "lat", "lon", "batt", "vel", "cog", "tst", "alt", "dist", "trip", "p", NULL };
-	static char *strings[] = { "tid", "t", NULL };
-	static UT_string *tstamp = NULL;
-
-	if (obj == NULL || obj->tag != JSON_OBJECT)
-		return;
-
-	utstring_renew(tstamp);
-
-	if (!strcmp(filename, "-")) {
-		fp = stdin;
-		doclose = 0;
+	if (limit == 0) {
+		rc = cat(filename, candidate_line, &jarg);
 	} else {
-		if ((fp = fopen(filename, "r")) == NULL) {
-			fprintf(stderr, "Cannot open %s: %s\n", filename, strerror(errno));
-			return;
-		}
-		doclose = 1;
+		rc = tac(filename, limit, candidate_line, &jarg);
 	}
-
-	/* Initialize our counter to what the JSON obj currently has */
-
-	if ((j = json_find_member(obj, "count")) != NULL) {
-		counter = j->number_;
-		json_delete(j);
-	}
-
-
-	while (fgets(buf, sizeof(buf)-1, fp) != NULL) {
-		char *bp, *ghash, *p;
-		double lat, lon;
-		struct tm tmline;
-		time_t secs, tst;
-
-		if ((p = strptime(buf, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
-			fprintf(stderr, "no strptime on %s", buf);
-			continue;
-		}
-		utstring_clear(tstamp);
-		utstring_printf(tstamp, "%-20.20s", buf);
-		secs = mktime(&tmline);
-
-		if (secs <= s_lo || secs >= s_hi) {
-			continue;
-		}
-
-		if (rawmode) {
-			printf("%s", buf);
-			continue;
-		}
-
-		if ((bp = strstr(buf, "Z\t* ")) != NULL) {
-			if ((bp = strrchr(bp, '\t')) == NULL) {
-				continue;
-			}
-			++counter;
-			json = json_decode(bp + 1);
-			if (json == NULL) {
-				puts("Cannot decode JSON");
-				continue;
-			}
-
-			o = json_mkobject();
-
-			/* Start adding stuff to the object, then copy over the elements
-			 * from the decoded original locations. */
-
-			for (element = numbers; element && *element; element++) {
-				if ((j = json_find_member(json, *element)) != NULL) {
-					if (j->tag == JSON_NUMBER) {
-						json_append_member(o, *element, json_mknumber(j->number_));
-					} else {
-						double d = atof(j->string_);
-						json_append_member(o, *element, json_mknumber(d));
-					}
-				}
-			}
-
-			for (element = strings; element && *element; element++) {
-				if ((j = json_find_member(json, *element)) != NULL) {
-					json_append_member(o, *element, json_mkstring(j->string_));
-				}
-			}
-
-			lat = lon = 0.0;
-			if ((j = json_find_member(o, "lat")) != NULL) {
-				lat = j->number_;
-			}
-			if ((j = json_find_member(o, "lon")) != NULL) {
-				lon = j->number_;
-			}
-
-			ghash = geohash_encode(lat, lon, GEOHASH_PREC);
-			json_append_member(o, "ghash", json_mkstring(ghash));
-			json_append_member(o, "isorcv", json_mkstring(utstring_body(tstamp)));
-
-			tst = 0L;
-			if ((j = json_find_member(o, "tst")) != NULL) {
-				tst = j->number_;
-			}
-			json_append_member(o, "isotst", json_mkstring(isotime(tst)));
-
-
-			get_geo(o, ghash);
-
-
-			json_append_element(arr, o);
-		}
-	}
-
-	/* Add the counter back into `obj' */
-
-	json_append_member(obj, "count", json_mknumber(counter));
-
-
-	if (doclose)
-		fclose(fp);
-
 }
+
 
 /*
  * We're being passed an array of location objects created in
