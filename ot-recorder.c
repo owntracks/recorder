@@ -652,6 +652,7 @@ void usage(char *prog)
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
 #ifdef HAVE_HTTP
+	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083)\n");
 	printf("  --doc-root <directory>       document root (./wdocs)\n");
 #endif
@@ -673,6 +674,7 @@ int main(int argc, char **argv)
 #ifdef HAVE_HTTP
 	int http_port = 8083;
 	char *doc_root = "./wdocs";
+	char *http_host = "localhost";
 #endif
 #ifdef HAVE_REDIS
 	struct timeval timeout = { 1, 500000 }; // 1.5 seconds
@@ -724,6 +726,7 @@ int main(int argc, char **argv)
 			{ "port",	required_argument,	0, 	'p'},
 			{ "storage",	required_argument,	0, 	'S'},
 #ifdef HAVE_HTTP
+			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
 			{ "doc-root",	required_argument,	0, 	2},
 #endif
@@ -743,6 +746,9 @@ int main(int argc, char **argv)
 			case 2:		/* no short char */
 				doc_root = strdup(optarg);
 				/* FIXME: check if isdir() */
+				break;
+			case 3:		/* no short char */
+				http_host = strdup(optarg);
 				break;
 #endif
 			case 'D':
@@ -885,7 +891,11 @@ int main(int argc, char **argv)
 
 #ifdef HAVE_HTTP
 	if (http_port) {
-		mg_set_option(udata.server, "listening_port", "127.0.0.1:8083");
+		char address[BUFSIZ];
+
+		sprintf(address, "%s:%d", http_host, http_port);
+
+		mg_set_option(udata.server, "listening_port", address);
 		// mg_set_option(udata.server, "listening_port", "8090,ssl://8091:cert.pem");
 
 		// mg_set_option(udata.server, "ssl_certificate", "cert.pem");
