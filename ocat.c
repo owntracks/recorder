@@ -9,13 +9,6 @@
 #include "util.h"
 #include "misc.h"
 
-typedef enum {
-	GEOJSON = 0,
-	CSV,
-	JSON,
-	RAW,
-} output_type;
-
 /*
  * Print the value in a single JSON node. If string, easy. If number account for
  * what we call 'integer' types which shouldn't be printed as floats.
@@ -111,6 +104,7 @@ void usage(char *prog)
 	printf("                               YYYY-MM-DDTHH\n");
 	printf("                               YYYY-MM-DD\n");
 	printf("                               YYYY-MM\n");
+	printf("  --limit <number>	-N     last <number> points\n");
 	printf("  --format json    	-f     output format (default: JSON)\n");
 	printf("           csv                 (overrides $OCAT_FORMAT\n");
 	printf("           geojson\n");
@@ -127,7 +121,7 @@ int main(int argc, char **argv)
 {
 	char *progname = *argv, *p;
 	int c;
-	int list = 0, killdata = 0, last = 0;
+	int list = 0, killdata = 0, last = 0, limit = 0;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
@@ -164,6 +158,7 @@ int main(int argc, char **argv)
 			{ "device",	required_argument, 0, 	'd'},
 			{ "from",	required_argument, 0, 	'F'},
 			{ "to",		required_argument, 0, 	'T'},
+			{ "limit",	required_argument, 0, 	'N'},
 			{ "format",	required_argument, 0, 	'f'},
 			{ "storage",	required_argument, 0, 	'S'},
 			{ "last",	no_argument, 0, 	'L'},
@@ -173,7 +168,7 @@ int main(int argc, char **argv)
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:N:", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -193,6 +188,9 @@ int main(int argc, char **argv)
 				break;
 			case 'F':
 				time_from = strdup(optarg);
+				break;
+			case 'N':
+				limit = atoi(optarg);
 				break;
 			case 'S':
 				strcpy(STORAGEDIR, optarg);
@@ -277,6 +275,11 @@ int main(int argc, char **argv)
 		return (-2);
 	}
 
+	/* If no from time specified but limit, set from to this month */
+	if (limit) {
+		time_from = strdup(yyyymm(now));
+	}
+
 	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
 		fprintf(stderr, "%s: bad time(s) specified\n", progname);
 		return (-2);
@@ -345,14 +348,30 @@ int main(int argc, char **argv)
 		 * process each and build the JSON `obj' with an array of locations.
 		 */
 
-		if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
-			if ((arr = json_find_member(json, "results")) != NULL) { // get array
-				json_foreach(f, arr) {
-					// fprintf(stderr, "%s\n", f->string_);
-					locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
+		if (limit) {
+			/* get a list of .rec files from lister() without time limits,
+			 * process them in reverse order */
+
+			printf("*** LIMIT %d\n", limit);
+			if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
+				if ((arr = json_find_member(json, "results")) != NULL) { // get array
+					json_foreach(f, arr) {
+						reverse_locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0, limit);
+					}
 				}
+				json_delete(json);
 			}
-			json_delete(json);
+		} else {
+
+			if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
+				if ((arr = json_find_member(json, "results")) != NULL) { // get array
+					json_foreach(f, arr) {
+						// fprintf(stderr, "%s\n", f->string_);
+						locations(f->string_, obj, locs, s_lo, s_hi, (otype == RAW) ? 1 : 0);
+					}
+				}
+				json_delete(json);
+			}
 		}
 	}
 

@@ -396,6 +396,123 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 	return (json);
 }
 
+struct jparam {
+	JsonNode *obj;
+	JsonNode *locs;
+};
+
+/*
+ * line is a single valid '*' line from a .rec file. Turn it into a JSON object.
+ * objectorize it. Is that a word? :)
+ */
+
+static JsonNode *line_to_location(char *line)
+{
+	JsonNode *json, *o, *j;
+	char *ghash;
+	char tstamp[64], *bp;
+	double lat, lon;
+	long tst;
+
+	snprintf(tstamp, 21, "%s", line);
+
+	if ((bp = strchr(line, '{')) == NULL)
+		return (NULL);
+
+	if ((json = json_decode(bp)) == NULL) {
+		return (NULL);
+	}
+
+	o = json_mkobject();
+
+	if (json_copy_to_object(o, json, FALSE) == FALSE) {
+		json_delete(o);
+		return (NULL);
+	}
+
+	lat = lon = 0.0;
+	if ((j = json_find_member(o, "lat")) != NULL) {
+		lat = j->number_;
+	}
+	if ((j = json_find_member(o, "lon")) != NULL) {
+		lon = j->number_;
+	}
+
+	ghash = geohash_encode(lat, lon, GEOHASH_PREC);
+	json_append_member(o, "ghash", json_mkstring(ghash));
+	json_append_member(o, "isorcv", json_mkstring(tstamp));
+
+	tst = 0L;
+	if ((j = json_find_member(o, "tst")) != NULL) {
+		tst = j->number_;
+	}
+	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
+
+	get_geo(o, ghash);
+
+	return (o);
+}
+
+/*
+ * Invoked via tac() and cat(). Verify that line is indeed a location
+ * line from a .rec file. Then objectorize it and add to the locations
+ * JSON array and update the counter in our JSON object.
+ */
+
+static int candidate_line(char *line, void *param)
+{
+	long counter = 0L;
+	JsonNode *j, *obj, *locs, *o;
+	struct jparam *jarg = (struct jparam*)param;
+	char *bp;
+
+	obj = jarg->obj;
+	locs = jarg->locs;
+
+	if (obj == NULL || obj->tag != JSON_OBJECT)
+		return (-1);
+
+	/* Do we have candidate lines? */
+	if ((bp = strstr(line, "Z\t* ")) == NULL) {	/* Not a location line */
+		return (0);
+	}
+
+	if ((bp = strrchr(bp, '\t')) == NULL) {
+		return (0);
+	}
+
+	/* Initialize our counter to what the JSON obj currently has */
+	if ((j = json_find_member(obj, "count")) != NULL) {
+		counter = j->number_;
+		json_delete(j);
+	}
+
+	// fprintf(stderr, "-->[%s]\n", line);
+
+	if ((o = line_to_location(line)) != NULL) {
+		json_append_element(locs, o);
+		++counter;
+	}
+
+	/* Add the (possibly) incremented counter back into `obj' */
+	json_append_member(obj, "count", json_mknumber(counter));
+	return (1);
+}
+
+void reverse_locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, int rawmode, int limit)
+{
+	int rc;
+	struct jparam jarg;
+
+	if (obj == NULL || obj->tag != JSON_OBJECT)
+		return;
+
+	jarg.obj = obj;
+	jarg.locs = arr;
+
+	rc = tac(filename, limit, candidate_line, &jarg);
+}
+
 /*
  * Read the file at `filename' (- is stdin) and store location
  * objects at the JSON array `arr`. `obj' is a JSON object which
