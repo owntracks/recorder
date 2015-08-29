@@ -689,8 +689,8 @@ char *gpx_string(JsonNode *location_array)
 
 	utstring_printf(xml, "%s", "<?xml version='1.0' encoding='UTF-8' standalone='no' ?>\n\
 <gpx version='1.1' creator='OwnTracks-Recorder'>\n\
-  <trk>\n\
-    <trkseg>\n");
+ <trk>\n\
+  <trkseg>\n");
 
       // <trkpt lat="xx.xxx" lon="yy.yyy"> <!-- Attribute des Trackpunkts --> </trkpt>
 
@@ -706,10 +706,10 @@ char *gpx_string(JsonNode *location_array)
                         lon = j->number_;
                 }
 
-		utstring_printf(xml, "<trkpt lat='%lf' lon='%lf' />\n", lat, lon);
+		utstring_printf(xml, "    <trkpt lat='%lf' lon='%lf' />\n", lat, lon);
 	}
 
-	utstring_printf(xml, "%s", " </trkseg>\n</trk>\n</gpx>\n");
+	utstring_printf(xml, "%s", "  </trkseg>\n</trk>\n</gpx>\n");
 	return (utstring_body(xml));
 }
 
