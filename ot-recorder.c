@@ -10,6 +10,7 @@
 #include <time.h>
 #include "json.h"
 #include <sys/utsname.h>
+#include <syslog.h>
 #include "utstring.h"
 #include "utarray.h"
 #include "geo.h"
@@ -609,7 +610,7 @@ void on_connect(struct mosquitto *mosq, void *userdata, int rc)
 	char **m = NULL;
 
 	while ((m = (char **)utarray_next(ud->topics, m))) {
-		fprintf(stderr, "Subscribing to %s (qos=%d)\n", *m, ud->qos);
+		syslog(LOG_DEBUG, "Subscribing to %s (qos=%d)", *m, ud->qos);
 		mosquitto_subscribe(mosq, &mid, *m, ud->qos);
 	}
 }
@@ -620,7 +621,7 @@ void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 	struct udata *ud = (struct udata *)userdata;
 #endif
 
-	fprintf(stderr, "Disconnected. Reason: %d [%s]\n", reason, mosquitto_strerror(reason));
+	syslog(LOG_INFO, "Disconnected. Reason: %d [%s]", reason, mosquitto_strerror(reason));
 
 	if (reason == 0) { 	// client wish
 	#ifdef HAVE_REDIS
@@ -651,6 +652,7 @@ void usage(char *prog)
 	printf("  --pubprefix		-P     republish prefix (dflt: no republish)\n");
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
+	printf("  --logfacility		       syslog facility (local0)\n");
 #ifdef HAVE_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083)\n");
@@ -665,7 +667,7 @@ int main(int argc, char **argv)
 {
 	struct mosquitto *mosq = NULL;
 	char err[1024], *p, *username, *password, *cafile;
-	char *hostname = "localhost";
+	char *hostname = "localhost", *logfacility = "local0";
 	int port = 1883;
 	int rc, i, ch;
 	static struct udata udata, *ud = &udata;
@@ -725,6 +727,7 @@ int main(int argc, char **argv)
 			{ "host",	required_argument,	0, 	'H'},
 			{ "port",	required_argument,	0, 	'p'},
 			{ "storage",	required_argument,	0, 	'S'},
+			{ "logfacility",	required_argument,	0, 	4},
 #ifdef HAVE_HTTP
 			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
@@ -739,6 +742,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 4:
+				logfacility = strdup(optarg);
+				break;
 #ifdef HAVE_HTTP
 			case 'A':	/* API */
 				http_port = atoi(optarg);
@@ -805,6 +811,9 @@ int main(int argc, char **argv)
 		usage(progname);
 		return (-1);
 	}
+
+	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
+	syslog(LOG_DEBUG, "starting");
 
 	if (ud->revgeo == TRUE) {
 		revgeo_init();
@@ -906,14 +915,14 @@ int main(int argc, char **argv)
 		// mg_set_option(udata.server, "access_log_file", "access.log");
 		// mg_set_option(udata.server, "cgi_pattern", "**.cgi");
 
-		printf("Started on port %s\n", mg_get_option(udata.server, "listening_port"));
+		syslog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.server, "listening_port"));
 	}
 #endif
 
 	while (run) {
 		rc = mosquitto_loop(mosq, /* timeout */ 200, /* max-packets */ 1);
 		if (run && rc) {
-			fprintf(stderr, "loop sleep: rc=%d [%s]\n", rc, mosquitto_strerror(rc));
+			syslog(LOG_INFO, "MQTT connection: rc=%d [%s]. Sleeping...", rc, mosquitto_strerror(rc));
 			sleep(10);
 			mosquitto_reconnect(mosq);
 		}
