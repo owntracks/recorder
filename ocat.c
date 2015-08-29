@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 	if (list) {
 		char *js;
 
-		json = lister(username, device, 0, s_hi);
+		json = lister(username, device, 0, s_hi, FALSE);
 		if (json == NULL) {
 			fprintf(stderr, "%s: cannot list\n", progname);
 			exit(2);
@@ -350,10 +350,11 @@ int main(int argc, char **argv)
 		 * process each and build the JSON `obj' with an array of locations.
 		 */
 
-		if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
+		if ((json = lister(username, device, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
 				json_foreach(f, arr) {
 					locations(f->string_, obj, locs, s_lo, s_hi, otype, limit);
+					// printf("%s\n", f->string_);
 				}
 			}
 			json_delete(json);

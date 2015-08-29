@@ -325,7 +325,7 @@ static int cmp( const struct dirent **a, const struct dirent **b)
 	return strcmp((*a)->d_name, (*b)->d_name);
 }
 
-static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
+static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int reverse)
 {
 	struct dirent **namelist;
 	int i, n;
@@ -346,11 +346,20 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
                 return;
 	}
 
-	for (i = 0; i < n; i++) {
-		utstring_clear(path);
-		utstring_printf(path, "%s/%s", pathpat, namelist[i]->d_name);
-		json_append_element(jarr, json_mkstring(utstring_body(path)));
-		free(namelist[i]);
+	if (reverse) {
+		for (i = n - 1; i >= 0; i--) {
+			utstring_clear(path);
+			utstring_printf(path, "%s/%s", pathpat, namelist[i]->d_name);
+			json_append_element(jarr, json_mkstring(utstring_body(path)));
+			free(namelist[i]);
+		}
+	} else {
+		for (i = 0; i < n; i++) {
+			utstring_clear(path);
+			utstring_printf(path, "%s/%s", pathpat, namelist[i]->d_name);
+			json_append_element(jarr, json_mkstring(utstring_body(path)));
+			free(namelist[i]);
+		}
 	}
 	free(namelist);
 
@@ -361,10 +370,11 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj)
  * If `user' and `device' are both NULL, return list of users.
  * If `user` is specified, and device is NULL, return user's devices
  * If both user and device are specified, return list of .rec files;
- * in that case, limit with `s_lo` and `s_hi`
+ * in that case, limit with `s_lo` and `s_hi`. `reverse' is TRUE if
+ * list should be sorted in descending order.
  */
 
-JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
+JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi, int reverse)
 {
 	JsonNode *json = json_mkobject();
 	UT_string *path = NULL;
@@ -390,7 +400,7 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi)
 	} else {
 		utstring_printf(path, "%s/rec/%s/%s",
 			STORAGEDIR, user, device);
-		lsscan(utstring_body(path), s_lo, s_hi, json);
+		lsscan(utstring_body(path), s_lo, s_hi, json, reverse);
 	}
 
 	return (json);
