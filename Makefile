@@ -42,7 +42,7 @@ ghash.o: ghash.h ghash.c config.h udata.h misc.h Makefile config.mk
 safewrite.o: safewrite.h safewrite.c
 jget.o: jget.c jget.h json.h Makefile config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
-http.o: http.c mongoose.h util.h http.h
+http.o: http.c mongoose.h util.h http.h storage.h
 util.o: util.c util.h Makefile config.mk
 
 ocat: ocat.o storage.o json.o geohash.o ghash.o mkpath.o util.o

@@ -81,7 +81,7 @@ void push_geojson(struct mg_connection *conn)
 	 * process each and build the JSON `obj' with an array of locations.
 	 */
 
-	if ((json = lister(username, device, s_lo, s_hi)) != NULL) {
+	if ((json = lister(username, device, s_lo, s_hi, FALSE)) != NULL) {
 		if ((arr = json_find_member(json, "results")) != NULL) { // get array
 			json_foreach(f, arr) {
 				// fprintf(stderr, "%s\n", f->string_);
@@ -188,7 +188,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			if (!strcmp(conn->uri, "/api/users")) {
 				JsonNode *json;
 
-				if ((json = lister(NULL, NULL, 0, 0)) != NULL) {
+				if ((json = lister(NULL, NULL, 0, 0, FALSE)) != NULL) {
 					char *js;
 
 					js = json_stringify(json, " ");
