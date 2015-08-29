@@ -42,10 +42,15 @@
 
 #undef UNICODE                  // Use ANSI WinAPI functions
 #undef _UNICODE                 // Use multibyte encoding on Windows
+#ifndef _MBCS
 #define _MBCS                   // Use multibyte encoding on Windows
+#endif
 #define _INTEGRAL_MAX_BITS 64   // Enable _stati64() on Windows
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS // Disable deprecation warning in VS2005+
+#endif
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // Disable deprecated Winsock API warnings in VS2013+
 #endif
 #undef WIN32_LEAN_AND_MEAN      // Let windows.h always include winsock2.h
 #ifdef __Linux__
@@ -258,6 +263,7 @@ struct ns_connection {
 #define NSF_WANT_WRITE              (1 << 6)
 #define NSF_LISTENING               (1 << 7)
 #define NSF_UDP                     (1 << 8)
+#define NSF_DISCARD                 (1 << 9)
 
 #define NSF_USER_1                  (1 << 20)
 #define NSF_USER_2                  (1 << 21)
@@ -863,7 +869,17 @@ static int ns_is_error(int n) {
 #ifdef _WIN32
      && WSAGetLastError() != WSAEINTR && WSAGetLastError() != WSAEWOULDBLOCK
 #endif
-    );
+    )
+#ifdef NS_ENABLE_SSL
+    /*
+     * OpenSSL can return an error when the peer is closing the socket.
+     * We don't encounter this error with openssl actually, but it's returned
+     * by our polarssl <-> openssl wrapper who tries to speak the openssl API
+     * as we understood it.
+     */
+    || n == SSL_AD_CLOSE_NOTIFY
+#endif
+    ;
 }
 
 void ns_sock_to_str(sock_t sock, char *buf, size_t len, int flags) {
@@ -3031,6 +3047,9 @@ static void send_websocket_handshake(struct mg_connection *conn,
   mg_write(conn, buf, strlen(buf));
 }
 
+#define MG_S_WEBSOCKET_PING_DATA_LEN 16
+static const char s_websocket_ping_data[] = "4d6f6e676f6f7365"; /* Mongoose */
+
 static size_t deliver_websocket_frame(struct connection *conn) {
   // Having buf unsigned char * is important, as it is used below in arithmetic
   unsigned char *buf = (unsigned char *) conn->ns_conn->recv_iobuf.buf;
@@ -3057,6 +3076,7 @@ static size_t deliver_websocket_frame(struct connection *conn) {
   buffered = frame_len > 0 && frame_len <= buf_len;
 
   if (buffered) {
+    int opcode = buf[0] & 0x0f;
     conn->mg_conn.content_len = data_len;
     conn->mg_conn.content = (char *) buf + header_len;
     conn->mg_conn.wsbits = buf[0];
@@ -3068,11 +3088,19 @@ static size_t deliver_websocket_frame(struct connection *conn) {
       }
     }
 
-    // Call the handler and remove frame from the iobuf
-    if (call_user(conn, MG_REQUEST) == MG_FALSE ||
-        (buf[0] & 0x0f) == WEBSOCKET_OPCODE_CONNECTION_CLOSE) {
-      conn->ns_conn->flags |= NSF_FINISHED_SENDING_DATA;
+    if (opcode == WEBSOCKET_OPCODE_PONG &&
+        data_len == MG_S_WEBSOCKET_PING_DATA_LEN &&
+        memcmp(buf + header_len, s_websocket_ping_data,
+               MG_S_WEBSOCKET_PING_DATA_LEN) == 0) {
+      DBG(("ws pong"));
+      /* This is a response to our ping, swallow it. */
+    } else {
+      if (call_user(conn, MG_REQUEST) == MG_FALSE ||
+          opcode == WEBSOCKET_OPCODE_CONNECTION_CLOSE) {
+        conn->ns_conn->flags |= NSF_FINISHED_SENDING_DATA;
+      }
     }
+
     iobuf_remove(&conn->ns_conn->recv_iobuf, frame_len);
   }
 
@@ -3168,7 +3196,9 @@ static void send_websocket_handshake_if_requested(struct mg_connection *conn) {
 
 static void ping_idle_websocket_connection(struct connection *conn, time_t t) {
   if (t - conn->ns_conn->last_io_time > MONGOOSE_USE_WEBSOCKET_PING_INTERVAL) {
-    mg_websocket_write(&conn->mg_conn, WEBSOCKET_OPCODE_PING, "", 0);
+    DBG(("ws ping"));
+    mg_websocket_write(&conn->mg_conn, WEBSOCKET_OPCODE_PING,
+                       s_websocket_ping_data, MG_S_WEBSOCKET_PING_DATA_LEN);
   }
 }
 #else
@@ -3876,7 +3906,7 @@ static void handle_put(struct connection *conn, const char *path) {
 
 static void forward_put_data(struct connection *conn) {
   struct iobuf *io = &conn->ns_conn->recv_iobuf;
-  size_t k = conn->cl < (int64_t) io->len ? conn->cl : (int64_t) io->len;   // To write
+  size_t k = (size_t)(conn->cl < (int64_t) io->len ? conn->cl : (int64_t) io->len);   // To write
   size_t n = write(conn->endpoint.fd, io->buf, k);   // Write them!
   if (n > 0) {
     iobuf_remove(io, n);
@@ -3907,7 +3937,11 @@ void mg_send_digest_auth_request(struct mg_connection *c) {
             "realm=\"%s\", nonce=\"%lu\"\r\n\r\n",
             conn->server->config_options[AUTH_DOMAIN],
             (unsigned long) time(NULL));
-  close_local_endpoint(conn);
+  if (conn->cl > 0) {
+    conn->ns_conn->flags |= NSF_DISCARD;
+  } else {
+    close_local_endpoint(conn);
+  }
 }
 
 // Use the global passwords file, if specified by auth_gpass option,
@@ -4780,6 +4814,19 @@ static void on_recv_data(struct connection *conn) {
     return;
   }
 
+  if (conn->ns_conn->flags & NSF_DISCARD) {
+    size_t n = (size_t)conn->cl;
+    if (n > io->len) {
+      n = io->len;
+    }
+    iobuf_remove(io, n);
+    conn->cl -= n;
+    if (conn->cl == 0) {
+      close_local_endpoint(conn);
+    }
+    return;
+  }
+
   try_parse(conn);
   DBG(("%p %d %lu %d", conn, conn->request_len, (unsigned long)io->len,
        conn->ns_conn->flags));
@@ -4959,7 +5006,7 @@ static void close_local_endpoint(struct connection *conn) {
 
   conn->endpoint_type = EP_NONE;
   conn->cl = conn->num_bytes_recv = conn->request_len = 0;
-  conn->ns_conn->flags &= ~(NSF_FINISHED_SENDING_DATA |
+  conn->ns_conn->flags &= ~(NSF_FINISHED_SENDING_DATA | NSF_DISCARD |
                             NSF_BUFFER_BUT_DONT_SEND | NSF_CLOSE_IMMEDIATELY |
                             MG_HEADERS_SENT | MG_USING_CHUNKED_API);
 
