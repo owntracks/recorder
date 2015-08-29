@@ -261,15 +261,17 @@ int main(int argc, char **argv)
 	}
 
 	if (last) {
-		JsonNode *obj;
-		char *js;
+		JsonNode *user_array;
 
-		obj = last_users();
-		js = json_stringify(obj, " ");
-		printf("%s\n", js);
+		if ((user_array = last_users()) != NULL) {
+			char *js;
 
-		free(js);
-		json_delete(obj);
+			if ((js = json_stringify(user_array, " ")) != NULL) {
+				printf("%s\n", js);
+				free(js);
+			}
+			json_delete(user_array);
+		}
 		return (0);
 	}
 
