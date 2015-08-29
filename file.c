@@ -6,6 +6,7 @@
 #include <time.h>
 #include "file.h"
 #include "misc.h"
+#include "util.h"
 
 static void ut_lower(UT_string *us)
 {
@@ -28,13 +29,6 @@ static void ut_clean(UT_string *us)
                 if (isspace(*p))
                         *p = '-';
         }
-}
-
-static const char *yyyymm(time_t t) {
-        static char buf[] = "YYYY-MM";
-
-        strftime(buf, sizeof(buf), "%Y-%m", gmtime(&t));
-        return(buf);
 }
 
 /* Return an open append file pointer to storage for user/device,
