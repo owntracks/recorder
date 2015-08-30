@@ -2,7 +2,7 @@ include config.mk
 
 LIBS = -L/Users/jpm/Auto/pubgit/MQTT/mosquitto/org.eclipse.mosquitto.git/lib
 LIBS += -lcurl -lmosquitto
-CFLAGS=-Wall -Werror -g
+CFLAGS=-Wall -Werror
 
 OTR_OBJS = json.o \
 	   geo.o \
