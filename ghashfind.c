@@ -8,8 +8,7 @@ long counter = 0L;
 
 int fn(const char *filename, const struct stat *sb, int flag)
 {
-	JsonNode *obj = json_mkobject();
-	JsonNode *node;
+	JsonNode *obj, *node;
 	char ghash[64], *p, *bp, *gp, *js;
 
 	if (flag != FTW_F)
@@ -29,7 +28,9 @@ int fn(const char *filename, const struct stat *sb, int flag)
 	if (!strcmp(ghash, "7zzzzzz"))
 		return (0);
 	
+	obj = json_mkobject();
 	if (json_copy_from_file(obj, (char *)filename) != TRUE) {
+		json_delete(obj);
 		return (1);
 	}
 
