@@ -30,10 +30,10 @@ endif
 
 all: ot-recorder ocat ghashfind
 
-ot-recorder: ot-recorder.c $(OTR_OBJS)
-	$(CC) $(CFLAGS) ot-recorder.c -o ot-recorder $(OTR_OBJS) $(LIBS)
+ot-recorder: ot-recorder.o $(OTR_OBJS)
+	$(CC) $(CFLAGS) ot-recorder.o -o ot-recorder $(OTR_OBJS) $(LIBS)
 
-ot-recorder.o: ot-recorder.c storage.h
+ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h config.h json.h http.h
 geo.o: geo.h geo.c udata.h Makefile config.mk config.h
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
 file.o: file.h file.c config.h misc.h Makefile config.mk
@@ -59,4 +59,4 @@ mongoose.o: mongoose.c mongoose.h
 clean:
 	rm -f *.o
 clobber: clean
-	rm -f ot-recorder ocat
+	rm -f ot-recorder ocat ghashfind
