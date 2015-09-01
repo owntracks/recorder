@@ -172,6 +172,7 @@ int main(int argc, char **argv)
 			case 'g': otype = GEOJSON; break;
 			case 'r': otype = RAW; break;
 			case 'p': otype = RAWPAYLOAD; break;
+			case 'l': otype = LINESTRING; break;
 		}
 	}
 
@@ -234,6 +235,8 @@ int main(int argc, char **argv)
 					otype = JSON;
 				else if (!strcmp(optarg, "geojson"))
 					otype = GEOJSON;
+				else if (!strcmp(optarg, "linestring"))
+					otype = LINESTRING;
 				else if (!strcmp(optarg, "raw"))
 					otype = RAW;
 				else if (!strcmp(optarg, "payload"))
@@ -415,6 +418,19 @@ int main(int argc, char **argv)
 		csv_output(obj, CSV, fields);
 	} else if (otype == RAW || otype == RAWPAYLOAD) {
 		/* We've already done what we need to do in locations() */
+	} else if (otype == LINESTRING) {
+		JsonNode *geolinestring = geo_linestring(locs);
+		char *js;
+
+		if (geolinestring != NULL) {
+			js = json_stringify(geolinestring, " ");
+			if (js != NULL) {
+				printf("%s\n", js);
+				free(js);
+			}
+			json_delete(geolinestring);
+		}
+
 	} else if (otype == GEOJSON) {
 		JsonNode *geojson = geo_json(locs);
 		char *js;

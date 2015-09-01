@@ -709,6 +709,58 @@ JsonNode *geo_json(JsonNode *location_array)
 }
 
 /*
+ * Create JSON suitable to represent this LineString:
+ *
+ *	{
+ *	    "geometry": {
+ *	        "coordinates": [
+ *	            [
+ *	                17.814833,
+ *	                59.604585
+ *	            ],
+ *	            [
+ *	                17.814824,
+ *	                59.60459
+ *	            ]
+ *	        ],
+ *	        "type": "LineString"
+ *	    },
+ *	    "type": "Feature"
+ *	}
+ *
+ */
+JsonNode *geo_linestring(JsonNode *location_array)
+{
+	JsonNode *top = json_mkobject();
+
+	json_append_member(top, "type", json_mkstring("Feature"));
+
+	JsonNode *c, *coords = json_mkarray();
+	json_foreach(c, location_array) {
+		JsonNode *lat, *lon;
+
+		if (((lat = json_find_member(c, "lat")) != NULL) &&
+		    ((lon = json_find_member(c, "lon")) != NULL)) {
+
+		    JsonNode *latlon = json_mkarray();
+
+		    json_append_element(latlon, json_mknumber(lon->number_));
+		    json_append_element(latlon, json_mknumber(lat->number_));
+
+		    json_append_element(coords, latlon);
+		}
+	}
+
+	JsonNode *geometry = json_mkobject();
+
+	json_append_member(geometry, "coordinates", coords);
+	json_append_member(geometry, "type", json_mkstring("LineString"));
+	json_append_member(top, "geometry", geometry);
+
+	return (top);
+}
+
+/*
  * Turn our JSON location array into a GPX XML string.
  */
 
