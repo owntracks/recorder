@@ -20,7 +20,7 @@ ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
 	LIBS += mdb/liblmdb.a
-	TARGETS += mdb/liblmdb.a
+	TARGETS += mdb/liblmdb.a gcache-dump
 endif
 
 ifeq ($(HAVE_HTTP),yes)
@@ -62,7 +62,10 @@ mongoose.o: mongoose.c mongoose.h
 clean:
 	rm -f *.o
 clobber: clean
-	rm -f ot-recorder ocat ghashfind
+	rm -f ot-recorder ocat ghashfind gcache-dump
 
 mdb/liblmdb.a:
 	(cd mdb && make)
+
+gcache-dump: gcache-dump.o
+	$(CC) $(CFLAGS) -o gcache-dump gcache-dump.c $(LIBS)

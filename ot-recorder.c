@@ -529,12 +529,11 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
 	 */
 
-	/* TODO: shall we store last positions in LMDB? */
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
 		char *js;
 
-#ifdef HAVE_REDIS
+#ifdef HAVE_REDIS /* TODO: shall we store last positions in LMDB? */
 		if (ud->useredis) {
 			/* add last to Redis as "lastpos:username-device" */
 			last_storeredis(&ud->redis, utstring_body(username), utstring_body(device), jsonstring);

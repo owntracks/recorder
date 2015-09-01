@@ -2,6 +2,7 @@
 ot-recorder
 ocat
 ghashfind
+gcache-dump
 *.dSYM
 .DS_Store
 store/
