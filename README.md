@@ -37,7 +37,7 @@ We took a number of decisions for the design of the recorder and its utilities:
 As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
 
 * `cards/`, optional, contain user cards.
-* `ghash/`, unless disabled, reverse Geo data is collected in files named after the geohash in directories named with the first three characters of the geohash.
+* `ghash/`, unless disabled, reverse Geo data is collected into an LMDB database located in this directory.
 * `last/` contains the last location publish from a device. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`.
 * `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
 * `msg/` contains messages received by the Messaging system.
