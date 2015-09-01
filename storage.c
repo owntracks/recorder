@@ -111,12 +111,10 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 	if (json_copy_from_file(card, path) == TRUE) {
 		json_copy_to_object(last, card, FALSE);
 	} else {
-		/* No CARD? Discontinue */
-		json_delete(card);
+		/* No CARD? Add pseudo data */
 
-		json_remove_from_parent(last);
-		json_delete(last);
-		return;
+		json_append_member(last, "name", json_mknull());
+		json_append_member(last, "face", json_mknull());
 	}
 
 	if ((node = json_find_member(last, "ghash")) != NULL) {
