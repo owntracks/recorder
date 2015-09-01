@@ -3,10 +3,22 @@
 #include <string.h>
 #include <syslog.h>
 #include "util.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #ifndef LINESIZE
 # define LINESIZE 8192
 #endif
+
+int is_directory(char *path)
+{
+	struct stat sb;
+
+	if (stat(path, &sb) != 0)
+		return (0);
+	return (S_ISDIR(sb.st_mode));
+}
 
 const char *isotime(time_t t) {
         static char buf[] = "YYYY-MM-DDTHH:MM:SSZ";

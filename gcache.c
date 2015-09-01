@@ -1,19 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <stdlib.h>
 #include "gcache.h"
-
-static int is_directory(char *path)
-{
-	struct stat sb;
-
-	if (stat(path, &sb) != 0)
-		return (0);
-	return (S_ISDIR(sb.st_mode));
-}
+#include "util.h"
 
 struct gcache *gcache_open(char *path, int rdonly)
 {

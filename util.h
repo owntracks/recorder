@@ -9,6 +9,7 @@
 #include <time.h>
 #include "json.h"
 
+int is_directory(char *path);
 const char *isotime(time_t t);
 char *slurp_file(char *filename, int fold_newlines);
 int json_copy_to_object(JsonNode *obj, JsonNode * object_or_array, int clobber);
