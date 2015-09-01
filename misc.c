@@ -4,7 +4,7 @@
 #include "ctype.h"
 #include "udata.h"
 #include "misc.h"
-#include "safewrite.h"
+#include "util.h"
 
 char *bindump(char *buf, long buflen)
 {

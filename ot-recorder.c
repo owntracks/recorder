@@ -16,8 +16,6 @@
 #include "geo.h"
 #include "config.h"
 #include "geohash.h"
-#include "file.h"
-#include "safewrite.h"
 #include "base64.h"
 #include "misc.h"
 #include "util.h"

@@ -7,8 +7,11 @@
 #endif
 
 #include <time.h>
+#include "config.h"
 #include "json.h"
+#include "utstring.h"
 
+int mkpath(char *path);
 int is_directory(char *path);
 const char *isotime(time_t t);
 char *slurp_file(char *filename, int fold_newlines);
@@ -21,5 +24,7 @@ int syslog_facility_code(char *facility);
 const char *yyyymm(time_t t);
 int tac(char *filename, long lines, int (*func)(char *, void *), void *param);
 int cat(char *filename, int (*func)(char *, void *), void *param);
+FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix);
+int safewrite(char *filename, char *buf);
 
 #endif

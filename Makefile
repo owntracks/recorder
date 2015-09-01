@@ -9,8 +9,6 @@ OTR_OBJS = json.o \
 	   geo.o \
 	   geohash.o \
 	   mkpath.o \
-	   file.o \
-	   safewrite.o \
 	   base64.o \
 	   misc.o \
 	   util.o \
@@ -39,10 +37,8 @@ ot-recorder: ot-recorder.o $(OTR_OBJS)
 ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h config.h json.h http.h
 geo.o: geo.h geo.c udata.h Makefile config.mk config.h
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
-file.o: file.h file.c config.h misc.h Makefile config.mk
 base64.o: base64.h base64.c
 gcache.o: gcache.c gcache.h json.h
-safewrite.o: safewrite.h safewrite.c
 jget.o: jget.c jget.h json.h Makefile config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
 http.o: http.c mongoose.h util.h http.h storage.h
@@ -54,8 +50,8 @@ ocat: ocat.o storage.o json.o geohash.o mkpath.o util.o gcache.o
 ocat.o: ocat.c storage.h
 storage.o: storage.c storage.h config.h util.h
 
-ghashfind: ghashfind.o util.o json.o
-	$(CC) $(CFLAGS) -o ghashfind ghashfind.o util.o json.o
+ghashfind: ghashfind.o util.o json.o storage.o geohash.o mkpath.o gcache.o
+	$(CC) $(CFLAGS) -o ghashfind ghashfind.o util.o json.o storage.o geohash.o mkpath.o gcache.o $(LIBS)
 ghashfind.o: ghashfind.c util.h
 mongoose.o: mongoose.c mongoose.h
 
@@ -69,5 +65,5 @@ mdb/liblmdb.a:
 
 gcache-dump: gcache-dump.o
 	$(CC) $(CFLAGS) -o gcache-dump gcache-dump.c $(LIBS)
-ghash2lmdb: ghash2lmdb.o util.o json.o gcache.o 
-	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.c util.o json.o gcache.o $(LIBS)
+ghash2lmdb: ghash2lmdb.o util.o json.o gcache.o misc.o storage.o geohash.o mkpath.o
+	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.c util.o json.o gcache.o misc.o storage.o geohash.o mkpath.o $(LIBS)

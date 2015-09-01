@@ -1,3 +1,4 @@
+/* ghash2lmdb: read key<space>value separated lines and add them to an LMDB database */
 #include <stdio.h>
 #include <string.h>
 #include "gcache.h"
@@ -32,5 +33,5 @@ int main(int argc,char * argv[])
 	}
 
 	gcache_close(gc);
-	return 0;
+	return (0);
 }

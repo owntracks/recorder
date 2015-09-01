@@ -3,9 +3,14 @@
 #include <string.h>
 #include <syslog.h>
 #include "util.h"
+#include "misc.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <time.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #ifndef LINESIZE
 # define LINESIZE 8192
@@ -361,4 +366,126 @@ int tac(char *filename, long lines, int (*func)(char *, void *), void *param)
 	}
 	fclose(fp);
 	return (0);
+}
+
+static void ut_lower(UT_string *us)
+{
+        char *p;
+
+        for (p = utstring_body(us); p && *p; p++) {
+                if (!isalnum(*p) || isspace(*p))
+                        *p = '-';
+                else if (isupper(*p))
+                        *p = tolower(*p);
+
+        }
+}
+
+static void ut_clean(UT_string *us)
+{
+        char *p;
+
+        for (p = utstring_body(us); p && *p; p++) {
+                if (isspace(*p))
+                        *p = '-';
+        }
+}
+
+/* Return an open append file pointer to storage for user/device,
+   creating directories on the fly. If device is NULL, omit it.
+ */
+
+FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix)
+{
+        static UT_string *path = NULL;
+	time_t now;
+
+        utstring_renew(path);
+
+        ut_lower(user);
+
+	if (device) {
+		ut_lower(device);
+		utstring_printf(path, "%s/%s/%s/%s", STORAGEDIR, prefix, utstring_body(user), utstring_body(device));
+	} else {
+		utstring_printf(path, "%s/%s/%s", STORAGEDIR, prefix, utstring_body(user));
+	}
+
+        ut_clean(path);
+
+        if (mkpath(utstring_body(path)) < 0) {
+                perror(utstring_body(path));
+                return (NULL);
+        }
+
+
+#if 0
+	if (device) {
+		utstring_printf(path, "/%s-%s.%s",
+			utstring_body(user), utstring_body(device), suffix);
+	} else {
+		utstring_printf(path, "/%s.%s",
+			utstring_body(user), suffix);
+	}
+#endif
+
+	if (strcmp(prefix, "rec") == 0) {
+		time(&now);
+		utstring_printf(path, "/%s.%s", yyyymm(now), suffix);
+	} else {
+		utstring_printf(path, "/%s.%s",
+			utstring_body(user), suffix);
+	}
+
+        ut_clean(path);
+
+        return (fopen(utstring_body(path), mode));
+
+}
+
+int safewrite(char *filename, char *buf)
+{
+        char *tmpfile = malloc(strlen(filename) + 3);
+        mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
+        int fd;
+
+        if (tmpfile == NULL)
+                return (-1);
+
+        sprintf(tmpfile, "%s~", filename);
+
+        if (unlink(tmpfile) == -1) {
+                if (errno != ENOENT) {
+                        fprintf(stderr, "Failed to remove %s (errno=%d)\n", tmpfile, errno);
+                        free(tmpfile);
+                        return (-1);
+                }
+        }
+
+        if ((fd = open(tmpfile, O_RDWR|O_CREAT|O_TRUNC, mode)) == -1) {
+                fprintf(stderr, "Failed to create %s (errno=%d)\n", tmpfile, errno);
+                free(tmpfile);
+                return (-1);
+        }
+
+        if (write(fd, buf, strlen(buf)) != strlen(buf)) {
+                fprintf(stderr, "Failed to write to %s (errno=%d)\n", tmpfile, errno);
+                free(tmpfile);
+                close(fd);
+                return (-1);
+        }
+	/* Ensure NL-terminated */
+	if (buf[strlen(buf) - 1] != '\n') {
+		write(fd, "\n", 1);
+	}
+
+        close(fd);
+
+        if ((rename(tmpfile, filename)) == -1) {
+                fprintf(stderr, "Failed to rename %s to %s (errno=%d)\n", tmpfile, filename, errno);
+                free(tmpfile);
+        }
+
+        free(tmpfile);
+        return (0);
 }
