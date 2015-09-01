@@ -227,9 +227,8 @@ int syslog_facility_code(char *facility)
 		{NULL, -1}
 	},  *lp;
 
-	int n;
 
-	for (n = 0, lp = codes; lp->val != -1; lp++) {
+	for (lp = codes; lp->val != -1; lp++) {
 		if (!strcasecmp(facility, lp->name))
 			return (lp->val);
 	}

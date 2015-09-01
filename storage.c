@@ -578,7 +578,6 @@ static int candidate_line(char *line, void *param)
 
 void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit, JsonNode *fields)
 {
-	int rc;
 	struct jparam jarg;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
@@ -593,9 +592,9 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 	jarg.fields	= fields;
 
 	if (limit == 0) {
-		rc = cat(filename, candidate_line, &jarg);
+		cat(filename, candidate_line, &jarg);
 	} else {
-		rc = tac(filename, limit, candidate_line, &jarg);
+		tac(filename, limit, candidate_line, &jarg);
 	}
 }
 
