@@ -82,22 +82,3 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
         return (fopen(utstring_body(path), mode));
 
 }
-
-#if 0
-
-int main(int argc, char **argv)
-{
-        UT_string *user, *dev;
-        FILE *fp;
-
-        utstring_new(user);
-        utstring_new(dev);
-
-        utstring_printf(user, "%s", argv[1]);
-        utstring_printf(dev, "%s", argv[2]);
-        fp = pathn(user, dev);
-        fputs("hello\n", fp);
-        return 0;
-}
-
-#endif
