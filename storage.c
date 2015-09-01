@@ -20,22 +20,23 @@ char STORAGEDIR[BUFSIZ] = "./store";
 
 #define LINESIZE	8192
 
-int ghash_readcache(struct udata *ud, char *ghash, UT_string *addr, UT_string *cc);
+static struct gcache *gc = NULL;
+
+void storage_init()
+{
+	char path[BUFSIZ];
+
+	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
+	gc = gcache_open(path, TRUE);
+}
 
 void get_geo(JsonNode *o, char *ghash)
 {
-	static UT_string *addr = NULL, *cc = NULL;
-	static struct udata udata;
+	JsonNode *geo;
 
-	/* FIXME!!!! */
-	udata.usefiles = 1;
-
-	utstring_renew(addr);
-	utstring_renew(cc);
-
-	if (ghash_readcache(&udata, ghash, addr, cc) == 1) {
-		json_append_member(o, "addr", json_mkstring(utstring_body(addr)));
-		json_append_member(o, "cc", json_mkstring(utstring_body(cc)));
+	if ((geo = gcache_json_get(gc, ghash)) != NULL) {
+		json_copy_to_object(o, geo, FALSE);
+		json_delete(geo);
 	}
 }
 

@@ -26,7 +26,7 @@ Specifying `--fields lat,tid,lon` will request just those JSON elements from _st
 
 We took a number of decisions for the design of the recorder and its utilities:
 
-* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups you can employ Redis as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
+* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups you can employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
 * Storage format is typically JSON because it's extensible. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs have a leading timestamp and a relative topic; see below.
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
@@ -49,7 +49,7 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 ## Requirements
 
-* [hiredis](https://github.com/redis/hiredis) unless `HAVE_REDIS` is false.
+* [lmdb](http://symas.com/mdb) unless `HAVE_LMDB` is false.
 
 ## Installation
 
@@ -60,7 +60,7 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 ## Reverse Geo
 
-If not disabled with option `-G`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains. This is stored in Redis (ghash:xxx) if available or in files. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a `missing` file:
+If not disabled with option `-G`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains. This is stored in LMDB if it can be obtained. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a `missing` file:
 
 ```
 $ cat store/ghash/missing
@@ -74,15 +74,7 @@ This can be used to subsequently obtain said geo lookups.
 
 ## Monitoring
 
-In order to monitor the _recorder_, whenever an MQTT message is received, the _recorder_ will add an epoch timestamp and the last received topic a Redis key (if configured) or a file otherwise. The Redis key looks like this:
-
-```
-redis 127.0.0.1:6379> hgetall ot-recorder-monitor
-1) "time"
-2) "1439738692"
-3) "topic"
-4) "owntracks/jjolie/ipad"
-```
+In order to monitor the _recorder_, whenever an MQTT message is received, the _recorder_ will add an epoch timestamp and the last received topic to a file. 
 
 The `monitor` file is located relative to STORE and contains a single line, the epoch timestamp at the moment of message reception and the topic separated from eachother by a single space:
 

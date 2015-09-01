@@ -235,6 +235,8 @@ int main(int argc, char **argv)
 	argc -= (optind);
 	argv += (optind);
 
+	storage_init();
+
 	if (killdata) {
 		JsonNode *obj; //, *killed, *f;
 

@@ -2,6 +2,7 @@
 # define _STORAGE_H_INCL_
 
 #include <time.h>
+#include "gcache.h"
 #include "json.h"
 
 typedef enum {
@@ -19,5 +20,6 @@ JsonNode *geo_json(JsonNode *json);
 JsonNode *kill_datastore(char *username, char *device);
 JsonNode *last_users();
 char *gpx_string(JsonNode *json);
+void storage_init();
 
 #endif

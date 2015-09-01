@@ -32,23 +32,16 @@ char *bindump(char *buf, long buflen)
 
 void monitorhook(struct udata *userdata, time_t now, char *topic)
 {
-	struct udata *ud = (struct udata *)userdata;
+	// struct udata *ud = (struct udata *)userdata;
 
-#ifdef HAVE_REDIS
-        if (ud->useredis) {
-		monitor_update(ud, now, topic);
-		return;
-	}
-#else
-	if (ud->usefiles) {
-		char mpath[BUFSIZ];
-		static UT_string *us = NULL;
+	/* TODO: add monitor hook to a "monitor" key in LMDB ? */
 
-		utstring_renew(us);
-		utstring_printf(us, "%ld %s\n", now, topic);
+	char mpath[BUFSIZ];
+	static UT_string *us = NULL;
 
-		sprintf(mpath, "%s/monitor", STORAGEDIR);
-		safewrite(mpath, utstring_body(us));
-	}
-#endif
+	utstring_renew(us);
+	utstring_printf(us, "%ld %s\n", now, topic);
+
+	sprintf(mpath, "%s/monitor", STORAGEDIR);
+	safewrite(mpath, utstring_body(us));
 }

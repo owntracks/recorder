@@ -14,14 +14,17 @@
 #include "utstring.h"
 #include "utarray.h"
 #include "geo.h"
-#include "ghash.h"
 #include "config.h"
+#include "geohash.h"
 #include "file.h"
 #include "safewrite.h"
 #include "base64.h"
 #include "misc.h"
 #include "util.h"
 #include "storage.h"
+#ifdef HAVE_LMDB
+# include "gcache.h"
+#endif
 #ifdef HAVE_HTTP
 # include "http.h"
 #endif
@@ -136,9 +139,6 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 	struct udata *ud = (struct udata *)userdata;
 	JsonNode *json, *j;
 	static UT_string *name = NULL, *face = NULL;
-#ifdef HAVE_REDIS
-	redisReply *r;
-#endif
 	FILE *fp;
 	char *img;
 	int rc = FALSE;
@@ -162,15 +162,13 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 		goto cleanup;
 	}
 
-	if (ud->usefiles) {
-		/* I know the payload is valid JSON: write card */
+	/* I know the payload is valid JSON: write card */
 
-		if ((fp = pathn("wb", "cards", username, NULL, "json")) != NULL) {
-			fprintf(fp, "%s\n", payload);
-			fclose(fp);
-		}
-		rc = TRUE;
+	if ((fp = pathn("wb", "cards", username, NULL, "json")) != NULL) {
+		fprintf(fp, "%s\n", payload);
+		fclose(fp);
 	}
+	rc = TRUE;
 
 	if ((j = json_find_member(json, "name")) != NULL) {
 		if (j->tag == JSON_STRING) {
@@ -190,7 +188,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 	fprintf(stderr, "* CARD: %s-%s %s\n", utstring_body(username), utstring_body(device), utstring_body(name));
 
 
-#ifdef HAVE_REDIS
+#ifdef HAVE_REDIS /* TODO: LMDB? */
 	if (ud->useredis) {
 		redis_ping(&ud->redis);
 		r = redisCommand(ud->redis, "HMSET card:%s name %s face %s", utstring_body(username), utstring_body(name), utstring_body(face));
@@ -203,14 +201,12 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 		int imglen;
 
 		if ((imglen = base64_decode(utstring_body(face), img)) > 0) {
-			if (ud->usefiles) {
-				if ((fp = pathn("wb", "photos", username, NULL, "png")) != NULL) {
-					fwrite(img, sizeof(char), imglen, fp);
-					fclose(fp);
-				}
+			if ((fp = pathn("wb", "photos", username, NULL, "png")) != NULL) {
+				fwrite(img, sizeof(char), imglen, fp);
+				fclose(fp);
 			}
 
-#ifdef HAVE_REDIS
+#ifdef HAVE_REDIS /* TODO: LMDB ? */
 			if (ud->useredis) {
 				/* Add photo (binary) to Redis as photo:username */
 				redis_ping(&ud->redis);
@@ -250,13 +246,11 @@ void do_msg(void *userdata, UT_string *username, UT_string *device, char *payloa
 		goto cleanup;
 	}
 
-	if (ud->usefiles) {
-		/* I know the payload is valid JSON: write message */
+	/* I know the payload is valid JSON: write message */
 
-		if ((fp = pathn("ab", "msg", username, NULL, "json")) != NULL) {
-			fprintf(fp, "%s\n", payload);
-			fclose(fp);
-		}
+	if ((fp = pathn("ab", "msg", username, NULL, "json")) != NULL) {
+		fprintf(fp, "%s\n", payload);
+		fclose(fp);
 	}
 
 	fprintf(stderr, "* MSG: %s-%s\n", utstring_body(username), utstring_body(device));
@@ -433,12 +427,10 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 
 
-		if (ud->usefiles) {
-			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
+		if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 
-				fprintf(fp, RECFORMAT, isotime(now), utstring_body(reltopic), bindump(m->payload, m->payloadlen));
-				fclose(fp);
-			}
+			fprintf(fp, RECFORMAT, isotime(now), utstring_body(reltopic), bindump(m->payload, m->payloadlen));
+			fclose(fp);
 		}
 
 		mosquitto_sub_topic_tokens_free(&topics, count);
@@ -498,17 +490,25 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
+		JsonNode *geo, *j;
 
-		/* FIXME: */
+		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
+			/* Habemus cached data */
+			
+			puts("I HAVE THIS IN LMDB");
 
-		cached = ghash_readcache(ud, utstring_body(ghash), addr, cc);
-		if (!cached) {
-			JsonNode *geo;
+			cached = TRUE;
 
+			if ((j = json_find_member(geo, "cc")) != NULL) {
+				utstring_printf(cc, "%s", j->string_);
+			}
+			if ((j = json_find_member(geo, "addr")) != NULL) {
+				utstring_printf(addr, "%s", j->string_);
+			}
+			
+		} else {
 			if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
-				// fprintf(stderr, "REVGEO: %s\n", utstring_body(addr));
-				ghash_storecache(ud, geo, utstring_body(ghash), utstring_body(addr), utstring_body(cc));
-				json_delete(geo);
+				gcache_json_put(ud->gc, utstring_body(ghash), geo);
 			} else {
 				/* We didn't obtain reverse Geo, maybe because of over
 				 * quota; make a note of the missing geohash */
@@ -532,13 +532,10 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
 	 */
 
-	/*
-	 * Add a few bits to the JSON, and record it on a per-user/device basis.
-        json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
-	 */
-
+	/* TODO: shall we store last positions in LMDB? */
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
+		char *js;
 
 #ifdef HAVE_REDIS
 		if (ud->useredis) {
@@ -547,35 +544,31 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 #endif
 
-		if (ud->usefiles) {
-			char *js;
+		if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
 
-			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
+			fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
+			fclose(fp);
+		}
 
-				fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
-				fclose(fp);
+
+		/* Keep track of original username & device name in LAST. */
+		json_append_member(json, "username",    json_mkstring(utstring_body(username)));
+		json_append_member(json, "device",    json_mkstring(utstring_body(device)));
+		json_append_member(json, "topic",    json_mkstring(m->topic));
+		json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
+
+		if ((js = json_stringify(json, NULL)) != NULL) {
+			/* Now safewrite the last location */
+			utstring_printf(ts, "%s/last/%s/%s",
+				STORAGEDIR, utstring_body(username), utstring_body(device));
+			if (mkpath(utstring_body(ts)) < 0) {
+				perror(utstring_body(ts));
 			}
+			utstring_printf(ts, "/%s-%s.json",
+				utstring_body(username), utstring_body(device));
 
-
-			/* Keep track of original username & device name in LAST. */
-			json_append_member(json, "username",    json_mkstring(utstring_body(username)));
-			json_append_member(json, "device",    json_mkstring(utstring_body(device)));
-			json_append_member(json, "topic",    json_mkstring(m->topic));
-			json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
-
-			if ((js = json_stringify(json, NULL)) != NULL) {
-				/* Now safewrite the last location */
-				utstring_printf(ts, "%s/last/%s/%s",
-					STORAGEDIR, utstring_body(username), utstring_body(device));
-				if (mkpath(utstring_body(ts)) < 0) {
-					perror(utstring_body(ts));
-				}
-				utstring_printf(ts, "/%s-%s.json",
-					utstring_body(username), utstring_body(device));
-
-				safewrite(utstring_body(ts), js);
-				free(js);
-			}
+			safewrite(utstring_body(ts), js);
+			free(js);
 		}
 		free(jsonstring);
 	}
@@ -617,16 +610,16 @@ void on_connect(struct mosquitto *mosq, void *userdata, int rc)
 
 void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 {
-#ifdef HAVE_REDIS
+#ifdef HAVE_LMDB
 	struct udata *ud = (struct udata *)userdata;
 #endif
 
 	syslog(LOG_INFO, "Disconnected. Reason: %d [%s]", reason, mosquitto_strerror(reason));
 
 	if (reason == 0) { 	// client wish
-	#ifdef HAVE_REDIS
-		redisFree(ud->redis);
-	#endif
+#ifdef HAVE_LMDB
+		gcache_close(ud->gc);
+#endif
 	}
 }
 
@@ -642,10 +635,8 @@ void usage(char *prog)
 	printf("Usage: %s [options..] topic [topic ...]\n", prog);
 	printf("  --help		-h	this message\n");
 	printf("  --storage		-S     storage dir (./store)\n");
-	printf("  --nofiles		-F     do not use file storage\n");
 	printf("  --norevgeo		-G     disable ghash to reverge-geo lookups\n");
 	printf("  --skipdemo 		-D     do not handle objects with _demo\n");
-	printf("  --noredis		-N     disable Redis even if compiled in\n");
 	printf("  --useretained		-R     process retained messages (default: no)\n");
 	printf("  --clientid		-i     MQTT client-ID\n");
 	printf("  --qos			-q     MQTT QoS (dflt: 2)\n");
@@ -678,18 +669,16 @@ int main(int argc, char **argv)
 	char *doc_root = "./wdocs";
 	char *http_host = "localhost";
 #endif
-#ifdef HAVE_REDIS
-	struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-#endif
 	char *progname = *argv;
 
 	udata.qos		= DEFAULT_QOS;
-	udata.usefiles		= TRUE;
 	udata.ignoreretained	= TRUE;
 	udata.pubprefix		= NULL;
 	udata.skipdemo		= TRUE;
-	udata.useredis		= TRUE;
 	udata.revgeo		= TRUE;
+#ifdef HAVE_LMDB
+	udata.gc		= NULL;
+#endif
 #ifdef HAVE_HTTP
 	mgserver = udata.server = mg_create_server(NULL, ev_handler);
 #endif
@@ -717,9 +706,7 @@ int main(int argc, char **argv)
 		static struct option long_options[] = {
 			{ "help",	no_argument,		0, 	'h'},
 			{ "skipdemo",	no_argument,		0, 	'D'},
-			{ "nofiles",	no_argument,		0, 	'F'},
 			{ "norevgeo",	no_argument,		0, 	'G'},
-			{ "noredis",	no_argument,		0, 	'N'},
 			{ "useretained",	no_argument,		0, 	'R'},
 			{ "clientid",	required_argument,	0, 	'i'},
 			{ "pubprefix",	required_argument,	0, 	'P'},
@@ -737,7 +724,7 @@ int main(int argc, char **argv)
 		  };
 		int optindex = 0;
 
-		ch = getopt_long(argc, argv, "hDFGNRi:P:q:S:H:p:A:", long_options, &optindex);
+		ch = getopt_long(argc, argv, "hDGRi:P:q:S:H:p:A:", long_options, &optindex);
 		if (ch == -1)
 			break;
 
@@ -760,18 +747,12 @@ int main(int argc, char **argv)
 			case 'D':
 				ud->skipdemo = FALSE;
 				break;
-			case 'F':
-				ud->usefiles = FALSE;
-				break;
 			case 'G':
 				ud->revgeo = FALSE;
 				break;
 			case 'i':
 				utstring_clear(clientid);
 				utstring_printf(clientid, "%s", optarg);
-				break;
-			case 'N':
-				ud->useredis = FALSE;
 				break;
 			case 'P':
 				udata.pubprefix = strdup(optarg);	/* TODO: do we want this? */
@@ -816,6 +797,19 @@ int main(int argc, char **argv)
 	syslog(LOG_DEBUG, "starting");
 
 	if (ud->revgeo == TRUE) {
+#ifdef HAVE_LMDB
+		char db_filename[BUFSIZ], *pa;
+
+		snprintf(db_filename, BUFSIZ, "%s/ghash", STORAGEDIR);
+		pa = strdup(db_filename);
+		mkpath(pa);
+		free(pa);
+		udata.gc = gcache_open(db_filename, FALSE);
+		if (udata.gc == NULL) {
+			syslog(LOG_WARNING, "Can't initialize gcache in %s", db_filename);
+			exit(1);
+		}
+#endif
 		revgeo_init();
 	}
 
@@ -824,10 +818,6 @@ int main(int argc, char **argv)
 
 
 	signal(SIGINT, catcher);
-
-#ifdef HAVE_REDIS
-	ud->redis = redisConnectWithTimeout("localhost", 6379, timeout);
-#endif
 
 	mosq = mosquitto_new(utstring_body(clientid), CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
