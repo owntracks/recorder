@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 			// }
 
 			js = json_stringify(obj, " ");
-			puts(js);
+			printf("%s\n", js);
 			free(js);
 			json_delete(obj);
 		}
