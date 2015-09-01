@@ -192,7 +192,6 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 	if (ud->useredis) {
 		redis_ping(&ud->redis);
 		r = redisCommand(ud->redis, "HMSET card:%s name %s face %s", utstring_body(username), utstring_body(name), utstring_body(face));
-		if (r)  { ; } /* FIXME */
 	}
 #endif
 
@@ -736,7 +735,6 @@ int main(int argc, char **argv)
 				break;
 			case 2:		/* no short char */
 				doc_root = strdup(optarg);
-				/* FIXME: check if isdir() */
 				break;
 			case 3:		/* no short char */
 				http_host = strdup(optarg);
@@ -792,6 +790,13 @@ int main(int argc, char **argv)
 	}
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
+
+#ifdef HAVE_HTTP
+	if (!is_directory(doc_root)) {
+		syslog(LOG_ERR, "%s is not a directory", doc_root);
+		exit(1);
+	}
+#endif
 	syslog(LOG_DEBUG, "starting");
 
 	if (ud->revgeo == TRUE) {
