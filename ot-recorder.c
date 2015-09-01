@@ -495,8 +495,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
 			/* Habemus cached data */
 			
-			puts("I HAVE THIS IN LMDB");
-
 			cached = TRUE;
 
 			if ((j = json_find_member(geo, "cc")) != NULL) {
