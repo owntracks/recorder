@@ -19,7 +19,7 @@ OTR_OBJS = json.o \
 ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
-	LIBS += mdb/liblmdb.a
+	LIBS += mdb/liblmdb.a -lpthread
 	TARGETS += mdb/liblmdb.a gcache-dump
 endif
 
