@@ -423,7 +423,7 @@ int main(int argc, char **argv)
 		char *js;
 
 		if (geolinestring != NULL) {
-			js = json_stringify(geolinestring, " ");
+			js = json_stringify(geolinestring, NULL);
 			if (js != NULL) {
 				printf("%s\n", js);
 				free(js);
