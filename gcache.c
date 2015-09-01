@@ -103,7 +103,7 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0)
-		puts(mdb_strerror(rc));
+		fprintf(stderr, "%s\n", mdb_strerror(rc));
 
 	key.mv_data	= ghash;
 	key.mv_size	= strlen(ghash);
@@ -114,7 +114,7 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 
 	rc = mdb_put(txn, gc->dbi, &key, &data, 0);
 	if (rc != 0)
-		puts(mdb_strerror(rc));
+		fprintf(stderr, "%s\n", mdb_strerror(rc));
 
 	rc = mdb_txn_commit(txn);
 	if (rc) {
@@ -136,10 +136,10 @@ int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0)
-		puts(mdb_strerror(rc));
+		fprintf(stderr, "%s\n", mdb_strerror(rc));
 
 	if ((js = json_stringify(geo, NULL)) == NULL) {
-		puts("CANIT stringify");
+		fprintf(stderr, "%s\n", "CANIT stringify");
 		return (1);
 	}
 
@@ -152,7 +152,7 @@ int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 
 	rc = mdb_put(txn, gc->dbi, &key, &data, 0);
 	if (rc != 0)
-		puts(mdb_strerror(rc));
+		fprintf(stderr, "%s\n", mdb_strerror(rc));
 
 	rc = mdb_txn_commit(txn);
 	if (rc) {
