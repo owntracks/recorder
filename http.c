@@ -168,10 +168,12 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				conn->request_method,
 				conn->uri);
 
+#if 0
 			fprintf(stderr, "content-len = (%ld) %.*s\n",
 				conn->content_len,
 				(int)conn->content_len,
 				conn->content);
+#endif
 
 			if (strncmp(conn->uri, "/api/", 5) != 0) {
 				return MG_FALSE;		/* serve from document root */

@@ -31,8 +31,8 @@ int main(int argc,char **argv)
 	rc = mdb_cursor_open(txn, dbi, &cursor);
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 		printf("%*.*s %*.*s\n",
-			(int)key.mv_size, (int)key.mv_size, key.mv_data,
-			(int)data.mv_size, (int)data.mv_size, data.mv_data);
+			(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data,
+			(int)data.mv_size, (int)data.mv_size, (char *)data.mv_data);
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_abort(txn);
