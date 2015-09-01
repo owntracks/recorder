@@ -4,6 +4,7 @@ LIBS = -L/Users/jpm/Auto/pubgit/MQTT/mosquitto/org.eclipse.mosquitto.git/lib
 LIBS += -lcurl -lmosquitto
 CFLAGS=-Wall -Werror
 
+TARGETS=
 OTR_OBJS = json.o \
 	   geo.o \
 	   geohash.o \
@@ -19,6 +20,7 @@ ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
 	LIBS += mdb/liblmdb.a
+	TARGETS += mdb/liblmdb.a
 endif
 
 ifeq ($(HAVE_HTTP),yes)
@@ -28,7 +30,8 @@ ifeq ($(HAVE_HTTP),yes)
 endif
 
 
-all: ot-recorder ocat ghashfind
+TARGETS += ot-recorder ocat ghashfind
+all: $(TARGETS)
 
 ot-recorder: ot-recorder.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) ot-recorder.o -o ot-recorder $(OTR_OBJS) $(LIBS)
@@ -60,3 +63,6 @@ clean:
 	rm -f *.o
 clobber: clean
 	rm -f ot-recorder ocat ghashfind
+
+mdb/liblmdb.a:
+	(cd mdb && make)
