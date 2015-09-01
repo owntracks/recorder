@@ -20,7 +20,7 @@ ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
 	LIBS += mdb/liblmdb.a -lpthread
-	TARGETS += mdb/liblmdb.a gcache-dump
+	TARGETS += mdb/liblmdb.a gcache-dump ghash2lmdb
 endif
 
 ifeq ($(HAVE_HTTP),yes)
@@ -69,3 +69,5 @@ mdb/liblmdb.a:
 
 gcache-dump: gcache-dump.o
 	$(CC) $(CFLAGS) -o gcache-dump gcache-dump.c $(LIBS)
+ghash2lmdb: ghash2lmdb.o util.o json.o gcache.o 
+	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.c util.o json.o gcache.o $(LIBS)
