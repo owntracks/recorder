@@ -128,6 +128,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			return MG_TRUE;
 		case MG_REQUEST:
 
+
 			ctype = mg_get_header(conn, "accept");
 			if (ctype != NULL)
 				fprintf(stderr, "ACCEPT: %s\n", ctype);
@@ -179,6 +180,8 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			if (!strcmp(conn->request_method, "POST")) {
 				return (MG_FALSE);	/* Fail it */
 			}
+
+			storage_init();
 
 			/* GET */
 			if (!strcmp(conn->uri, "/api/me")) {

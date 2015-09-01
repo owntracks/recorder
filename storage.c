@@ -26,6 +26,8 @@ void storage_init()
 {
 	char path[BUFSIZ];
 
+	setenv("TZ", "UTC", 1);
+
 	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
 	gc = gcache_open(path, TRUE);
 }
@@ -223,7 +225,6 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
 {
 	time_t now;
 
-	setenv("TZ", "UTC", 1);  // FIXME: really?
 
 	time(&now);
 	if (!time_from || !*time_from) {
