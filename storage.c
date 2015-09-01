@@ -525,6 +525,12 @@ static int candidate_line(char *line, void *param)
 		if (otype == RAW) {
 			printf("%s\n", line);
 			return (0);
+		} else if (otype == RAWPAYLOAD) {
+			char *bp;
+
+			if ((bp = strchr(line, '{')) != NULL) {
+				printf("%s\n", bp);
+			}
 		}
 
 	}

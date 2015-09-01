@@ -11,6 +11,7 @@ typedef enum {
 	JSON,
 	RAW,
 	GPX,
+	RAWPAYLOAD,
 } output_type;
 
 JsonNode *lister(char *username, char *device, time_t s_lo, time_t s_hi, int reverse);

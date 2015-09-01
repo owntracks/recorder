@@ -132,6 +132,7 @@ void usage(char *prog)
 	printf("           geojson\n");
 	printf("           gpx\n");
 	printf("           raw\n");
+	printf("           payload\n");
 	printf("  --fields tst,lat,lon,...     Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
@@ -170,6 +171,7 @@ int main(int argc, char **argv)
 			case 'c': otype = CSV; break;
 			case 'g': otype = GEOJSON; break;
 			case 'r': otype = RAW; break;
+			case 'p': otype = RAWPAYLOAD; break;
 		}
 	}
 
@@ -234,6 +236,8 @@ int main(int argc, char **argv)
 					otype = GEOJSON;
 				else if (!strcmp(optarg, "raw"))
 					otype = RAW;
+				else if (!strcmp(optarg, "payload"))
+					otype = RAWPAYLOAD;
 				else if (!strcmp(optarg, "gpx"))
 					otype = GPX;
 				else if (!strcmp(optarg, "csv"))
@@ -409,7 +413,7 @@ int main(int argc, char **argv)
 
 	} else if (otype == CSV) {
 		csv_output(obj, CSV, fields);
-	} else if (otype == RAW) {
+	} else if (otype == RAW || otype == RAWPAYLOAD) {
 		/* We've already done what we need to do in locations() */
 	} else if (otype == GEOJSON) {
 		JsonNode *geojson = geo_json(locs);
