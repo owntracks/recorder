@@ -665,6 +665,14 @@ void usage(char *prog)
 	printf("  --http-port <port>	-A     HTTP port (8083)\n");
 	printf("  --doc-root <directory>       document root (./wdocs)\n");
 #endif
+	printf("\n");
+	printf("Options override these environment variables:\n");
+	printf("  $OTR_HOST		MQTT hostname\n");
+	printf("  $OTR_PORT		MQTT port\n");
+	printf("  $OTR_STORAGEDIR\n");
+	printf("  $OTR_USER\n");
+	printf("  $OTR_PASS\n");
+	printf("  $OTR_CAFILE		PEM CA certificate chain\n");
 
 	exit(1);
 }

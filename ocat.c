@@ -136,6 +136,12 @@ void usage(char *prog)
 	printf("  --last		-L     JSON object with last users\n");
 	printf("  --killdata                   requires -u and -d\n");
 	printf("  --storage		-S     storage dir (./store)\n");
+	printf("\n");
+	printf("Options override these environment variables:\n");
+	printf("   $OCAT_USERNAME\n");
+	printf("   $OCAT_DEVICE\n");
+	printf("   $OCAT_FORMAT\n");
+	printf("   $OCAT_STORAGEDIR\n");
 
 	exit(1);
 }
