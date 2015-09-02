@@ -450,6 +450,15 @@ static JsonNode *line_to_location(char *line)
 		return (NULL);
 	}
 
+	if ((j = json_find_member(json, "_type")) == NULL) {
+		json_delete(json);
+		return (NULL);
+	}
+	if (j->tag != JSON_STRING || strcmp(j->string_, "location") != 0) {
+		json_delete(json);
+		return (NULL);
+	}
+
 	o = json_mkobject();
 
 	if (json_copy_to_object(o, json, FALSE) == FALSE) {
