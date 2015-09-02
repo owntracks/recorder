@@ -49,6 +49,8 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 ## Requirements
 
+* [libmosquitto](http://mosquitto.org)
+* [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) unless `HAVE_LMDB` is false.
 
 ## Installation
