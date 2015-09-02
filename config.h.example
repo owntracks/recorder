@@ -27,3 +27,10 @@
  */
 
 #define DEFAULT_HISTORY_HOURS 6
+
+/*
+ * Indented JSON or not? Choose.
+ */
+
+#define JSON_INDENT	" "	/* indented */
+// #define JSON_INDENT	NULL	/* not indented */

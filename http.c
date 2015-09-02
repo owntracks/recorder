@@ -121,7 +121,7 @@ void push_geojson(struct mg_connection *conn)
 
 
 	if (geojson != NULL) {
-		js = json_stringify(geojson, " ");
+		js = json_stringify(geojson, JSON_INDENT);
 		if (js != NULL) {
 			static char buf[40];
 			mg_send_header(conn, "Content-type", "application/json");
@@ -217,7 +217,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				if ((json = lister(NULL, NULL, 0, 0, FALSE)) != NULL) {
 					char *js;
 
-					js = json_stringify(json, " ");
+					js = json_stringify(json, JSON_INDENT);
 					mg_printf_data(conn, js);
 					free(js);
 				}

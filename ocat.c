@@ -299,7 +299,7 @@ int main(int argc, char **argv)
 			// 	}
 			// }
 
-			js = json_stringify(obj, " ");
+			js = json_stringify(obj, JSON_INDENT);
 			printf("%s\n", js);
 			free(js);
 			json_delete(obj);
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
 		if ((user_array = last_users()) != NULL) {
 			char *js;
 
-			if ((js = json_stringify(user_array, " ")) != NULL) {
+			if ((js = json_stringify(user_array, JSON_INDENT)) != NULL) {
 				printf("%s\n", js);
 				free(js);
 			}
@@ -348,7 +348,7 @@ int main(int argc, char **argv)
 			exit(2);
 		}
 		if (otype == JSON) {
-			js = json_stringify(json, " ");
+			js = json_stringify(json, JSON_INDENT);
 			printf("%s\n", js);
 			free(js);
 		} else {
@@ -417,7 +417,7 @@ int main(int argc, char **argv)
 
 
 	if (otype == JSON) {
-		char *js = json_stringify(obj, " ");
+		char *js = json_stringify(obj, JSON_INDENT);
 
 		if (js != NULL) {
 			printf("%s\n", js);
@@ -433,7 +433,7 @@ int main(int argc, char **argv)
 		char *js;
 
 		if (geolinestring != NULL) {
-			js = json_stringify(geolinestring, NULL);
+			js = json_stringify(geolinestring, JSON_INDENT);
 			if (js != NULL) {
 				printf("%s\n", js);
 				free(js);
@@ -446,7 +446,7 @@ int main(int argc, char **argv)
 		char *js;
 
 		if (geojson != NULL) {
-			js = json_stringify(geojson, " ");
+			js = json_stringify(geojson, JSON_INDENT);
 			if (js != NULL) {
 				printf("%s\n", js);
 				free(js);

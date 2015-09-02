@@ -151,7 +151,7 @@ int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 		fprintf(stderr, "%s\n", mdb_strerror(rc));
 
 	if ((js = json_stringify(geo, NULL)) == NULL) {
-		fprintf(stderr, "%s\n", "CANIT stringify");
+		fprintf(stderr, "%s\n", "CAN'T stringify JSON during gache_json_put()");
 		return (1);
 	}
 
