@@ -100,6 +100,9 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
 				if ((j = json_find_member(one, node->string_)) != NULL) {
 					print_one(j, inttypes);
 					printf("%c", node->next ? ',' : '\n');
+				} else {
+					/* specified field not in JSON for this row */
+					printf("%c", node->next ? ',' : '\n');
 				}
 			}
 		} else {
