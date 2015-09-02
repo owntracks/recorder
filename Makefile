@@ -29,10 +29,24 @@ endif
 
 
 TARGETS += ot-recorder ocat ghashfind
+
 all: $(TARGETS)
 
 ot-recorder: ot-recorder.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) ot-recorder.o -o ot-recorder $(OTR_OBJS) $(LIBS)
+	$(CC) $(CFLAGS) -o ot-recorder ot-recorder.o $(OTR_OBJS) $(LIBS)
+
+ocat: ocat.o $(OTR_OBJS)
+	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
+
+ghashfind: ghashfind.o $(OTR_OBJS)
+	$(CC) $(CFLAGS) -o ghashfind ghashfind.o $(OTR_OBJS) $(LIBS)
+
+gcache-dump: gcache-dump.o
+	$(CC) $(CFLAGS) -o gcache-dump gcache-dump.o $(LIBS)
+
+ghash2lmdb: ghash2lmdb.o $(OTR_OBJS)
+	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.o $(OTR_OBJS) $(LIBS)
+
 
 ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h config.h json.h http.h
 geo.o: geo.h geo.c udata.h Makefile config.mk config.h
@@ -43,17 +57,11 @@ jget.o: jget.c jget.h json.h Makefile config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
 http.o: http.c mongoose.h util.h http.h storage.h
 util.o: util.c util.h Makefile config.mk
-
-ocat: ocat.o storage.o json.o geohash.o mkpath.o util.o gcache.o
-	$(CC) $(CFLAGS) -o ocat ocat.o storage.o json.o geohash.o mkpath.o util.o gcache.o $(LIBS)
-
-ocat.o: ocat.c storage.h
-storage.o: storage.c storage.h config.h util.h
-
-ghashfind: ghashfind.o util.o json.o storage.o geohash.o mkpath.o gcache.o
-	$(CC) $(CFLAGS) -o ghashfind ghashfind.o util.o json.o storage.o geohash.o mkpath.o gcache.o $(LIBS)
 ghashfind.o: ghashfind.c util.h
 mongoose.o: mongoose.c mongoose.h
+ocat.o: ocat.c storage.h util.h
+storage.o: storage.c storage.h config.h util.h
+
 
 clean:
 	rm -f *.o
@@ -63,7 +71,3 @@ clobber: clean
 mdb/liblmdb.a:
 	(cd mdb && make)
 
-gcache-dump: gcache-dump.o
-	$(CC) $(CFLAGS) -o gcache-dump gcache-dump.c $(LIBS)
-ghash2lmdb: ghash2lmdb.o util.o json.o gcache.o misc.o storage.o geohash.o mkpath.o
-	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.c util.o json.o gcache.o misc.o storage.o geohash.o mkpath.o $(LIBS)
