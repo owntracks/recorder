@@ -138,6 +138,7 @@ void usage(char *prog)
 	printf("  --last		-L     	JSON object with last users\n");
 	printf("  --killdata                   	requires -u and -d\n");
 	printf("  --storage		-S     	storage dir (./store)\n");
+	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -153,6 +154,7 @@ int main(int argc, char **argv)
 	char *progname = *argv, *p;
 	int c;
 	int list = 0, killdata = 0, last = 0, limit = 0;
+	int revgeo = TRUE;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
 	time_t now, s_lo, s_hi;
@@ -197,11 +199,12 @@ int main(int argc, char **argv)
 			{ "last",	no_argument, 0, 	'L'},
 			{ "fields",	required_argument, 0, 	1},
 			{ "killdata",	no_argument, 0, 	'K'},
+			{ "norevgeo",	no_argument, 0, 	'G'},
 		  	{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:N:", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:GN:", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -224,6 +227,9 @@ int main(int argc, char **argv)
 				break;
 			case 'N':
 				limit = atoi(optarg);
+				break;
+			case 'G':
+				revgeo = FALSE;
 				break;
 			case 'S':
 				strcpy(STORAGEDIR, optarg);
@@ -271,7 +277,7 @@ int main(int argc, char **argv)
 	argc -= (optind);
 	argv += (optind);
 
-	storage_init();
+	storage_init(revgeo);
 
 	if (killdata) {
 		JsonNode *obj; //, *killed, *f;
