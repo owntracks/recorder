@@ -23,6 +23,6 @@ JsonNode *geo_linestring(JsonNode *location_array);
 JsonNode *kill_datastore(char *username, char *device);
 JsonNode *last_users();
 char *gpx_string(JsonNode *json);
-void storage_init();
+void storage_init(int revgeo);
 
 #endif

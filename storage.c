@@ -44,14 +44,16 @@ char STORAGEDIR[BUFSIZ] = "./store";
 
 static struct gcache *gc = NULL;
 
-void storage_init()
+void storage_init(int revgeo)
 {
 	char path[BUFSIZ];
 
 	setenv("TZ", "UTC", 1);
 
-	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
-	gc = gcache_open(path, TRUE);
+	if (revgeo) {
+		snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
+		gc = gcache_open(path, TRUE);
+	}
 }
 
 void get_geo(JsonNode *o, char *ghash)
@@ -503,7 +505,6 @@ static int candidate_line(char *line, void *param)
 		return (-1);
 	if (locs == NULL || locs->tag != JSON_ARRAY)
 		return (-1);
-
 
 	if (limit == 0) {
 		/* Reading forwards; account for time */

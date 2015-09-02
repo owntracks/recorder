@@ -841,6 +841,7 @@ int main(int argc, char **argv)
 			syslog(LOG_WARNING, "Can't initialize gcache in %s", db_filename);
 			exit(1);
 		}
+		storage_init(ud->revgeo);	/* For the HTTP server */
 #endif
 		revgeo_init();
 	}
@@ -938,6 +939,7 @@ int main(int argc, char **argv)
 		// mg_set_option(udata.server, "cgi_pattern", "**.cgi");
 
 		syslog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.server, "listening_port"));
+
 	}
 #endif
 

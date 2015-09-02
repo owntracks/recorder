@@ -28,6 +28,7 @@
 #include "config.h"
 #include "util.h"
 #include "storage.h"
+#include "udata.h"
 #ifdef HAVE_HTTP
 # include "http.h"
 #endif
@@ -86,10 +87,10 @@ void push_geojson(struct mg_connection *conn)
 
 	JsonNode *obj, *locs, *arr, *f, *geojson, *json, *fields = NULL;
 	time_t s_lo, s_hi;
-	char *time_from = "2015-08-28", *time_to = NULL;
+	char *time_from = "2015-08-24", *time_to = NULL;
 	char *js;
 
-	char *username = "jpm", *device = "5s";
+	char *username = "jpm", *device = "test";
 
 	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
 		return;
@@ -204,8 +205,6 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			if (!strcmp(conn->request_method, "POST")) {
 				return (MG_FALSE);	/* Fail it */
 			}
-
-			storage_init();
 
 			/* GET */
 			if (!strcmp(conn->uri, "/api/me")) {
