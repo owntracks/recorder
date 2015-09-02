@@ -819,9 +819,11 @@ int main(int argc, char **argv)
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
 
 #ifdef HAVE_HTTP
-	if (!is_directory(doc_root)) {
-		syslog(LOG_ERR, "%s is not a directory", doc_root);
-		exit(1);
+	if (http_port) {
+		if (!is_directory(doc_root)) {
+			syslog(LOG_ERR, "%s is not a directory", doc_root);
+			exit(1);
+		}
 	}
 #endif
 	syslog(LOG_DEBUG, "starting");
