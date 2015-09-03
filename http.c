@@ -73,62 +73,20 @@ static int send_reply(struct mg_connection *conn)
 	}
 }
 
-void push_geojson(struct mg_connection *conn)
-{
 
-	JsonNode *obj, *locs, *arr, *f, *geojson, *json, *fields = NULL;
-	time_t s_lo, s_hi;
-	char *time_from = "2015-08-24", *time_to = NULL;
+static int json_response(struct mg_connection *conn, JsonNode *json)
+{
 	char *js;
 
-	char *username = "jpm", *device = "test";
+	mg_send_header(conn, "Content-Type", "application/json");
+	mg_send_header(conn, "Access-Control-Allow-Origin", "*");
 
-	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
-		return;
+	if ((js = json_stringify(json, JSON_INDENT)) != NULL) {
+		mg_printf_data(conn, js);
+		free(js);
 	}
-
-	obj = json_mkobject();
-	locs = json_mkarray();
-
-	/*
-	 * Obtain a list of .rec files from lister(), possibly limited by s_lo/s_hi times,
-	 * process each and build the JSON `obj' with an array of locations.
-	 */
-
-	if ((json = lister(username, device, s_lo, s_hi, FALSE)) != NULL) {
-		if ((arr = json_find_member(json, "results")) != NULL) { // get array
-			json_foreach(f, arr) {
-				// fprintf(stderr, "%s\n", f->string_);
-				locations(f->string_, obj, locs, s_lo, s_hi, GEOJSON, 0, fields);
-			}
-		}
-		json_delete(json);
-	}
-
-	json_append_member(obj, "locations", locs);
-
-
-	geojson = geo_json(locs);
-
-
-	if (geojson != NULL) {
-		js = json_stringify(geojson, JSON_INDENT);
-		if (js != NULL) {
-			static char buf[40];
-			mg_send_header(conn, "Content-type", "application/json");
-			mg_send_header(conn, "Access-Control-Allow-Origin", "*");
-			// sprintf(buf, "%ld", strlen(js));
-			// mg_send_header(conn, "Content-length", buf);
-			//mg_printf_data(conn, js);
-			mg_send_data(conn, js, strlen(js));
-			strcpy(buf, "{\"name\": \"Chasey\"}");
-			// mg_printf(conn, "%s\n", buf);
-			free(js);
-		}
-		json_delete(geojson);
-	}
-
-	json_delete(obj);
+	json_delete(json);
+	return (MG_TRUE);
 }
 
 /*
@@ -136,30 +94,134 @@ void push_geojson(struct mg_connection *conn)
  * /users/ or /list
  */
 
+#define MAXPARTS 40
+
+#define CLEANUP do {\
+		if (u) free(u);\
+		if (d) free(d);\
+		if (time_from) free(time_from);\
+		if (time_to) free(time_to);\
+	} while(0)
+
 static int dispatch(struct mg_connection *conn, const char *uri)
 {
-	int ret;
+	output_type otype = JSON;
+	int nparts, ret, limit = 0;
+	char *uparts[MAXPARTS], buf[BUFSIZ], *u = NULL, *d = NULL;
+	char *time_from = NULL, *time_to = NULL;
+	time_t s_lo, s_hi;
+	JsonNode *json, *obj, *locs;
 
-	char user[BUFSIZ];
+	fprintf(stderr, "DISPATCH: %s\n", uri);
 
-			ret = mg_get_var(conn, "user", user, sizeof(user));
-			if (ret < 0) {
-				puts("*** no USER specified ***");
-			} else {
-				printf("USER: ret=%d, user=[%s]\n", ret, user);
+	if ((nparts = splitter((char *)uri, "/", uparts)) == -1) {
+		mg_send_status(conn, 405);
+		mg_printf_data(conn, "no way\n");
+		return (MG_TRUE);
+	}
+
+	for (ret = 0; ret < nparts; ret++) {
+		fprintf(stderr, "%d = %s\n", ret, uparts[ret]);
+	}
+
+	if ((ret = mg_get_var(conn, "user", buf, sizeof(buf))) > 0) {
+		u = strdup(buf);
+	}
+	if ((ret = mg_get_var(conn, "device", buf, sizeof(buf))) > 0) {
+		d = strdup(buf);
+	}
+	if ((ret = mg_get_var(conn, "limit", buf, sizeof(buf))) > 0) {
+		limit = atoi(buf);
+	}
+	if ((ret = mg_get_var(conn, "from", buf, sizeof(buf))) > 0) {
+		time_from = strdup(buf);
+	}
+	if ((ret = mg_get_var(conn, "to", buf, sizeof(buf))) > 0) {
+		time_to = strdup(buf);
+	}
+
+	if ((ret = mg_get_var(conn, "format", buf, sizeof(buf))) > 0) {
+		if (!strcmp(buf, "geojson"))
+			otype = GEOJSON;
+		else if (!strcmp(buf, "json"))
+			otype = JSON;
+		else if (!strcmp(buf, "linestring"))
+			otype = LINESTRING;
+		else {
+			mg_send_status(conn, 400);
+			mg_printf_data(conn, "unrecognized format\n");
+			CLEANUP;
+			return (MG_TRUE);
+		}
+	}
+
+	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
+		mg_send_status(conn, 405);
+		mg_printf_data(conn, "wrong times\n");
+		return (MG_TRUE);
+	}
+
+	fprintf(stderr, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
+
+	/* /list			[<username>[<device>]] */
+
+	if (nparts == 1 && !strcmp(uparts[0], "list")) {
+		if ((json = lister(u, d, 0, s_hi, FALSE)) != NULL) {
+			CLEANUP;
+			return (json_response(conn, json));
+		}
+	}
+
+	/* /locations			[<username>[<device>]] */
+
+	if (nparts == 1 && !strcmp(uparts[0], "locations")) {
+                /*
+                 * Obtain a list of .rec files from lister(), possibly limited by s_lo/s_hi times,
+                 * process each and build the JSON `obj' with an array of locations.
+                 */
+
+		obj = json_mkobject();
+		locs = json_mkarray();
+
+                if ((json = lister(u, d, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
+			JsonNode *arr;
+
+			CLEANUP;
+
+                        if ((arr = json_find_member(json, "results")) != NULL) { // get array
+				JsonNode *f;
+                                json_foreach(f, arr) {
+                                        locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, NULL);
+                                        // printf("%s\n", f->string_);
+                                }
+                        }
+                        json_delete(json);
+                }
+		json_append_member(obj, "locations", locs);
+
+		if (otype == JSON) {
+			return (json_response(conn, obj));
+		} else if (otype == LINESTRING) {
+			JsonNode *geolinestring = geo_linestring(locs);
+
+			if (geolinestring != NULL) {
+				json_delete(obj);
+				return (json_response(conn, geolinestring));
 			}
 
-	mg_send_status(conn, 405);
-	mg_printf_data(conn, "no way\n");
-	return MG_TRUE;
+		} else if (otype == GEOJSON) {
+			JsonNode *geojson = geo_json(locs);
 
-	mg_send_header(conn, "Content-Type", "text/plain");
+			json_delete(obj);
+			if (geojson != NULL) {
+				return (json_response(conn, geojson));
+			}
+		}
+        }
 
+	// mg_printf_data(conn, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
+	mg_printf_data(conn, "no comprendo");
 
-	printf("DISPATCH: %s\n", uri);
-	return MG_FALSE;
-	mg_printf_data(conn, "Ta.\n");
-	return send_reply(conn);
 	return (MG_TRUE);
 }
 
