@@ -89,6 +89,21 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 }
 
 /*
+ * Return a copy of a GET/POST parameter or NULL. Caller must free.
+ */
+
+static char *field(struct mg_connection *conn, char *fieldname)
+{
+	char buf[BUFSIZ];
+	int ret;
+
+	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
+		return (strdup(buf));
+	}
+	return (NULL);
+}
+
+/*
  * We are being called with the portion behind /api/0/ as in
  * /users/ or /list
  */
@@ -124,20 +139,13 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		fprintf(stderr, "%d = %s\n", ret, uparts[ret]);
 	}
 
-	if ((ret = mg_get_var(conn, "user", buf, sizeof(buf))) > 0) {
-		u = strdup(buf);
-	}
-	if ((ret = mg_get_var(conn, "device", buf, sizeof(buf))) > 0) {
-		d = strdup(buf);
-	}
+	u	  = field(conn, "user");
+	d	  = field(conn, "device");
+	time_from = field(conn, "from");
+	time_to	  = field(conn, "to");
+
 	if ((ret = mg_get_var(conn, "limit", buf, sizeof(buf))) > 0) {
 		limit = atoi(buf);
-	}
-	if ((ret = mg_get_var(conn, "from", buf, sizeof(buf))) > 0) {
-		time_from = strdup(buf);
-	}
-	if ((ret = mg_get_var(conn, "to", buf, sizeof(buf))) > 0) {
-		time_to = strdup(buf);
 	}
 
 	if ((ret = mg_get_var(conn, "format", buf, sizeof(buf))) > 0) {
