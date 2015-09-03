@@ -389,6 +389,12 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	time(&now);
 	monitorhook(ud, now, m->topic);
 
+#ifdef HAVE_HTTP
+	if (ud->server) {
+		http_ws_push(ud->server, m->payload);
+	}
+#endif
+
 	if (m->payloadlen == 0) {
 		return;
 	}
@@ -704,7 +710,7 @@ int main(int argc, char **argv)
 	udata.gc		= NULL;
 #endif
 #ifdef HAVE_HTTP
-	mgserver = udata.server = mg_create_server(NULL, ev_handler);
+	mgserver = udata.server = NULL;
 #endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
@@ -824,6 +830,7 @@ int main(int argc, char **argv)
 			syslog(LOG_ERR, "%s is not a directory", doc_root);
 			exit(1);
 		}
+		mgserver = udata.server = mg_create_server(NULL, ev_handler);
 	}
 #endif
 	syslog(LOG_DEBUG, "starting");
@@ -951,8 +958,8 @@ int main(int argc, char **argv)
 			mosquitto_reconnect(mosq);
 		}
 #ifdef HAVE_HTTP
-		if (http_port) {
-			mg_poll_server(udata.server, 10);
+		if (udata.server) {
+			mg_poll_server(udata.server, 50);
 		}
 #endif
 	}

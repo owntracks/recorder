@@ -36,36 +36,27 @@
 #ifdef HAVE_HTTP
 extern struct mg_server *mgserver;
 
+/*
+ * Send a message into the HTTP server; this will be dispatched
+ * to listening WS clients.
+ */
 
-#if 0
-static void push_message(struct mg_server *server, time_t current_time)
-{
-	struct mg_connection *c;
-	char buf[90];
-	int len = sprintf(buf, "pussi %lu you", (unsigned long) current_time);
-
-	// Iterate over all connections, and push current time message to websocket ones.
-	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
-		if (c->is_websocket) {
-			mg_websocket_write(c, 1, buf, len);
-		}
-	}
-}
-
-static void ws_push(struct mg_server *server, char *text)
+void http_ws_push(struct mg_server *server, char *text)
 {
 	struct mg_connection *c;
 	char buf[4096];
-	int len = snprintf(buf, sizeof(buf), "MQTT %s", text);
+	int len = snprintf(buf, sizeof(buf), "%s", text);
 
-	// Iterate over all connections, and push current time message to websocket ones.
+	/*
+	 * Iterate over connections and push message to the WS connections.
+	 */
+
 	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
 		if (c->is_websocket) {
 			mg_websocket_write(c, 1, buf, len);
 		}
 	}
 }
-#endif
 
 static int send_reply(struct mg_connection *conn)
 {
@@ -140,33 +131,16 @@ void push_geojson(struct mg_connection *conn)
 	json_delete(obj);
 }
 
-int ev_handler(struct mg_connection *conn, enum mg_event ev)
+/*
+ * We are being called with the portion behind /api/0/ as in
+ * /users/ or /list
+ */
+
+static int dispatch(struct mg_connection *conn, const char *uri)
 {
-	int n;
-	const char *ctype;
+	int ret;
+
 	char user[BUFSIZ];
-
-	switch (ev) {
-		case MG_AUTH:
-			return MG_TRUE;
-		case MG_REQUEST:
-
-
-			ctype = mg_get_header(conn, "accept");
-			if (ctype != NULL)
-				fprintf(stderr, "ACCEPT: %s\n", ctype);
-
-			/* GET vars */
-
-			char buffer[1024];
-			int i, ret;
-
-			if ( mg_get_var(conn, "date", buffer, 1024) > 0) {
-				printf("XXXX = %s\n", buffer);
-			}
-
-			for(i=0; (ret = mg_get_var_n(conn, "date", buffer, 1024, i)) > 0; i++)
-				fprintf(stderr, "VAR: date[%d] = %s\n", i, buffer);
 
 			ret = mg_get_var(conn, "user", user, sizeof(user));
 			if (ret < 0) {
@@ -175,69 +149,48 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				printf("USER: ret=%d, user=[%s]\n", ret, user);
 			}
 
-			/* HEADERS */
+	mg_send_status(conn, 405);
+	mg_printf_data(conn, "no way\n");
+	return MG_TRUE;
+
+	mg_send_header(conn, "Content-Type", "text/plain");
 
 
-			for (n = 0; n < conn->num_headers; n++) {
-				struct mg_header *hh;
+	printf("DISPATCH: %s\n", uri);
+	return MG_FALSE;
+	mg_printf_data(conn, "Ta.\n");
+	return send_reply(conn);
+	return (MG_TRUE);
+}
 
-				hh = &conn->http_headers[n];
-				fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+int ev_handler(struct mg_connection *conn, enum mg_event ev)
+{
+	switch (ev) {
+		case MG_AUTH:
+			return (MG_TRUE);
 
+		case MG_REQUEST:
+
+			/* Websockets URI ?*/
+			if (strcmp(conn->uri, "/ws") == 0) {
+				return send_reply(conn);
 			}
 
-			fprintf(stderr, "Conn from %s: %s %s\n",
-				conn->remote_ip,
-				conn->request_method,
-				conn->uri);
+			fprintf(stderr, "*** Request: %s [%s]\n", conn->request_method, conn->uri);
 
-#if 0
-			fprintf(stderr, "content-len = (%ld) %.*s\n",
-				conn->content_len,
-				(int)conn->content_len,
-				conn->content);
-#endif
-
-			if (strncmp(conn->uri, "/api/", 5) != 0) {
-				return MG_FALSE;		/* serve from document root */
+			if (strncmp(conn->uri, API_PREFIX, strlen(API_PREFIX)) == 0) {
+				return dispatch(conn, conn->uri + strlen(API_PREFIX) - 1);
 			}
 
-			if (!strcmp(conn->request_method, "POST")) {
-				return (MG_FALSE);	/* Fail it */
-			}
+			/*
+			 * We can't handle this request ourselves. Return
+			 * to Mongoose and have it try document root.
+			 */
 
-			/* GET */
-			if (!strcmp(conn->uri, "/api/me")) {
-				push_geojson(conn);
-				return MG_TRUE;
-			}
-			if (!strcmp(conn->uri, "/api/users")) {
-				JsonNode *json;
+			return (MG_FALSE);
 
-				if ((json = lister(NULL, NULL, 0, 0, FALSE)) != NULL) {
-					char *js;
-
-					js = json_stringify(json, JSON_INDENT);
-					mg_printf_data(conn, js);
-					free(js);
-				}
-#if 0
-				UT_string *text;
-				
-				utstring_new(text);
-				utstring_bincpy(text, conn->content, conn->content_len);
-				printf("PP (%ld) %s\n", conn->content_len, utstring_body(text));
-				ws_push(mgserver, utstring_body(text));
-				mg_printf_data(conn, "Ta.\n");
-
-				utstring_free(text);
-#endif
-				return MG_TRUE;
-			}
-
-			return send_reply(conn);
 		default:
-			return MG_FALSE;
+			return (MG_FALSE);
 	}
 }
 
