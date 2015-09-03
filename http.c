@@ -156,8 +156,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	}
 
 	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
-		mg_send_status(conn, 405);
-		mg_printf_data(conn, "wrong times\n");
+		mg_send_status(conn, 416);
+		mg_printf_data(conn, "impossible date/time ranges\n");
 		return (MG_TRUE);
 	}
 
