@@ -139,38 +139,17 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 {
 	int rc;
-	MDB_val key, data;
-	MDB_txn *txn;
 	char *js;
 
 	if (gc == NULL)
 		return (1);
-
-	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
-	if (rc != 0)
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
 
 	if ((js = json_stringify(geo, NULL)) == NULL) {
 		fprintf(stderr, "%s\n", "CAN'T stringify JSON during gache_json_put()");
 		return (1);
 	}
 
-	key.mv_data	= ghash;
-	key.mv_size	= strlen(ghash);
-	data.mv_data	= js;
-	data.mv_size	= strlen(js) + 1;	/* including nul-byte so we can
-						 * later decode string directly
-						 * from this buffer */
-
-	rc = mdb_put(txn, gc->dbi, &key, &data, 0);
-	if (rc != 0)
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
-
-	rc = mdb_txn_commit(txn);
-	if (rc) {
-		fprintf(stderr, "mdb_txn_commit: (%d) %s\n", rc, mdb_strerror(rc));
-		mdb_txn_abort(txn);
-	}
+	rc = gcache_put(gc, ghash, js);
 	free(js);
 	return (rc);
 }
