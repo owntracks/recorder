@@ -34,7 +34,6 @@
 #endif
 
 #ifdef HAVE_HTTP
-extern struct mg_server *mgserver;
 
 /*
  * Send a message into the HTTP server; this will be dispatched
@@ -111,6 +110,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	char *time_from = NULL, *time_to = NULL;
 	time_t s_lo, s_hi;
 	JsonNode *json, *obj, *locs;
+	// struct udata *ud = (struct udata *)conn->server_param;
 
 	fprintf(stderr, "DISPATCH: %s\n", uri);
 
@@ -227,6 +227,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 int ev_handler(struct mg_connection *conn, enum mg_event ev)
 {
+	struct udata *ud = (struct udata *)conn->server_param;
+
 	switch (ev) {
 		case MG_AUTH:
 			return (MG_TRUE);
@@ -244,6 +246,22 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				return dispatch(conn, conn->uri + strlen(API_PREFIX) - 1);
 			}
 
+			if (!strcmp(conn->request_method, "POST")) {
+
+				if (!strcmp(conn->uri, "/block")) {
+					int ret, blocked = TRUE;
+					char buf[BUFSIZ];
+
+					if ((ret = mg_get_var(conn, "user", buf, sizeof(buf))) > 0) {
+						if (gcache_put(ud->gc, "blockme", buf) != 0) {
+							fprintf(stderr, "HTTP: gcahce put error\n");
+							blocked = FALSE;
+						}
+					}
+					mg_printf_data(conn, "User %s %s", buf, (blocked) ? "BLOCKED" : "UNblocked");
+					return (MG_TRUE);
+				}
+			}
 			/*
 			 * We can't handle this request ourselves. Return
 			 * to Mongoose and have it try document root.
