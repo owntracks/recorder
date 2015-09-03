@@ -59,9 +59,6 @@
 #define CLEAN_SESSION	false
 
 static int run = 1;
-#ifdef HAVE_HTTP
-static struct mg_server *mgserver;
-#endif
 
 double number(JsonNode *j, char *element)
 {
@@ -390,8 +387,8 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	monitorhook(ud, now, m->topic);
 
 #ifdef HAVE_HTTP
-	if (ud->server) {
-		http_ws_push(ud->server, m->payload);
+	if (ud->mgserver) {
+		http_ws_push(ud->mgserver, m->payload);
 	}
 #endif
 
@@ -710,7 +707,7 @@ int main(int argc, char **argv)
 	udata.gc		= NULL;
 #endif
 #ifdef HAVE_HTTP
-	mgserver = udata.server = NULL;
+	udata.mgserver = NULL;
 #endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
@@ -830,7 +827,8 @@ int main(int argc, char **argv)
 			syslog(LOG_ERR, "%s is not a directory", doc_root);
 			exit(1);
 		}
-		mgserver = udata.server = mg_create_server(NULL, ev_handler);
+		/* First arg is user data which I can grab via conn->server_param  */
+		udata.mgserver = mg_create_server(ud, ev_handler);
 	}
 #endif
 	syslog(LOG_DEBUG, "starting");
@@ -934,18 +932,18 @@ int main(int argc, char **argv)
 
 		sprintf(address, "%s:%d", http_host, http_port);
 
-		mg_set_option(udata.server, "listening_port", address);
-		// mg_set_option(udata.server, "listening_port", "8090,ssl://8091:cert.pem");
+		mg_set_option(udata.mgserver, "listening_port", address);
+		// mg_set_option(udata.mgserver, "listening_port", "8090,ssl://8091:cert.pem");
 
-		// mg_set_option(udata.server, "ssl_certificate", "cert.pem");
-		// mg_set_option(udata.server, "listening_port", "8091");
+		// mg_set_option(udata.mgserver, "ssl_certificate", "cert.pem");
+		// mg_set_option(udata.mgserver, "listening_port", "8091");
 
-		mg_set_option(udata.server, "document_root", doc_root);
-		mg_set_option(udata.server, "enable_directory_listing", "yes");
-		// mg_set_option(udata.server, "access_log_file", "access.log");
-		// mg_set_option(udata.server, "cgi_pattern", "**.cgi");
+		mg_set_option(udata.mgserver, "document_root", doc_root);
+		mg_set_option(udata.mgserver, "enable_directory_listing", "yes");
+		// mg_set_option(udata.mgserver, "access_log_file", "access.log");
+		// mg_set_option(udata.mgserver, "cgi_pattern", "**.cgi");
 
-		syslog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.server, "listening_port"));
+		syslog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.mgserver, "listening_port"));
 
 	}
 #endif
@@ -958,14 +956,14 @@ int main(int argc, char **argv)
 			mosquitto_reconnect(mosq);
 		}
 #ifdef HAVE_HTTP
-		if (udata.server) {
-			mg_poll_server(udata.server, 50);
+		if (udata.mgserver) {
+			mg_poll_server(udata.mgserver, 50);
 		}
 #endif
 	}
 
 #ifdef HAVE_HTTP
-	mg_destroy_server(&udata.server);
+	mg_destroy_server(&udata.mgserver);
 #endif
 	mosquitto_disconnect(mosq);
 

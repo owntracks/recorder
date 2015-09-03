@@ -23,7 +23,7 @@ struct udata {
 	struct gcache *gc;
 #endif
 #ifdef HAVE_HTTP
-	struct mg_server *server;
+	struct mg_server *mgserver;	/* Mongoose */
 #endif
 };
 
