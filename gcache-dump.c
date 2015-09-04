@@ -34,7 +34,7 @@ int main(int argc,char **argv)
 	MDB_cursor *cursor;
 
 	if (argc != 2) {
-		fprintf(stderr, "Usage: %s storage-directory\n", *argv);
+		fprintf(stderr, "Usage: %s storage-directory/ghash\n", *argv);
 		return (1);
 	}
 
