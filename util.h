@@ -8,6 +8,7 @@
 
 #include <time.h>
 #include "config.h"
+#include <syslog.h>
 #include "json.h"
 #include "utstring.h"
 
@@ -26,5 +27,6 @@ int tac(char *filename, long lines, int (*func)(char *, void *), void *param);
 int cat(char *filename, int (*func)(char *, void *), void *param);
 FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix);
 int safewrite(char *filename, char *buf);
+void olog(int level, char *fmt, ...);
 
 #endif

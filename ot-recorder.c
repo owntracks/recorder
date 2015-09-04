@@ -32,7 +32,6 @@
 #include <time.h>
 #include "json.h"
 #include <sys/utsname.h>
-#include <syslog.h>
 #include "utstring.h"
 #include "utarray.h"
 #include "geo.h"
@@ -622,7 +621,7 @@ void on_connect(struct mosquitto *mosq, void *userdata, int rc)
 	char **m = NULL;
 
 	while ((m = (char **)utarray_next(ud->topics, m))) {
-		syslog(LOG_DEBUG, "Subscribing to %s (qos=%d)", *m, ud->qos);
+		olog(LOG_DEBUG, "Subscribing to %s (qos=%d)", *m, ud->qos);
 		mosquitto_subscribe(mosq, &mid, *m, ud->qos);
 	}
 }
@@ -633,7 +632,7 @@ void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 	struct udata *ud = (struct udata *)userdata;
 #endif
 
-	syslog(LOG_INFO, "Disconnected. Reason: %d [%s]", reason, mosquitto_strerror(reason));
+	olog(LOG_INFO, "Disconnected. Reason: %d [%s]", reason, mosquitto_strerror(reason));
 
 	if (reason == 0) { 	// client wish
 #ifdef HAVE_LMDB
@@ -824,14 +823,14 @@ int main(int argc, char **argv)
 #ifdef HAVE_HTTP
 	if (http_port) {
 		if (!is_directory(doc_root)) {
-			syslog(LOG_ERR, "%s is not a directory", doc_root);
+			olog(LOG_ERR, "%s is not a directory", doc_root);
 			exit(1);
 		}
 		/* First arg is user data which I can grab via conn->server_param  */
 		udata.mgserver = mg_create_server(ud, ev_handler);
 	}
 #endif
-	syslog(LOG_DEBUG, "starting");
+	olog(LOG_DEBUG, "starting");
 
 	if (ud->revgeo == TRUE) {
 #ifdef HAVE_LMDB
@@ -843,7 +842,7 @@ int main(int argc, char **argv)
 		free(pa);
 		udata.gc = gcache_open(db_filename, FALSE);
 		if (udata.gc == NULL) {
-			syslog(LOG_WARNING, "Can't initialize gcache in %s", db_filename);
+			olog(LOG_ERR, "Can't initialize gcache in %s", db_filename);
 			exit(1);
 		}
 		storage_init(ud->revgeo);	/* For the HTTP server */
@@ -943,7 +942,7 @@ int main(int argc, char **argv)
 		// mg_set_option(udata.mgserver, "access_log_file", "access.log");
 		// mg_set_option(udata.mgserver, "cgi_pattern", "**.cgi");
 
-		syslog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.mgserver, "listening_port"));
+		olog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.mgserver, "listening_port"));
 
 	}
 #endif
@@ -951,7 +950,7 @@ int main(int argc, char **argv)
 	while (run) {
 		rc = mosquitto_loop(mosq, /* timeout */ 200, /* max-packets */ 1);
 		if (run && rc) {
-			syslog(LOG_INFO, "MQTT connection: rc=%d [%s]. Sleeping...", rc, mosquitto_strerror(rc));
+			olog(LOG_INFO, "MQTT connection: rc=%d [%s]. Sleeping...", rc, mosquitto_strerror(rc));
 			sleep(10);
 			mosquitto_reconnect(mosq);
 		}

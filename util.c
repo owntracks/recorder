@@ -33,6 +33,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #ifndef LINESIZE
 # define LINESIZE 8192
@@ -260,6 +261,22 @@ int syslog_facility_code(char *facility)
 			return (lp->val);
 	}
 	return (LOG_LOCAL0);
+}
+
+void olog(int level, char *fmt, ...)
+{
+	va_list ap;
+	static UT_string *u = NULL;
+
+	va_start(ap, fmt);
+	utstring_renew(u);
+
+	utstring_printf_va(u, fmt, ap);
+
+	// fprintf(stderr, "+++++ [%s]\n", utstring_body(u));
+	syslog(level, "%s", utstring_body(u));
+
+	va_end(ap);
 }
 
 const char *yyyymm(time_t t) {

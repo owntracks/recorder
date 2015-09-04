@@ -248,7 +248,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				return send_reply(conn);
 			}
 
-			fprintf(stderr, "*** Request: %s [%s]\n", conn->request_method, conn->uri);
+			olog(LOG_DEBUG, "http: %s %s", conn->request_method, conn->uri);
 
 			if (strncmp(conn->uri, API_PREFIX, strlen(API_PREFIX)) == 0) {
 				return dispatch(conn, conn->uri + strlen(API_PREFIX) - 1);
