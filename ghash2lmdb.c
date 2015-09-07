@@ -35,7 +35,7 @@ int main(int argc,char * argv[])
 		return (1);
 	}
 
-	gc = gcache_open(argv[1], 0);
+	gc = gcache_open(argv[1], NULL, 0);
 	if (gc == NULL) {
 		fprintf(stderr, "%s Cannot open ghash store at %s\n", argv[0], argv[1]);
 		return (1);

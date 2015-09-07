@@ -840,7 +840,7 @@ int main(int argc, char **argv)
 		pa = strdup(db_filename);
 		mkpath(pa);
 		free(pa);
-		udata.gc = gcache_open(db_filename, FALSE);
+		udata.gc = gcache_open(db_filename, NULL, FALSE);
 		if (udata.gc == NULL) {
 			olog(LOG_ERR, "Can't initialize gcache in %s", db_filename);
 			exit(1);

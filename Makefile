@@ -48,7 +48,7 @@ ghash2lmdb: ghash2lmdb.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.o $(OTR_OBJS) $(LIBS)
 
 
-ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h config.h json.h http.h
+ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h config.h json.h http.h gcache.h
 geo.o: geo.h geo.c udata.h Makefile config.mk config.h
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
 base64.o: base64.h base64.c
@@ -60,7 +60,8 @@ util.o: util.c util.h Makefile config.mk
 ghashfind.o: ghashfind.c util.h
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h
-storage.o: storage.c storage.h config.h util.h
+storage.o: storage.c storage.h config.h util.h gcache.h
+ghash2lmdb.o: ghash2lmdb.c gcache.h
 
 
 clean:

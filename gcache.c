@@ -171,7 +171,7 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 	MDB_val key, data;
 	MDB_txn *txn;
 	int rc;
-	long len;
+	long len = -1;
 
 	if (gc == NULL)
 		return (-1);

@@ -52,7 +52,7 @@ void storage_init(int revgeo)
 
 	if (revgeo) {
 		snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
-		gc = gcache_open(path, TRUE);
+		gc = gcache_open(path, NULL, TRUE);
 	}
 }
 
