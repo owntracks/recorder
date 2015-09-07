@@ -31,7 +31,7 @@ int main(int argc,char * argv[])
 	struct gcache *gc;
 
 	if (argc != 2) {
-		fprintf(stderr, "Usage: %s /path/to/store\n", *argv);
+		fprintf(stderr, "Usage: %s /path/to/store/ghash\n", *argv);
 		return (1);
 	}
 
