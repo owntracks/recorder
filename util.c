@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include "config.h"
 #include "util.h"
 #include "misc.h"
 #include <sys/types.h>
@@ -527,4 +528,15 @@ int safewrite(char *filename, char *buf)
 
         free(tmpfile);
         return (0);
+}
+
+static int _precision = GEOHASH_PREC;
+void geohash_setprec(int precision)
+{
+	_precision = precision;
+}
+
+int geohash_prec(void)
+{
+	return (_precision);
 }

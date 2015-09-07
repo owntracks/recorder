@@ -474,7 +474,7 @@ static JsonNode *line_to_location(char *line)
 		lon = j->number_;
 	}
 
-	if ((ghash = geohash_encode(lat, lon, GEOHASH_PREC)) != NULL) {
+	if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
 		json_append_member(o, "ghash", json_mkstring(ghash));
 	}
 	json_append_member(o, "isorcv", json_mkstring(tstamp));

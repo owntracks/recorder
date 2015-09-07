@@ -142,6 +142,7 @@ void usage(char *prog)
 	printf("  --killdata                   	requires -u and -d\n");
 	printf("  --storage		-S     	storage dir (./store)\n");
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
+	printf("  --precision		        ghash precision (dflt: %d)\n", GEOHASH_PREC);
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -201,6 +202,7 @@ int main(int argc, char **argv)
 			{ "storage",	required_argument, 0, 	'S'},
 			{ "last",	no_argument, 0, 	'L'},
 			{ "fields",	required_argument, 0, 	1},
+			{ "precision",	required_argument, 0, 	2},
 			{ "killdata",	no_argument, 0, 	'K'},
 			{ "norevgeo",	no_argument, 0, 	'G'},
 		  	{0, 0, 0, 0}
@@ -215,6 +217,9 @@ int main(int argc, char **argv)
 			case 1:	/* No short option */
 				if (strcmp(optarg, "ALL") != 0)
 					fields = json_splitter(optarg, ",");
+				break;
+			case 2:
+				geohash_setprec(atoi(optarg));
 				break;
 			case 'l':
 				list = 1;

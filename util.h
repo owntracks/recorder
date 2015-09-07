@@ -28,5 +28,7 @@ int cat(char *filename, int (*func)(char *, void *), void *param);
 FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix);
 int safewrite(char *filename, char *buf);
 void olog(int level, char *fmt, ...);
+void geohash_setprec(int precision);
+int geohash_prec(void);
 
 #endif

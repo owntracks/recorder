@@ -500,7 +500,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 */
 
 	utstring_renew(ghash);
-        p = geohash_encode(lat, lon, GEOHASH_PREC);
+        p = geohash_encode(lat, lon, geohash_prec());
 	if (p != NULL) {
 		utstring_printf(ghash, "%s", p);
 		free(p);
@@ -667,6 +667,7 @@ void usage(char *prog)
 	printf("  --http-port <port>	-A     HTTP port (8083)\n");
 	printf("  --doc-root <directory>       document root (./wdocs)\n");
 #endif
+	printf("  --precision		       ghash precision (dflt: %d)\n", GEOHASH_PREC);
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_HOST		MQTT hostname\n");
@@ -741,6 +742,7 @@ int main(int argc, char **argv)
 			{ "port",	required_argument,	0, 	'p'},
 			{ "storage",	required_argument,	0, 	'S'},
 			{ "logfacility",	required_argument,	0, 	4},
+			{ "precision",	required_argument,	0, 	5},
 #ifdef HAVE_HTTP
 			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
@@ -755,6 +757,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 5:
+				geohash_setprec(atoi(optarg));
+				break;
 			case 4:
 				logfacility = strdup(optarg);
 				break;
