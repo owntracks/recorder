@@ -13,11 +13,11 @@ struct gcache {
 	MDB_dbi dbi;
 };
 
-struct gcache *gcache_open(char *path, int rdonly);
+struct gcache *gcache_open(char *path, char *dbname, int rdonly);
 void gcache_close(struct gcache *);
 int gcache_put(struct gcache *, char *ghash, char *payload);
 int gcache_json_put(struct gcache *, char *ghash, JsonNode *geo);
-int gcache_get(struct gcache *, char *key);
+long gcache_get(struct gcache *, char *key, char *buf, long buflen);
 JsonNode *gcache_json_get(struct gcache *, char *key);
 
 #endif

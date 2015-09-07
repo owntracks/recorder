@@ -27,11 +27,15 @@
 #include "gcache.h"
 #include "util.h"
 
-struct gcache *gcache_open(char *path, int rdonly)
+/*
+ * dbname is an named LMDB database; may be NULL.
+ */
+
+struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 {
 	MDB_txn *txn = NULL;
 	int rc;
-	unsigned int flags = 0;
+	unsigned int flags = 0, dbiflags = 0;
 	struct gcache *gc;
 
 	if (!is_directory(path)) {
@@ -46,6 +50,8 @@ struct gcache *gcache_open(char *path, int rdonly)
 
 	if (rdonly) {
 		flags |= MDB_RDONLY;
+	} else {
+		dbiflags = MDB_CREATE;
 	}
 
 	rc = mdb_env_create(&gc->env);
@@ -56,6 +62,13 @@ struct gcache *gcache_open(char *path, int rdonly)
 	}
 
 	mdb_env_set_mapsize(gc->env, LMDB_DB_SIZE);
+
+	rc = mdb_env_set_maxdbs(gc->env, 10);
+	if (rc != 0) {
+		fprintf(stderr, "mdb_env_set_maxdbs%s\n", mdb_strerror(rc));
+		free(gc);
+		return (NULL);
+	}
 
 	rc = mdb_env_open(gc->env, path, flags, 0664);
 	if (rc != 0) {
@@ -74,10 +87,9 @@ struct gcache *gcache_open(char *path, int rdonly)
 		return (NULL);
 	}
 
-	rc = mdb_dbi_open(txn, NULL, 0, &gc->dbi);
+	rc = mdb_dbi_open(txn, dbname, dbiflags, &gc->dbi);
 	if (rc != 0) {
-	write(1, "HELLO\n", 6);
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
+		fprintf(stderr, "mdb_dbi_open: %s\n", mdb_strerror(rc));
 		mdb_txn_abort(txn);
 		mdb_env_close(gc->env);
 		free(gc);
@@ -154,19 +166,20 @@ int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 	return (rc);
 }
 
-int gcache_get(struct gcache *gc, char *k)
+long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 {
 	MDB_val key, data;
 	MDB_txn *txn;
 	int rc;
+	long len;
 
 	if (gc == NULL)
-		return (1);
+		return (-1);
 
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
 		fprintf(stderr, "gcache_get: cannot txn_begin: (%d) %s\n", rc, mdb_strerror(rc));
-		return (1);
+		return (-1);
 	}
 
 	key.mv_data = k;
@@ -180,10 +193,12 @@ int gcache_get(struct gcache *gc, char *k)
 			printf(" [%s] not found\n", k);
 		}
 	} else {
-		printf("%s\n", (char *)data.mv_data);
+		len =  (data.mv_size < buflen) ? data.mv_size : buflen;
+		memcpy(buf, data.mv_data, len);
+		// printf("%s\n", (char *)data.mv_data);
 	}
 	mdb_txn_commit(txn);
-	return (0);
+	return (len);
 }
 
 /*
