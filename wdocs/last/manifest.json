@@ -1,0 +1,14 @@
+{
+  "name" : "Recorder map",
+  "icons" : [
+  	{
+		"src" : "pista-micro.png",
+		"sizes" : "192x192",
+		"type" : "image/png",
+		"density" : "4.0"
+	}
+  ],
+  "start_url" : "index.html",
+  "display" : "standalone",
+  "orientation" : "portrait"
+}
