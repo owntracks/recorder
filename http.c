@@ -182,6 +182,14 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		fprintf(stderr, "%d = %s\n", ret, uparts[ret]);
 	}
 
+	if (nparts == 1 && !strcmp(uparts[0], "last")) {
+                JsonNode *user_array;
+
+                if ((user_array = last_users()) != NULL) {
+			return (json_response(conn, user_array));
+                }
+	}
+
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
 	time_from = field(conn, "from");
