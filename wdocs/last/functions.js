@@ -22,6 +22,12 @@ function initialize() {
 	map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 }
 
+function clog(upd, id, s) {
+	var ident = id || 'unknown';
+
+	console.log(upd + ": " + ident + " " + s);
+}
+
 /*
  * `loc' is a location object obtained via Websockets from the recorder
  */
@@ -39,10 +45,8 @@ function map_marker(loc)
 
 	loc.description = d;
 
-	console.log(JSON.stringify(loc));
-
 	if (markers.hasOwnProperty(id)) {
-		console.log("UPDATE " + id + " marker");
+		clog("UPD", id, JSON.stringify(loc));
 		m = markers[id];
 		var LatLng = new google.maps.LatLng(loc.lat, loc.lon);
 		m.setPosition(LatLng);
@@ -51,7 +55,7 @@ function map_marker(loc)
 		/* Grab the InfoWindow of this marker and change content */
 		m['infowindow'].setContent(loc.description);
 	} else {
-		console.log("NEW " + id + " marker");
+		clog("NEW", id, JSON.stringify(loc));
 		var circle ={
 			path: google.maps.SymbolPath.CIRCLE,
 			fillColor: '#ff0000',
