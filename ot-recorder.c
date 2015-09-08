@@ -385,12 +385,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	time(&now);
 	monitorhook(ud, now, m->topic);
 
-#ifdef HAVE_HTTP
-	if (ud->mgserver) {
-		http_ws_push(ud->mgserver, m->payload);
-	}
-#endif
-
 	if (m->payloadlen == 0) {
 		return;
 	}
@@ -550,6 +544,33 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	/*
 	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
 	 */
+
+#ifdef HAVE_HTTP
+	if (ud->mgserver) {
+
+		/*
+		 * Create a new location object containing all the bits and
+		 * pieces we need and push that into connected Websockets.
+		 * TODO: clean up
+		 */
+
+		JsonNode *geo, *wso = json_mkobject();
+		char *js;
+
+		json_copy_to_object(wso, json, TRUE);
+
+		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
+			json_copy_to_object(wso, geo, FALSE);
+			json_delete(geo);
+		}
+
+		if ((js = json_stringify(wso, NULL)) != NULL) {
+			http_ws_push(ud->mgserver, m->payload);
+			free(js);
+		}
+		json_delete(wso);
+	}
+#endif
 
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
