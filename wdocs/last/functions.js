@@ -30,8 +30,15 @@ function initialize() {
 function map_marker(loc)
 {
 	var id = loc.tid.replace(/\//g, '-');
+	var d;
 
-	loc.description = 'FIXme ' + loc.tid;
+	if (loc.addr && loc.tid) {
+		d = loc.tid + " " + loc.addr;
+	} else {
+		d = 'unknown';
+	}
+
+	loc.description = d;
 
 	console.log(JSON.stringify(loc));
 
