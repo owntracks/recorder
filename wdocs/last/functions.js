@@ -1,5 +1,6 @@
 var map;
 var markers = {};
+var livemarkers = true;
 
 function initialize() {
 	var lat = 50.098280;
@@ -29,6 +30,18 @@ function clog(upd, id, s) {
 }
 
 /*
+ * Close all the infowindows in the `markers' object, and then open the
+ * infowindow in the specified marker.
+ */
+
+function refreshmarkers(m) {
+	for (var k in markers) {
+		markers[k]['infowindow'].close();
+	}
+	m['infowindow'].open(map, m);
+}
+
+/*
  * `loc' is a location object obtained via Websockets from the recorder
  */
 
@@ -54,6 +67,9 @@ function map_marker(loc)
 
 		/* Grab the InfoWindow of this marker and change content */
 		m['infowindow'].setContent(loc.description);
+		if (livemarkers) {
+			refreshmarkers(m);
+		}
 	} else {
 		clog("NEW", id, JSON.stringify(loc));
 		var circle ={
@@ -82,6 +98,9 @@ function map_marker(loc)
 		google.maps.event.addListener(m, "click", function(e) {
 			this['infowindow'].open(map, this);
 		});
+		if (livemarkers) {
+			refreshmarkers(m);
+		}
 
 		markers[id] = m;
 	}
