@@ -523,7 +523,6 @@ int safewrite(char *filename, char *buf)
 
         if ((rename(tmpfile, filename)) == -1) {
                 fprintf(stderr, "Failed to rename %s to %s (errno=%d)\n", tmpfile, filename, errno);
-                free(tmpfile);
         }
 
         free(tmpfile);
