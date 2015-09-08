@@ -565,7 +565,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 
 		if ((js = json_stringify(wso, NULL)) != NULL) {
-			http_ws_push(ud->mgserver, m->payload);
+			http_ws_push(ud->mgserver, js);
 			free(js);
 		}
 		json_delete(wso);
