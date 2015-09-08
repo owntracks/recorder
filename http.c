@@ -100,6 +100,8 @@ static void send_last(struct mg_connection *conn)
 				json_copy_element_to_object(o, "tst", f);
 			if ((f = json_find_member(one, "tid")) != NULL)
 				json_copy_element_to_object(o, "tid", f);
+			if ((f = json_find_member(one, "addr")) != NULL)
+				json_copy_element_to_object(o, "addr", f);
 			if ((f = json_find_member(one, "topic")) != NULL)
 				json_copy_element_to_object(o, "topic", f);
 
