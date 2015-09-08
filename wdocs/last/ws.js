@@ -12,7 +12,7 @@ window.onload = function() {
 
 	websocket = new WebSocket(url);
 	websocket.onopen = function(ev) {
-		// out('CONNECTED');
+		out('CONNECTED');
 		var msg = 'LAST';
 		// out('SENT: ' + msg);
 		websocket.send(msg);
@@ -29,7 +29,10 @@ window.onload = function() {
 			// out('<span style="color: blue;">RESPONSE: ' + ev.data + ' </span>');
 			try {
 				var loc = JSON.parse(ev.data);
-				map_marker(loc);
+
+				if (loc['_type'] == 'location') {
+					map_marker(loc);
+				}
 			} catch (x) {
 				;
 			}
