@@ -1,0 +1,20 @@
+ 
+.img-circle {
+  border-radius: 50%;
+  border: 1px solid #CACACA;
+}
+
+tr { font-size: 90%; }
+thead { text-align: left; }
+td.fulldate { font-size: 80%; width: 10em; }
+td.cc { width: 30px; }
+td.topic { font-size: 80%; font-family: courier; }
+td.addr { font-size: 90%; }
+td.user { font-size: 80%; }
+
+#togglers ul {
+  list-style-type: none;
+  margin-left: 0;
+  padding-left: 0;
+    }
+#togglers li { float: left; padding-right: 4px; }
