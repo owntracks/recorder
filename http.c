@@ -43,8 +43,7 @@
 void http_ws_push(struct mg_server *server, char *text)
 {
 	struct mg_connection *c;
-	char buf[4096];
-	int len = snprintf(buf, sizeof(buf), "%s", text);
+	int len = strlen(text);
 
 	/*
 	 * Iterate over connections and push message to the WS connections.
@@ -52,7 +51,7 @@ void http_ws_push(struct mg_server *server, char *text)
 
 	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
 		if (c->is_websocket) {
-			mg_websocket_write(c, 1, buf, len);
+			mg_websocket_write(c, 1, text, len);
 		}
 	}
 }
@@ -69,6 +68,48 @@ static int send_reply(struct mg_connection *conn)
 		mg_send_file(conn, "jp.html", NULL);
 
 		return MG_MORE;
+	}
+}
+
+/*
+ * Push a list of LAST users down the Websocket. We send individual
+ * JSON objects (not an array of them) because these are what the
+ * WS client gets when we the recorder sees a publish.
+ */
+
+static void send_last(struct mg_connection *conn)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	JsonNode *user_array, *o, *one;
+
+	if ((user_array = last_users()) != NULL) {
+		char *js;
+
+		json_foreach(one, user_array) {
+			JsonNode *f;
+
+			o = json_mkobject();
+
+			json_append_member(o, "_type", json_mkstring("location"));
+			if ((f = json_find_member(one, "lat")) != NULL)
+				json_copy_element_to_object(o, "lat", f);
+			if ((f = json_find_member(one, "lon")) != NULL)
+				json_copy_element_to_object(o, "lon", f);
+
+			if ((f = json_find_member(one, "tst")) != NULL)
+				json_copy_element_to_object(o, "tst", f);
+			if ((f = json_find_member(one, "tid")) != NULL)
+				json_copy_element_to_object(o, "tid", f);
+			if ((f = json_find_member(one, "topic")) != NULL)
+				json_copy_element_to_object(o, "topic", f);
+
+			if ((js = json_stringify(o, NULL)) != NULL) {
+				http_ws_push(ud->mgserver, js);
+				free(js);
+			}
+			json_delete(o);
+		}
+		json_delete(user_array);
 	}
 }
 
@@ -244,7 +285,26 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 		case MG_REQUEST:
 
 			/* Websockets URI ?*/
+			if (strcmp(conn->uri, "/ws/last") == 0) {
+
+				/*
+				 * WS client sends us "LAST" and we return all
+				 * last locations to it.
+				 */
+#if 0
+				fprintf(stderr, "%s (%ld) %.*s\n",
+					conn->uri,
+					conn->content_len,
+					(int)conn->content_len,
+					conn->content);
+#endif
+				if (conn->content_len == 4 && !strncmp(conn->content, "LAST", 4)) {
+					send_last(conn);
+				}
+				return send_reply(conn);
+			}
 			if (strcmp(conn->uri, "/ws") == 0) {
+				fprintf(stderr, "WS: %s\n", conn->uri);
 				return send_reply(conn);
 			}
 
