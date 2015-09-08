@@ -60,7 +60,9 @@
 		}
 
 		var dt = moment.utc(d.tst * 1000).local();
-		d['fulldate'] = dt.format("DD MMM YYYY HH:mm:ss");
+		d['fulldate']	= dt.format("DD MMM YYYY HH:mm:ss");
+		d['addr']	= d['addr'] || '(unknown)';
+		d['cc']		= d['cc'] || '__';
 
 		upsert(d);
 	}
@@ -161,8 +163,6 @@
                             data: null,
                             render: function(data, type, row) {
 			    	var t = "<img src='flags/{{cc}}.png' title='{{cc}}'/>";
-				data['cc'] = data['cc'] || '__';
-
 				return Mustache.render(t, data);
 			    },
                             "targets" : [5],
