@@ -564,6 +564,13 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			json_delete(geo);
 		}
 
+		/*
+		 * I need a unique "key" in the Websocket clients to keep track
+		 * of which device is being updated; use topic.
+		 */
+
+		json_append_member(wso, "topic", json_mkstring(m->topic));
+
 		if ((js = json_stringify(wso, NULL)) != NULL) {
 			http_ws_push(ud->mgserver, js);
 			free(js);

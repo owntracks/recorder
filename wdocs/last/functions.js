@@ -28,11 +28,11 @@ function initialize() {
 
 function map_marker(loc)
 {
-	var id = loc.tid.replace(/\//g, '-');
+	var id = loc.topic.replace(/\//g, '-');
 	var d;
 
-	if (loc.addr && loc.tid) {
-		d = loc.tid + " " + loc.addr;
+	if (loc.addr && loc.topic) {
+		d = loc.topic + " " + loc.addr;
 	} else {
 		d = 'unknown';
 	}

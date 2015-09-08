@@ -68,7 +68,7 @@ void get_geo(JsonNode *o, char *ghash)
 
 
 /*
- * Populate a JSON object (`node') keyed by directory name; each element points
+ * Populate a JSON object (`obj') keyed by directory name; each element points
  * to a JSON array with a list of subdirectories on the first level.
  *
  * { "jpm": [ "5s", "nex4" ], "jjolie": [ "iphone5" ] }
