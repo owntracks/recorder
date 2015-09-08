@@ -20,7 +20,6 @@ function initialize() {
 	};
 
 	map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
-
 }
 
 /*
@@ -44,10 +43,15 @@ function map_marker(loc)
 
 	if (markers.hasOwnProperty(id)) {
 		console.log("UPDATE " + id + " marker");
+		m = markers[id];
 		var LatLng = new google.maps.LatLng(loc.lat, loc.lon);
-		markers[id].setPosition(LatLng);
-		markers[id].setTitle(loc.description);
+		m.setPosition(LatLng);
+		m.setTitle(loc.description);
+
+		/* Grab the InfoWindow of this marker and change content */
+		m['infowindow'].setContent(loc.description);
 	} else {
+		console.log("NEW " + id + " marker");
 		var circle ={
 			path: google.maps.SymbolPath.CIRCLE,
 			fillColor: '#ff0000',
@@ -57,7 +61,6 @@ function map_marker(loc)
 			strokeWeight: 2
 		};
 
-		console.log("NEW " + id + " marker");
 		var LatLng = new google.maps.LatLng(loc.lat, loc.lon);
 		var m = new google.maps.Marker({
 			position: LatLng,
@@ -68,19 +71,16 @@ function map_marker(loc)
 			icon: circle
 		});
 
+		/* Create a new InfoWindow for this marker, and add listener */
+		m['infowindow'] = new google.maps.InfoWindow({
+					content: loc.description
+				  });
+		google.maps.event.addListener(m, "click", function(e) {
+			this['infowindow'].open(map, this);
+		});
+
 		markers[id] = m;
-		console.log("MARKER is " + id + "= " + id);
-                info(map, m, loc);
 	}
-}
-
-function info(map, marker, data) {
-	var infowindow = new google.maps.InfoWindow();
-
-	google.maps.event.addListener(marker, "click", function(e) {
-		infowindow.setContent(data.description);
-		infowindow.open(map, marker);
-	});
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
