@@ -1,28 +1,38 @@
+var reconnectTimeout = 3000;
+var ws_url;
+var ws;
+
+function setColor(element, color) {
+	element.style.backgroundColor = color;
+}
+
 var out = function(message) {
 	var div = document.createElement('div');
 	div.innerHTML = message;
 	document.getElementById('output').appendChild(div);
 };
 
-window.onload = function() {
-	var url = 'ws://' + location.host + '/ws/last';
+function ws_connect() {
 
-	console.log(JSON.stringify(location));
+	console.log("Connecting to websocket at " + ws_url);
 
+	ws = new WebSocket(ws_url);
 
-	websocket = new WebSocket(url);
-	websocket.onopen = function(ev) {
-		out('CONNECTED');
+	ws.onopen = function(ev) {
+		setColor(mapover, 'green');
+		document.getElementById('mapover').textContent = 'Connected';
 		var msg = 'LAST';
 		// out('SENT: ' + msg);
-		websocket.send(msg);
+		ws.send(msg);
 	};
 
-	websocket.onclose = function(ev) {
-		out('DISCONNECTED');
+	ws.onclose = function(ev) {
+		setColor(mapover, 'red');
+		document.getElementById('mapover').textContent = 'Disconnected';
+		setTimeout(ws_connect, reconnectTimeout);
 	};
 
-	websocket.onmessage = function(ev) {
+	ws.onmessage = function(ev) {
 		if (!ev.data) {
 			// out('<span style="color: blue;">PING... </span>');
 		} else {
@@ -39,7 +49,17 @@ window.onload = function() {
 		}
 	};
 
-	websocket.onerror = function(ev) {
+	ws.onerror = function(ev) {
 		out('<span style="color: red; ">ERROR: </span> ' + ev.data);
 	};
+}
+
+window.onload = function() {
+	var url = 'ws://' + location.host + '/ws/last';
+
+	console.log(JSON.stringify(location));
+
+	ws_url = url;
+	ws_connect();
+
 };
