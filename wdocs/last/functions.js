@@ -52,6 +52,7 @@ function map_marker(loc)
 
 	if (loc.addr && loc.topic) {
 		d = loc.topic + " " + loc.addr;
+		d = "<b>" + loc.topic.split('/')[2] + "</b><br />" + loc.addr;
 	} else {
 		d = 'unknown';
 	}

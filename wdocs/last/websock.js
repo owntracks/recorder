@@ -55,9 +55,16 @@ function ws_connect() {
 }
 
 window.onload = function() {
-	var url = 'ws://' + location.host + '/ws/last';
+	// var url = 'ws://' + location.host + '/ws/last';
+	// console.log(JSON.stringify(location));
 
-	console.log(JSON.stringify(location));
+	var url = "ws://" + location.host + "/";
+	var parts = location.pathname.split('/');
+	for (var i = 1; i < parts.length - 2; i++) {
+		url = url + parts[i] + "/";
+	}
+	url = url + "ws";
+	console.log("Websocket URI: " + url);
 
 	ws_url = url;
 	ws_connect();
