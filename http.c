@@ -132,13 +132,27 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 }
 
 /*
- * Return a copy of a GET/POST parameter or NULL. Caller must free.
+ * Return a copy of a GET/POST parameter or NULL. The parameter
+ * may be overriden by an HTTP header called X-Limit-<fieldname>.
+ * Caller must free if return is non-NULL.
  */
 
 static char *field(struct mg_connection *conn, char *fieldname)
 {
 	char buf[BUFSIZ];
-	int ret;
+	int ret, n;
+
+	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
+
+	for (n = 0; n < conn->num_headers; n++) {
+		struct mg_header *hh;
+
+		hh = &conn->http_headers[n];
+		// fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+		if (*hh->name == 'X' && strcasecmp(hh->name, buf) == 0) {
+			return (strdup(hh->value));
+		}
+	}
 
 	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
 		return (strdup(buf));
@@ -294,6 +308,20 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 		case MG_REQUEST:
 
+#if 0
+			for (int n = 0; n < conn->num_headers; n++) {
+				struct mg_header *hh;
+
+				hh = &conn->http_headers[n];
+				fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+
+			}
+			fprintf(stderr, "%s (%ld) %.*s\n",
+					conn->uri,
+					conn->content_len,
+					(int)conn->content_len,
+					conn->content);
+#endif
 			/* Websockets URI ?*/
 			if (strcmp(conn->uri, "/ws/last") == 0) {
 
@@ -301,13 +329,6 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				 * WS client sends us "LAST" and we return all
 				 * last locations to it.
 				 */
-#if 0
-				fprintf(stderr, "%s (%ld) %.*s\n",
-					conn->uri,
-					conn->content_len,
-					(int)conn->content_len,
-					conn->content);
-#endif
 				if (conn->content_len == 4 && !strncmp(conn->content, "LAST", 4)) {
 					send_last(conn);
 				}
