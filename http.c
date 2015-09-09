@@ -318,17 +318,19 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 		case MG_REQUEST:
 
 #if 1
+			{ int n;
 			fprintf(stderr, "------------------------------ %s (%ld) %.*s\n",
 					conn->uri,
 					conn->content_len,
 					(int)conn->content_len,
 					conn->content);
-			for (int n = 0; n < conn->num_headers; n++) {
+			for (n = 0; n < conn->num_headers; n++) {
 				struct mg_header *hh;
 
 				hh = &conn->http_headers[n];
 				fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
 
+			}
 			}
 #endif
 			/* Websockets URI ?*/
