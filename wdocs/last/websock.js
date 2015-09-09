@@ -63,7 +63,7 @@ window.onload = function() {
 	for (var i = 1; i < parts.length - 2; i++) {
 		url = url + parts[i] + "/";
 	}
-	url = url + "ws";
+	url = url + "ws/last";
 	console.log("Websocket URI: " + url);
 
 	ws_url = url;
