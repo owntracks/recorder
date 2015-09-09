@@ -30,6 +30,7 @@ We took a number of decisions for the design of the recorder and its utilities:
 * Storage format is typically JSON because it's extensible. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs have a leading timestamp and a relative topic; see below.
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
+* The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it.
 * `ocat`, the _cat_ program for the _recorder_ uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
 
 ## Storage
@@ -95,3 +96,37 @@ The following environment variables control _ocat_'s behaviour:
 * `OCAT_FORMAT` can be set to the preferred output format. If unset, JSON is used. The `--format` option overrides this setting.
 * `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
 * `OCAT_DEVICE` can be set to the preferred device name. The `--device` option overrides this environment variable.
+
+### nginx
+
+Running the _recorder_ protected by an _nginx_ or _Apache_ server should be possible. This snippet shows how to do it, but you would also add authentication to that.
+
+```
+server {
+    listen       8080;
+    server_name  192.168.1.130;
+
+    location / {
+        root   html;
+        index  index.html index.htm;
+    }
+
+    # Proxy and upgrade Websocket connection
+    location /otr/ws {
+    	rewrite ^/otr/(.*)	/$1 break;
+    	proxy_pass		http://127.0.0.1:8084;
+    	proxy_http_version	1.1;
+    	proxy_set_header	Upgrade $http_upgrade;
+    	proxy_set_header	Connection "upgrade";
+    	proxy_set_header	Host $host;
+    	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /otr/ {
+    	proxy_pass		http://127.0.0.1:8084/;
+    	proxy_http_version	1.1;
+    	proxy_set_header	Host $host;
+    	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
