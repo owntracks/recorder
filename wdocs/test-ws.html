@@ -10,8 +10,20 @@
   };
 
   window.onload = function() {
-    var url = 'ws://' + location.host + '/ws';
     var num_messages = 0;
+
+    // console.log(JSON.stringify(location));
+    // location.host		localhost:8080		localhost:8083
+    // location.pathname	/otr/ws.html		/ws.html
+
+    /* Remove last part of URI to determine path to Websocket in OTR */
+    var url = "ws://" + location.host + "/";
+    var parts = location.pathname.split('/');
+    for (var i = 1; i < parts.length - 1; i++) {
+    	url = url + parts[i] + "/";
+    }
+    url = url + "ws";
+    console.log(url);
 
     websocket = new WebSocket(url);
     websocket.onopen = function(ev) {
