@@ -8,6 +8,7 @@
     <script src="js/mustache.js"></script>
     <script src="js/moment.min.js"></script>
     <script src="defaultface.js"></script>
+    <script src="config.js"></script>
 
     <link rel="stylesheet" type="text/css" href="js/jquery.dataTables.min.css">
 
@@ -72,7 +73,7 @@
 
     function getuserlist() {
 	$.ajax({
-		url: "http://127.0.0.1:8083/api/0/last", // "getlast.php",
+		url: "http://127.0.0.1:8084/api/0/last", // "getlast.php",
 		type: "GET",
 		dataType: 'json',
 		success: function(data) {
@@ -88,6 +89,7 @@
 
     $(document).ready(function() {
 	getuserlist();
+
         var counter = 0;
         tab = $('#livetable').DataTable({
             paging: false,
@@ -101,7 +103,7 @@
                     {
                             className: 'topic',
                             name: 'topic',
-                            title: "Topic",
+                            title: config.column_titles.topic,
                             visible: false,
                             data: null,
                             render: 'topic',
@@ -110,7 +112,7 @@
                 {
                         className: 'face',
                         name: 'face',
-                        title: "",
+                        title: config.column_titles.face,
                         visible: true,
                         data: null,
                         "targets" : [1],
@@ -125,7 +127,7 @@
                     {
                             className: 'fulldate',
                             name: 'fulldate',
-                            title: "Timestamp",
+                            title: config.column_titles.fulldate,
                             visible: true,
                             data: null,
                             render: 'fulldate',
@@ -134,7 +136,7 @@
                     {
                             className: 'name',
                             name: 'name',
-                            title: "Name",
+                            title: config.column_titles.name,
                             visible: true,
                             data: null,
                             render: function(data, type, row) {
@@ -147,7 +149,7 @@
                     {
                             className: 'user',
                             name: 'user',
-                            title: "User",
+                            title: config.column_titles.user,
                             visible: true,
                             data: null,
                             render: function(data, type, row) {
@@ -159,7 +161,7 @@
                     {
                             className: 'tid',
                             name: 'tid',
-                            title: "TID",
+                            title: config.column_titles.tid,
                             visible: true,
                             data: null,
                             render: 'tid',
@@ -168,7 +170,7 @@
                     {
                             className: 'cc',
                             name: 'cc',
-                            title: "CC",
+                            title: config.column_titles.cc,
                             visible: true,
                             data: null,
                             render: function(data, type, row) {
@@ -180,7 +182,7 @@
                     {
                             className: 'addr',
                             name: 'addr',
-                            title: "Address",
+                            title: config.column_titles.addr,
                             visible: true,
                             data: null,
                             render : function(data, type, row) {
