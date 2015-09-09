@@ -40,9 +40,15 @@ function initialize() {
 
 	// alert(JSON.stringify(location));
 
-	var dataURI = location.protocol + "//" + location.host + // ":" + location.port +
-		"/api/0/locations" + location.search;
-	console.log(dataURI);
+	var dataURI = location.protocol + "//" + location.host;
+
+	var parts = location.pathname.split('/');
+	for (var i = 1; i < parts.length - 2; i++) {
+		dataURI = dataURI + "/" + parts[i];
+	}
+	dataURI = dataURI + "/api/0/locations" + location.search;
+
+	console.log("dataURI = " + dataURI);
 	map.data.loadGeoJson(dataURI);
 
         // Set the stroke width, and fill color for each polygon
