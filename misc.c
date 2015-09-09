@@ -64,6 +64,32 @@ void monitorhook(struct udata *userdata, time_t now, char *topic)
 	utstring_renew(us);
 	utstring_printf(us, "%ld %s\n", now, topic);
 
-	sprintf(mpath, "%s/monitor", STORAGEDIR);
+	snprintf(mpath, sizeof(mpath), "%s/monitor", STORAGEDIR);
 	safewrite(mpath, utstring_body(us));
+}
+
+/*
+ * Return a pointer to a static area containing the last monitor entry or NULL.
+ */
+
+char *monitor_get()
+{
+	char mpath[BUFSIZ];
+	static char monitorline[BUFSIZ], *ret = NULL;
+	FILE *fp;
+
+	snprintf(mpath, sizeof(mpath), "%s/monitor", STORAGEDIR);
+
+	if ((fp = fopen(mpath, "r")) != NULL) {
+		if (fgets(monitorline, sizeof(monitorline), fp) != NULL) {
+			char *bp = strchr(monitorline, '\n');
+
+			if (bp)
+				*bp = 0;
+			ret = monitorline;
+		}
+		fclose(fp);
+	}
+
+	return (ret);
 }

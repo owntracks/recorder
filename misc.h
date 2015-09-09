@@ -13,8 +13,9 @@ extern char STORAGEDIR[];
 
 int mkpath(char *path);
 char *bindump(char *buf, long buflen);
-void monitorhook(struct udata *ud, time_t now, char *topic);
 
-void monitor_update(struct udata *ud, time_t now, char *topic);
+// void monitor_update(struct udata *ud, time_t now, char *topic);
+void monitorhook(struct udata *userdata, time_t now, char *topic);
+char *monitor_get();
 
 #endif

@@ -28,6 +28,7 @@
 #include "json.h"
 #include "config.h"
 #include "util.h"
+#include "misc.h"
 #include "storage.h"
 #include "udata.h"
 #ifdef HAVE_HTTP
@@ -166,6 +167,13 @@ static void send_last(struct mg_connection *conn)
 	}
 }
 
+static int monitor(struct mg_connection *conn)
+{
+	char *m = monitor_get();
+
+	mg_printf_data(conn, "%s\n", (m) ? m : "not available");
+	return (MG_TRUE);
+}
 
 static int json_response(struct mg_connection *conn, JsonNode *json)
 {
@@ -367,9 +375,14 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 			olog(LOG_DEBUG, "http: %s %s", conn->request_method, conn->uri);
 
+			if (strcmp(conn->uri, MONITOR_URI) == 0) {
+				return monitor(conn);
+			}
+
 			if (strncmp(conn->uri, API_PREFIX, strlen(API_PREFIX)) == 0) {
 				return dispatch(conn, conn->uri + strlen(API_PREFIX) - 1);
 			}
+
 
 			if (!strcmp(conn->request_method, "POST")) {
 
