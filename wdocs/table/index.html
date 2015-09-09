@@ -72,8 +72,18 @@
 
 
     function getuserlist() {
+        var dataURI = location.protocol + "//" + location.host;
+
+        var parts = location.pathname.split('/');
+        for (var i = 1; i < parts.length - 2; i++) {
+                dataURI = dataURI + "/" + parts[i];
+        }
+        dataURI = dataURI + "/api/0/last" + location.search;
+
+        console.log("dataURI = " + dataURI);
+
 	$.ajax({
-		url: "http://127.0.0.1:8084/api/0/last", // "getlast.php",
+		url: dataURI,
 		type: "GET",
 		dataType: 'json',
 		success: function(data) {
