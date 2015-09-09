@@ -72,6 +72,35 @@ static int send_reply(struct mg_connection *conn)
 }
 
 /*
+ * Return a copy of a GET/POST parameter or NULL. The parameter
+ * may be overriden by an HTTP header called X-Limit-<fieldname>.
+ * Caller must free if return is non-NULL.
+ */
+
+static char *field(struct mg_connection *conn, char *fieldname)
+{
+	char buf[BUFSIZ];
+	int ret, n;
+
+	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
+
+	for (n = 0; n < conn->num_headers; n++) {
+		struct mg_header *hh;
+
+		hh = &conn->http_headers[n];
+		// fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+		if (*hh->name == 'X' && strcasecmp(hh->name, buf) == 0) {
+			return (strdup(hh->value));
+		}
+	}
+
+	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
+		return (strdup(buf));
+	}
+	return (NULL);
+}
+
+/*
  * Push a list of LAST users down the Websocket. We send individual
  * JSON objects (not an array of them) because these are what the
  * WS client gets when we the recorder sees a publish.
@@ -81,9 +110,16 @@ static void send_last(struct mg_connection *conn)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
 	JsonNode *user_array, *o, *one;
+	char *u = NULL, *d = NULL;
 
-	if ((user_array = last_users()) != NULL) {
+	u	  = field(conn, "user");
+	d	  = field(conn, "device");
+
+	if ((user_array = last_users(u, d)) != NULL) {
 		char *js;
+
+		if (u) free(u);
+		if (d) free(d);
 
 		json_foreach(one, user_array) {
 			JsonNode *f;
@@ -131,34 +167,6 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 	return (MG_TRUE);
 }
 
-/*
- * Return a copy of a GET/POST parameter or NULL. The parameter
- * may be overriden by an HTTP header called X-Limit-<fieldname>.
- * Caller must free if return is non-NULL.
- */
-
-static char *field(struct mg_connection *conn, char *fieldname)
-{
-	char buf[BUFSIZ];
-	int ret, n;
-
-	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
-
-	for (n = 0; n < conn->num_headers; n++) {
-		struct mg_header *hh;
-
-		hh = &conn->http_headers[n];
-		// fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
-		if (*hh->name == 'X' && strcasecmp(hh->name, buf) == 0) {
-			return (strdup(hh->value));
-		}
-	}
-
-	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
-		return (strdup(buf));
-	}
-	return (NULL);
-}
 
 /*
  * We are being called with the portion behind /api/0/ as in
@@ -196,18 +204,19 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		fprintf(stderr, "%d = %s\n", ret, uparts[ret]);
 	}
 
-	if (nparts == 1 && !strcmp(uparts[0], "last")) {
-                JsonNode *user_array;
-
-                if ((user_array = last_users()) != NULL) {
-			return (json_response(conn, user_array));
-                }
-	}
-
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
 	time_from = field(conn, "from");
 	time_to	  = field(conn, "to");
+
+	if (nparts == 1 && !strcmp(uparts[0], "last")) {
+                JsonNode *user_array;
+
+                if ((user_array = last_users(u, d)) != NULL) {
+			CLEANUP;
+			return (json_response(conn, user_array));
+                }
+	}
 
 	if ((ret = mg_get_var(conn, "limit", buf, sizeof(buf))) > 0) {
 		limit = atoi(buf);
@@ -308,7 +317,12 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 		case MG_REQUEST:
 
-#if 0
+#if 1
+			fprintf(stderr, "------------------------------ %s (%ld) %.*s\n",
+					conn->uri,
+					conn->content_len,
+					(int)conn->content_len,
+					conn->content);
 			for (int n = 0; n < conn->num_headers; n++) {
 				struct mg_header *hh;
 
@@ -316,11 +330,6 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
 
 			}
-			fprintf(stderr, "%s (%ld) %.*s\n",
-					conn->uri,
-					conn->content_len,
-					(int)conn->content_len,
-					conn->content);
 #endif
 			/* Websockets URI ?*/
 			if (strcmp(conn->uri, "/ws/last") == 0) {

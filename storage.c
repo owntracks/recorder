@@ -146,16 +146,21 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 }
 
 /*
- * Return an array of users gleaned from LAST with merged details
+ * Return an array of users gleaned from LAST with merged details.
+ * If user and device are specified, limit to those; either may be
+ * NULL.
  */
 
-JsonNode *last_users()
+JsonNode *last_users(char *in_user, char *in_device)
 {
 	JsonNode *obj = json_mkobject();
 	JsonNode *un, *dn, *userlist = json_mkarray();
 	char path[BUFSIZ], user[BUFSIZ], device[BUFSIZ];
 
 	snprintf(path, BUFSIZ, "%s/last", STORAGEDIR);
+
+	fprintf(stderr, "last_users(%s, %s)\n", (in_user) ? in_user : "<nil>",
+		(in_device) ? in_device : "<nil>");
 
 	if (user_device_list(path, 0, obj) == 1)
 		return (obj);
@@ -171,7 +176,18 @@ JsonNode *last_users()
 			} else if (dn->tag == JSON_NUMBER) {	/* all digits? */
 				sprintf(device, "%.lf", dn->number_);
 			}
-			append_device_details(userlist, user, device);
+
+			if (!in_user && !in_device) {
+				append_device_details(userlist, user, device);
+			} else if (in_user && !in_device) {
+				if (strcmp(user, in_user) == 0) {
+					append_device_details(userlist, user, device);
+				}
+			} else if (in_user && in_device) {
+				if (strcmp(user, in_user) == 0 && strcmp(device, in_device) == 0) {
+					append_device_details(userlist, user, device);
+				}
+			}
 		}
 	}
 	json_delete(obj);
