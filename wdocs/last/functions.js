@@ -54,7 +54,7 @@ function map_marker(loc)
 		d = loc.topic + " " + loc.addr;
 		d = "<b>" + loc.topic.split('/')[2] + "</b><br />" + loc.addr;
 	} else {
-		d = 'unknown';
+		d = loc.lat + ", " + loc.lon;
 	}
 
 	loc.description = d;
