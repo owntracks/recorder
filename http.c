@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "json.h"
 #include "config.h"
 #include "util.h"
@@ -71,6 +72,16 @@ static int send_reply(struct mg_connection *conn)
 	}
 }
 
+static void lowercase(char *s)
+{
+	char *bp;
+
+	for (bp = s; bp && *bp; bp++) {
+		if (isupper(*bp))
+			*bp = tolower(*bp);
+	}
+}
+
 /*
  * Return a copy of a GET/POST parameter or NULL. The parameter
  * may be overriden by an HTTP header called X-Limit-<fieldname>.
@@ -79,7 +90,7 @@ static int send_reply(struct mg_connection *conn)
 
 static char *field(struct mg_connection *conn, char *fieldname)
 {
-	char buf[BUFSIZ];
+	char buf[BUFSIZ], *p;
 	int ret, n;
 
 	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
@@ -90,12 +101,16 @@ static char *field(struct mg_connection *conn, char *fieldname)
 		hh = &conn->http_headers[n];
 		// fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
 		if (*hh->name == 'X' && strcasecmp(hh->name, buf) == 0) {
-			return (strdup(hh->value));
+			p = strdup(hh->value);
+			lowercase(p);
+			return (p);
 		}
 	}
 
 	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
-		return (strdup(buf));
+		p = strdup(buf);
+		lowercase(p);
+		return (p);
 	}
 	return (NULL);
 }
