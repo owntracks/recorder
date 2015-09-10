@@ -35,7 +35,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 {
 	MDB_txn *txn = NULL;
 	int rc;
-	unsigned int flags = 0, dbiflags = 0, perms = 0644;
+	unsigned int flags = 0, dbiflags = 0, perms = 0664;
 	struct gcache *gc;
 
 	if (!is_directory(path)) {
