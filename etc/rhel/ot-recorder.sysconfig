@@ -6,3 +6,4 @@ export OTR_PORT="1883"
 # export OTR_PASS="password"
 # export OTR_CAFILE="/path/to/tls/CA.crt"
 export OTR_STORAGEDIR="/var/spool/owntracks/store"
+export OTR_TOPICS='owntracks/#'

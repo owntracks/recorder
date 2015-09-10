@@ -6,13 +6,14 @@
 # absolute path to executable binary
 exec='/usr/sbin/ot-recorder'
 
-# Source config
-if [ -f /etc/sysconfig/$exec ] ; then
-    . /etc/sysconfig/$exec
-fi
-
 # Program name
 prog=$(basename $exec)
+
+# Source config
+if [ -f /etc/default/$prog ] ; then
+    . /etc/default/$prog
+fi
+
 
 # PID file
 pidfile="/var/run/${prog}.pid"
@@ -32,26 +33,26 @@ eval_cmd() {
 
 start() {
   # see if running
-  local pids=$(pgrep $prog)
+  local pids=$(pgrep -f $exec)
 
   if [ -n "$pids" ]; then
     echo "$prog (pid $pids) is already running"
     return 0
   fi
   printf "%-50s%s" "Starting $prog: " ''
-  $exec $opts &
+  $exec $OTR_TOPICS &
 
   # save pid to file if you want
   echo $! > $pidfile
 
   # check again if running
-  pgrep $prog >/dev/null 2>&1
+  pgrep -f $exec >/dev/null 2>&1
   eval_cmd $?
 }
 
 stop() {
   # see if running
-  local pids=$(pgrep $prog)
+  local pids=$(pgrep -f $exec)
 
   if [ -z "$pids" ]; then
     echo "$prog not running"
@@ -65,7 +66,7 @@ stop() {
 
 status() {
   # see if running
-  local pids=$(pgrep $prog)
+  local pids=$(pgrep -f $exec)
 
   if [ -n "$pids" ]; then
     echo "$prog (pid $pids) is running"
