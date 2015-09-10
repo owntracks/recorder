@@ -40,6 +40,7 @@ start() {
     return 0
   fi
   printf "%-50s%s" "Starting $prog: " ''
+  umask 0002
   $exec $OTR_OPTS $OTR_TOPICS &
 
   # save pid to file if you want
