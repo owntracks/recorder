@@ -30,6 +30,7 @@
 #include "storage.h"
 #include "util.h"
 #include "misc.h"
+#include "version.h"
 
 /*
  * Print the value in a single JSON node. If string, easy. If number account for
@@ -143,6 +144,7 @@ void usage(char *prog)
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GEOHASH_PREC);
+	printf("  --version			print version information\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -151,6 +153,24 @@ void usage(char *prog)
 	printf("   $OCAT_STORAGEDIR\n");
 
 	exit(1);
+}
+
+void print_versioninfo()
+{
+	printf("This is OwnTracks Recorder, version %s\n", VERSION);
+	printf("built with:\n");
+#ifdef HAVE_LMDB
+	printf("\tHAVE_LMDB = yes\n");
+#endif
+#ifdef HAVE_HTTP
+	printf("\tHAVE_HTTP = yes\n");
+#endif
+	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
+	printf("\tGEOHASH_PREC = %d\n", GEOHASH_PREC);
+	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
+	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
+
+	exit(0);
 }
 
 int main(int argc, char **argv)
@@ -192,6 +212,7 @@ int main(int argc, char **argv)
 	while (1) {
 		static struct option long_options[] = {
 			{ "help",	no_argument,	0, 	'h'},
+			{ "version",	no_argument,	0, 	3},
 			{ "list",	no_argument,	0, 	'l'},
 			{ "user",	required_argument, 0, 	'u'},
 			{ "device",	required_argument, 0, 	'd'},
@@ -220,6 +241,9 @@ int main(int argc, char **argv)
 				break;
 			case 2:
 				geohash_setprec(atoi(optarg));
+				break;
+			case 3:
+				print_versioninfo();
 				break;
 			case 'l':
 				list = 1;
