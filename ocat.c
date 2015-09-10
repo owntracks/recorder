@@ -140,7 +140,7 @@ void usage(char *prog)
 	printf("  --fields tst,lat,lon,...     	Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     	JSON object with last users\n");
 	printf("  --killdata                   	requires -u and -d\n");
-	printf("  --storage		-S     	storage dir (./store)\n");
+	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GEOHASH_PREC);
 	printf("\n");

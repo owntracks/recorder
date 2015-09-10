@@ -27,6 +27,9 @@ ifeq ($(HAVE_HTTP),yes)
 	LIBS += -lssl
 endif
 
+CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\"
+
+
 
 TARGETS += ot-recorder ocat ghashfind
 
@@ -59,7 +62,7 @@ http.o: http.c mongoose.h util.h http.h storage.h
 util.o: util.c util.h Makefile config.mk
 ghashfind.o: ghashfind.c util.h
 mongoose.o: mongoose.c mongoose.h
-ocat.o: ocat.c storage.h util.h
+ocat.o: ocat.c storage.h util.h config.mk
 storage.o: storage.c storage.h config.h util.h gcache.h
 ghash2lmdb.o: ghash2lmdb.c gcache.h
 

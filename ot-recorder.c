@@ -685,7 +685,7 @@ void usage(char *prog)
 {
 	printf("Usage: %s [options..] topic [topic ...]\n", prog);
 	printf("  --help		-h	this message\n");
-	printf("  --storage		-S     storage dir (./store)\n");
+	printf("  --storage		-S     storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G     disable ghash to reverge-geo lookups\n");
 	printf("  --skipdemo 		-D     do not handle objects with _demo\n");
 	printf("  --useretained		-R     process retained messages (default: no)\n");

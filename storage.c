@@ -38,7 +38,7 @@
 #include "util.h"
 #include "udata.h"
 
-char STORAGEDIR[BUFSIZ] = "./store";
+char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
 #define LINESIZE	8192
 
