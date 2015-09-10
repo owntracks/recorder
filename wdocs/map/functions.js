@@ -1,7 +1,5 @@
-
 // __author__    = 'Jan-Piet Mens <jpmens()gmail.com>'
 // __copyright__ = 'Copyright 2015 Jan-Piet Mens'
-// __license__   = """Eclipse Public License - v 1.0 (http://www.eclipse.org/legal/epl-v10.html)"""
 
 // https://developers.google.com/maps/documentation/javascript/datalayer
 
@@ -38,28 +36,23 @@ function initialize() {
 
 	map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 
-	// alert(JSON.stringify(location));
-
-	var dataURI = location.protocol + "//" + location.host;
+	var dataURL = location.protocol + "//" + location.host;
 
 	var parts = location.pathname.split('/');
 	for (var i = 1; i < parts.length - 2; i++) {
-		dataURI = dataURI + "/" + parts[i];
+		dataURL = dataURL + "/" + parts[i];
 	}
-	dataURI = dataURI + "/api/0/locations" + location.search;
+	dataURL = dataURL + "/api/0/locations" + location.search;
 
-	console.log("dataURI = " + dataURI);
-	map.data.loadGeoJson(dataURI);
+	console.log("dataURL = " + dataURL);
 
-        // Set the stroke width, and fill color for each polygon
+	map.data.loadGeoJson(dataURL);
+
         var featureStyle = {
-                fillColor: 'green',
                 strokeColor: 'red',
-                strokeWeight: 4,
-                title: "OwnTracks",
+                strokeWeight: 4
         };
         map.data.setStyle(featureStyle);
-
 
 	// Zoom to show all the features
 	var bounds = new google.maps.LatLngBounds();
@@ -67,47 +60,6 @@ function initialize() {
 		processPoints(e.feature.getGeometry(), bounds.extend, bounds);
 		map.fitBounds(bounds);
 	});
-
-   /*
-	// Zoom to the clicked feature
-	map.data.addListener('click', function (e) {
-		var bounds = new google.maps.LatLngBounds();
-	        processPoints(e.feature.getGeometry(), bounds.extend, bounds);
-		map.fitBounds(bounds);
-	});
-    */
-
-	google.maps.event.addListener(map, 'click', function() {
-		infowindow.close();
-	});
-	map.data.addListener('click', function(e) {
-		var content = "<h1>" + e.feature.getProperty('name') + "</h1>" + e.feature.getProperty('address');
-
-		infowindow.setContent(content);
-		infowindow.setPosition(e.latLng);
-		infowindow.setOptions({
-			pixelOffset: new google.maps.Size(0, -34),
-			});
-		infowindow.open(map);
-	});
-
-	
-	map.data.setStyle(function(feature) {
-		var circle ={
-			path: google.maps.SymbolPath.CIRCLE,
-			fillColor: '#ff0000',
-			fillOpacity: .9,
-			scale: 5.5,
-			strokeColor: 'white',
-			strokeWeight: 2
-		};
-
-		return ({
-			icon: circle
-			});
-	});
-
 }
-
 
 google.maps.event.addDomListener(window, 'load', initialize);
