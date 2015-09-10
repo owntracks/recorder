@@ -555,7 +555,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		 */
 
 		JsonNode *geo, *wso = json_mkobject();
-		char *js;
 
 		json_copy_to_object(wso, json, TRUE);
 
@@ -571,10 +570,16 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 		json_append_member(wso, "topic", json_mkstring(m->topic));
 
-		if ((js = json_stringify(wso, NULL)) != NULL) {
-			http_ws_push(ud->mgserver, js);
-			free(js);
-		}
+		/*
+		 * We have to know which user/device this is for in order to
+		 * determine whether a connected Websocket client is authorized
+		 * to see this. Add user/device
+		 */
+
+		json_append_member(wso, "user", json_mkstring(utstring_body(username)));
+		json_append_member(wso, "device", json_mkstring(utstring_body(device)));
+
+		http_ws_push_json(ud->mgserver, wso);
 		json_delete(wso);
 	}
 #endif

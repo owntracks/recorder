@@ -37,15 +37,60 @@
 
 #ifdef HAVE_HTTP
 
+static void lowercase(char *s)
+{
+	char *bp;
+
+	for (bp = s; bp && *bp; bp++) {
+		if (isupper(*bp))
+			*bp = tolower(*bp);
+	}
+}
+
 /*
- * Send a message into the HTTP server; this will be dispatched
- * to listening WS clients.
+ * Return a lowercased copy of a GET/POST parameter or NULL. The parameter
+ * may be overriden by an HTTP header called X-Limit-<fieldname>.
+ * Caller must free if return is non-NULL.
  */
 
-void http_ws_push(struct mg_server *server, char *text)
+static char *field(struct mg_connection *conn, char *fieldname)
+{
+	char buf[BUFSIZ], *p, *h;
+	int ret;
+
+	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
+
+	if ((h = (char *)mg_get_header(conn, buf)) != NULL) {
+		p = strdup(h);
+		lowercase(p);
+		return (p);
+	}
+
+	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
+		p = strdup(buf);
+		lowercase(p);
+		return (p);
+	}
+	return (NULL);
+}
+
+/*
+ * Send a message into the HTTP server; this will be dispatched
+ * to listening WS clients. Check whether the JSON obj contains
+ * a user/device pair which match the X-Limit headers we've been
+ * given. If so push it, otherwise discard because it's not
+ * meant to be seen by a particular connection.
+ */
+
+void http_ws_push_json(struct mg_server *server, JsonNode *obj)
 {
 	struct mg_connection *c;
-	int len = strlen(text);
+	JsonNode *j;
+	int len;
+	char *js, *u = NULL, *d = NULL;
+
+	if (!obj || obj->tag != JSON_OBJECT)
+		return;
 
 	/*
 	 * Iterate over connections and push message to the WS connections.
@@ -53,7 +98,54 @@ void http_ws_push(struct mg_server *server, char *text)
 
 	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
 		if (c->is_websocket) {
-			mg_websocket_write(c, 1, text, len);
+#if 0
+			{
+				int n;
+				for (n = 0; n < c->num_headers; n++) {
+					struct mg_header *hh;
+
+					hh = &c->http_headers[n];
+					if (*hh->name == 'X') {
+						fprintf(stderr, "WEBSOCKET-HEADER: %s=%s\n", hh->name, hh->value);
+					}
+				}
+			}
+			puts(json_stringify(obj, NULL));
+#endif
+
+			u = field(c, "user");
+			d = field(c, "device");
+
+			if (u) {
+				if ((j = json_find_member(obj, "user")) != NULL) {
+					if (strcasecmp(u, j->string_) != 0) {
+						fprintf(stderr, "not for %s; skip\n", u);
+						free(u);
+						continue;
+					}
+				}
+
+				if (d) {
+					if ((j = json_find_member(obj, "device")) != NULL) {
+						if (strcasecmp(d, j->string_) != 0) {
+							fprintf(stderr, "not for %s/%s; skip\n", u, d);
+							free(u);
+							free(d);
+							continue;
+						}
+					}
+				}
+
+				free(u);
+				if (d) free(d);
+			}
+
+
+			if ((js = json_stringify(obj, NULL)) != NULL) {
+				len = strlen(js);
+				mg_websocket_write(c, 1, js, len);
+				free(js);
+			}
 		}
 	}
 }
@@ -73,49 +165,6 @@ static int send_reply(struct mg_connection *conn)
 	}
 }
 
-static void lowercase(char *s)
-{
-	char *bp;
-
-	for (bp = s; bp && *bp; bp++) {
-		if (isupper(*bp))
-			*bp = tolower(*bp);
-	}
-}
-
-/*
- * Return a copy of a GET/POST parameter or NULL. The parameter
- * may be overriden by an HTTP header called X-Limit-<fieldname>.
- * Caller must free if return is non-NULL.
- */
-
-static char *field(struct mg_connection *conn, char *fieldname)
-{
-	char buf[BUFSIZ], *p;
-	int ret, n;
-
-	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
-
-	for (n = 0; n < conn->num_headers; n++) {
-		struct mg_header *hh;
-
-		hh = &conn->http_headers[n];
-		// fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
-		if (*hh->name == 'X' && strcasecmp(hh->name, buf) == 0) {
-			p = strdup(hh->value);
-			lowercase(p);
-			return (p);
-		}
-	}
-
-	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
-		p = strdup(buf);
-		lowercase(p);
-		return (p);
-	}
-	return (NULL);
-}
-
 /*
  * Push a list of LAST users down the Websocket. We send individual
  * JSON objects (not an array of them) because these are what the
@@ -132,7 +181,6 @@ static void send_last(struct mg_connection *conn)
 	d	  = field(conn, "device");
 
 	if ((user_array = last_users(u, d)) != NULL) {
-		char *js;
 
 		if (u) free(u);
 		if (d) free(d);
@@ -157,10 +205,7 @@ static void send_last(struct mg_connection *conn)
 			if ((f = json_find_member(one, "topic")) != NULL)
 				json_copy_element_to_object(o, "topic", f);
 
-			if ((js = json_stringify(o, NULL)) != NULL) {
-				http_ws_push(ud->mgserver, js);
-				free(js);
-			}
+			http_ws_push_json(ud->mgserver, o);
 			json_delete(o);
 		}
 		json_delete(user_array);
@@ -340,7 +385,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 		case MG_REQUEST:
 
-#if 1
+#if 0
 			{ int n;
 			fprintf(stderr, "------------------------------ %s (%ld) %.*s\n",
 					conn->uri,
