@@ -35,7 +35,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 {
 	MDB_txn *txn = NULL;
 	int rc;
-	unsigned int flags = 0, dbiflags = 0;
+	unsigned int flags = 0, dbiflags = 0, perms = 0644;
 	struct gcache *gc;
 
 	if (!is_directory(path)) {
@@ -50,6 +50,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	if (rdonly) {
 		flags |= MDB_RDONLY;
+		perms = 0444;
 	} else {
 		dbiflags = MDB_CREATE;
 	}
@@ -70,7 +71,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 		return (NULL);
 	}
 
-	rc = mdb_env_open(gc->env, path, flags, 0664);
+	rc = mdb_env_open(gc->env, path, flags, perms);
 	if (rc != 0) {
 		fprintf(stderr, "mdb_env_open: %s\n", mdb_strerror(rc));
 		free(gc);
