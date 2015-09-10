@@ -371,6 +371,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	static UT_string *reltopic = NULL;
 	char *jsonstring;
 	time_t now;
+	int pingping = FALSE;
 
 	/*
 	 * mosquitto_message->
@@ -410,6 +411,12 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	utstring_printf(basetopic, "%s/%s/%s", topics[0], topics[1], topics[2]);
 	utstring_printf(username, "%s", topics[1]);
 	utstring_printf(device, "%s", topics[2]);
+
+#ifdef HAVE_PING
+	if (!strcmp(utstring_body(username), "ping") && !strcmp(utstring_body(device), "ping")) {
+		pingping = TRUE;
+	}
+#endif
 
 	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], TOPIC_SUFFIX) == 0)) {
 		if (do_info(ud, username, device, m->payload) == TRUE) {  /* this was a card */
@@ -546,7 +553,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 */
 
 #ifdef HAVE_HTTP
-	if (ud->mgserver) {
+	if (ud->mgserver && !pingping) {
 
 		/*
 		 * Create a new location object containing all the bits and
@@ -595,12 +602,12 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 #endif
 
-		if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
-
-			fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
-			fclose(fp);
+		if (!pingping) {
+			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
+				fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
+				fclose(fp);
+			}
 		}
-
 
 		/* Keep track of original username & device name in LAST. */
 		json_append_member(json, "username",    json_mkstring(utstring_body(username)));
@@ -740,7 +747,7 @@ int main(int argc, char **argv)
 	udata.gc		= NULL;
 #endif
 #ifdef HAVE_HTTP
-	udata.mgserver = NULL;
+	udata.mgserver		= NULL;
 #endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {

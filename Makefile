@@ -14,6 +14,10 @@ OTR_OBJS = json.o \
 	   util.o \
 	   storage.o
 
+ifeq ($(HAVE_PING),yes)
+	CFLAGS += -DHAVE_PING=1
+endif
+
 ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o

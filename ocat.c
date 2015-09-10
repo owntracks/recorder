@@ -165,6 +165,9 @@ void print_versioninfo()
 #ifdef HAVE_HTTP
 	printf("\tHAVE_HTTP = yes\n");
 #endif
+#ifdef HAVE_PING
+	printf("\tHAVE_PING = yes\n");
+#endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
 	printf("\tGEOHASH_PREC = %d\n", GEOHASH_PREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);

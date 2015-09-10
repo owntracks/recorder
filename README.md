@@ -84,6 +84,11 @@ The `monitor` file is located relative to STORE and contains a single line, the 
 1439738692 owntracks/jjolie/ipad
 ```
 
+
+If _recorder_ is built with `HAVE_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be  used to round-trip-test the recorder. For this particular username/device combination, _recorder_ will store LAST position, but it will not keep a .REC file for it. This can be used to verify, say, via your favorite monitoring system, that the _recorder_ is still operational.
+
+After sending a _pingping_, query the REST interface and deterrmine the difference in time.
+
 ## `ocat`
 
 _ocat_ is a CLI driver for _recorder_: it prints data stored by the _recorder_ in a variety of output formats.

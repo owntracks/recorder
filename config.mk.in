@@ -1,6 +1,7 @@
 # Select features
 HAVE_HTTP ?= yes
 HAVE_LMDB ?= yes
+HAVE_PING ?= yes
 
 STORAGEDEFAULT = "./store"
 
