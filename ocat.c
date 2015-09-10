@@ -339,8 +339,7 @@ int main(int argc, char **argv)
 	if (last) {
 		JsonNode *user_array;
 
-		// FIXME: allow last_users with username, device
-		if ((user_array = last_users(NULL, NULL)) != NULL) {
+		if ((user_array = last_users(username, device)) != NULL) {
 			char *js;
 
 			if ((js = json_stringify(user_array, JSON_INDENT)) != NULL) {
