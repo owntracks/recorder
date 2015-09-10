@@ -1,0 +1,7 @@
+# Select features
+HAVE_HTTP ?= yes
+HAVE_LMDB ?= yes
+
+# Optionally specify the path to the Mosquitto libs, include here
+MOSQUITTO_INC = -I/usr/include
+MOSQUITTO_LIB = -L/usr/lib

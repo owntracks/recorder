@@ -1,8 +1,8 @@
 include config.mk
 
-LIBS = -L/Users/jpm/Auto/pubgit/MQTT/mosquitto/org.eclipse.mosquitto.git/lib
-LIBS += -lcurl -lmosquitto
-CFLAGS=-Wall -Werror
+CFLAGS	=-Wall -Werror $(MOSQUITTO_INC)
+LIBS	= $(MOSQUITTO_LIB) -lmosquitto
+LIBS 	+= -lcurl
 
 TARGETS=
 OTR_OBJS = json.o \
