@@ -4,7 +4,7 @@
 # chkconfig: 345 95 05
 
 # absolute path to executable binary
-exec='/usr/bin/ot-recorder'
+exec='/usr/sbin/ot-recorder'
 
 # Source config
 if [ -f /etc/sysconfig/$exec ] ; then
