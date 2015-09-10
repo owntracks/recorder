@@ -7,3 +7,5 @@ export OTR_PORT="1883"
 # export OTR_CAFILE="/path/to/tls/CA.crt"
 export OTR_STORAGEDIR="/var/spool/owntracks/store"
 export OTR_TOPICS='owntracks/#'
+
+export OTR_OPTS="--http-host 127.0.0.1 --http-port 8083 --doc-root /var/spool/owntracks/docroot"

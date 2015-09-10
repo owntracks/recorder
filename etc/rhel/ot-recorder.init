@@ -40,7 +40,7 @@ start() {
     return 0
   fi
   printf "%-50s%s" "Starting $prog: " ''
-  $exec $OTR_TOPICS &
+  $exec $OTR_OPTS $OTR_TOPICS &
 
   # save pid to file if you want
   echo $! > $pidfile
