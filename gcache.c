@@ -56,7 +56,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_env_create(&gc->env);
 	if (rc != 0) {
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
+		fprintf(stderr, "mdb_env_create: %s\n", mdb_strerror(rc));
 		free(gc);
 		return (NULL);
 	}
@@ -72,7 +72,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_env_open(gc->env, path, flags, 0664);
 	if (rc != 0) {
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
+		fprintf(stderr, "mdb_env_open: %s\n", mdb_strerror(rc));
 		free(gc);
 		return (NULL);
 	}
@@ -81,7 +81,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	mdb_txn_begin(gc->env, NULL, flags, &txn);
 	if (rc != 0) {
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
+		fprintf(stderr, "mdb_txn_begin: %s\n", mdb_strerror(rc));
 		mdb_env_close(gc->env);
 		free(gc);
 		return (NULL);
