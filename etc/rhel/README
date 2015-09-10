@@ -1,0 +1,6 @@
+$ cat ~/.rpmmacros
+%_topdir %(echo $HOME)/rpmbuild
+
+$ mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+
+$ rpmbuild -bb ot-recorder.spec
