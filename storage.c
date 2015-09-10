@@ -159,8 +159,8 @@ JsonNode *last_users(char *in_user, char *in_device)
 
 	snprintf(path, BUFSIZ, "%s/last", STORAGEDIR);
 
-	fprintf(stderr, "last_users(%s, %s)\n", (in_user) ? in_user : "<nil>",
-		(in_device) ? in_device : "<nil>");
+	// fprintf(stderr, "last_users(%s, %s)\n", (in_user) ? in_user : "<nil>",
+	// 	(in_device) ? in_device : "<nil>");
 
 	if (user_device_list(path, 0, obj) == 1)
 		return (obj);
