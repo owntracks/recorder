@@ -39,7 +39,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 	struct gcache *gc;
 
 	if (!is_directory(path)) {
-		fprintf(stderr, "gcache_open: %s is not a directory\n", path);
+		olog(LOG_ERR, "gcache_open: %s is not a directory", path);
 		return (NULL);
 	}
 
@@ -57,7 +57,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_env_create(&gc->env);
 	if (rc != 0) {
-		fprintf(stderr, "mdb_env_create: %s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_env_create: %s", mdb_strerror(rc));
 		free(gc);
 		return (NULL);
 	}
@@ -66,14 +66,14 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_env_set_maxdbs(gc->env, 10);
 	if (rc != 0) {
-		fprintf(stderr, "mdb_env_set_maxdbs%s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_env_set_maxdbs%s", mdb_strerror(rc));
 		free(gc);
 		return (NULL);
 	}
 
 	rc = mdb_env_open(gc->env, path, flags, perms);
 	if (rc != 0) {
-		fprintf(stderr, "mdb_env_open: %s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_env_open: %s", mdb_strerror(rc));
 		free(gc);
 		return (NULL);
 	}
@@ -82,7 +82,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	mdb_txn_begin(gc->env, NULL, flags, &txn);
 	if (rc != 0) {
-		fprintf(stderr, "mdb_txn_begin: %s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_txn_begin: %s", mdb_strerror(rc));
 		mdb_env_close(gc->env);
 		free(gc);
 		return (NULL);
@@ -90,7 +90,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_dbi_open(txn, dbname, dbiflags, &gc->dbi);
 	if (rc != 0) {
-		fprintf(stderr, "mdb_dbi_open: %s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_dbi_open: %s", mdb_strerror(rc));
 		mdb_txn_abort(txn);
 		mdb_env_close(gc->env);
 		free(gc);
@@ -99,7 +99,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_txn_commit(txn);
 	if (rc != 0) {
-		fprintf(stderr, "commit after open %s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "cogcache_open: mmit after open %s", mdb_strerror(rc));
 		mdb_env_close(gc->env);
 		free(gc);
 		return (NULL);
@@ -128,7 +128,7 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0)
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_put: mdb_txn_begin: %s", mdb_strerror(rc));
 
 	key.mv_data	= ghash;
 	key.mv_size	= strlen(ghash);
@@ -139,11 +139,11 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 
 	rc = mdb_put(txn, gc->dbi, &key, &data, 0);
 	if (rc != 0)
-		fprintf(stderr, "%s\n", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_put: mdb_put: %s", mdb_strerror(rc));
 
 	rc = mdb_txn_commit(txn);
 	if (rc) {
-		fprintf(stderr, "mdb_txn_commit: (%d) %s\n", rc, mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_put: mdb_txn_commit: (%d) %s", rc, mdb_strerror(rc));
 		mdb_txn_abort(txn);
 	}
 	return (rc);
@@ -158,7 +158,7 @@ int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 		return (1);
 
 	if ((js = json_stringify(geo, NULL)) == NULL) {
-		fprintf(stderr, "%s\n", "CAN'T stringify JSON during gache_json_put()");
+		olog(LOG_ERR, "gcache_json_put: CAN'T stringify JSON");
 		return (1);
 	}
 
@@ -179,7 +179,7 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
-		fprintf(stderr, "gcache_get: cannot txn_begin: (%d) %s\n", rc, mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_get: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
 		return (-1);
 	}
 
@@ -220,7 +220,7 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
-		fprintf(stderr, "gcache_get: cannot txn_begin: (%d) %s\n", rc, mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_json_get: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
 		return (NULL);
 	}
 
@@ -230,7 +230,7 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 	rc = mdb_get(txn, gc->dbi, &key, &data);
 	if (rc != 0) {
 		if (rc != MDB_NOTFOUND) {
-			fprintf(stderr, "gcache_json_get(%s): %s\n", k, mdb_strerror(rc));
+			olog(LOG_ERR, "gcache_json_get(%s): %s", k, mdb_strerror(rc));
 		} else {
 			// printf(" [%s] not found\n", k);
 			geo = NULL;
@@ -238,7 +238,7 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 	} else {
 		// printf("%s\n", (char *)data.mv_data);
 		if ((geo = json_decode((char *)data.mv_data)) == NULL) {
-			fprintf(stderr, "Cannot decode JSON from lmdb\n");
+			olog(LOG_ERR, "gcache_json_get: Cannot decode JSON from lmdb");
 		}
 	}
 
