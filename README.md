@@ -87,7 +87,11 @@ The `monitor` file is located relative to STORE and contains a single line, the 
 
 If _recorder_ is built with `HAVE_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be  used to round-trip-test the recorder. For this particular username/device combination, _recorder_ will store LAST position, but it will not keep a .REC file for it. This can be used to verify, say, via your favorite monitoring system, that the _recorder_ is still operational.
 
-After sending a _pingping_, query the REST interface and deterrmine the difference in time.
+After sending a _pingping_, query the REST interface to deterrmine the difference in time. The `contrib/` directory has an example which can be adapted for use by Icinga or Nagios.
+
+```
+OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
+```
 
 ## `ocat`
 
