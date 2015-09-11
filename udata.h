@@ -1,7 +1,6 @@
 #ifndef UDATA_H_INCLUDED
 # define UDATA_H_INCLUDED
 
-#include "config.h"
 #include "utarray.h"
 
 #ifdef HAVE_HTTP

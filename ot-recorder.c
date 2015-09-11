@@ -35,7 +35,6 @@
 #include "utstring.h"
 #include "utarray.h"
 #include "geo.h"
-#include "config.h"
 #include "geohash.h"
 #include "base64.h"
 #include "misc.h"

@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
-#include "config.h"
 #include "util.h"
 #include "misc.h"
 #include <sys/types.h>

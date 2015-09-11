@@ -1,16 +1,20 @@
-# Select features
+# Select features you want. Default is fine for most installations
+
+# Do you want recorder's built-in HTTP REST API?
 HAVE_HTTP ?= yes
+
+# Do you want to use reverse-geo caching? (Highly recommended)
 HAVE_LMDB ?= yes
+
+# Do you want support for the `pingping' monitoring feature?
 HAVE_PING ?= yes
 
-STORAGEDEFAULT = "./store"
-
-# Optionally specify the path to the Mosquitto libs, include here
-MOSQUITTO_INC = -I/usr/include
-MOSQUITTO_LIB = -L/usr/lib
+# Where should the recorder store its data? This directory must
+# exist and be writeable by recorder (and readable by ocat)
+STORAGEDEFAULT = "/var/spool/owntracks/recorder/store"
 
 # Define the precision for reverse-geo lookups. The higher
-# the number, the more granular reverse-geo will be.
+# the number, the more granular reverse-geo will be:
 #
 # 1	=> 5,009.4km x 4,992.6km
 # 2	=> 1,252.3km x 624.1km
@@ -27,4 +31,15 @@ GHASHPREC = 7
 
 # Should the JSON emitted by recorder be indented? (i.e. beautified)
 # yes or no
-JSON_INDENT ?= yes
+JSON_INDENT ?= no
+
+# If you do more than 2500 (currently) reverse-geo requests per day,
+# you'll need an API key for Google's geocoding service. Specify
+# that here
+#   APIKEY ?= YYYYYYYYYY
+APIKEY ?=
+
+# Optionally specify the path to the Mosquitto libs, include here
+MOSQUITTO_INC = -I/usr/include
+MOSQUITTO_LIB = -L/usr/lib
+

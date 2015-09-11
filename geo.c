@@ -25,9 +25,10 @@
 #include <time.h>
 #include <curl/curl.h>
 #include "utstring.h"
-#include "config.h"
 #include "geo.h"
 #include "json.h"
+
+#define GURL "%s://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN"
 
 static CURL *curl;
 
@@ -144,7 +145,12 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	
 	utstring_renew(url);
 	utstring_renew(cbuf);
-	utstring_printf(url, GURL, lat, lon);
+#ifdef APIKEY
+	utstring_printf(url, GURL, "https", lat, lon);
+	utstring_printf(url, "&key=%s", APIKEY);
+#else
+	utstring_printf(url, GURL, "http", lat, lon);
+#endif
 
 	curl_easy_setopt(curl, CURLOPT_URL, utstring_body(url));
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "ot-recorder-agent/1.0");

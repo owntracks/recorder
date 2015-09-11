@@ -26,7 +26,6 @@
 #include <string.h>
 #include <ctype.h>
 #include "json.h"
-#include "config.h"
 #include "util.h"
 #include "misc.h"
 #include "storage.h"

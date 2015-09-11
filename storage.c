@@ -32,7 +32,6 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include "utstring.h"
-#include "config.h"
 #include "storage.h"
 #include "geohash.h"
 #include "util.h"

@@ -7,7 +7,6 @@
 #endif
 
 #include <time.h>
-#include "config.h"
 #include <syslog.h>
 #include "json.h"
 #include "utstring.h"

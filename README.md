@@ -57,7 +57,6 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 ## Installation
 
 1. Copy `config.mk.in` to `config.mk` and select the features you want (defaults should be ok).
-2. Copy `config.h.example` to `config.h` and edit.
 3. Type `make`
 
 ## Reverse Geo

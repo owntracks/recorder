@@ -39,6 +39,10 @@ else
 	CFLAGS += -DJSON_INDENT=NULL
 endif
 
+ifneq ($(APIKEY),)
+	CFLAGS += -DAPIKEY="\"$(APIKEY)\""
+endif
+
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\"
 
 
@@ -63,20 +67,19 @@ ghash2lmdb: ghash2lmdb.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.o $(OTR_OBJS) $(LIBS)
 
 
-ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h config.h json.h http.h gcache.h
-geo.o: geo.h geo.c udata.h Makefile config.mk config.h
+ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk
+geo.o: geo.h geo.c udata.h Makefile config.mk
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
 base64.o: base64.h base64.c
-gcache.o: gcache.c gcache.h json.h
-jget.o: jget.c jget.h json.h Makefile config.mk
+gcache.o: gcache.c gcache.h json.h config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
-http.o: http.c mongoose.h util.h http.h storage.h
+http.o: http.c mongoose.h util.h http.h storage.h config.mk
 util.o: util.c util.h Makefile config.mk
-ghashfind.o: ghashfind.c util.h
+ghashfind.o: ghashfind.c util.h config.mk
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h config.mk version.h
-storage.o: storage.c storage.h config.h util.h gcache.h
-ghash2lmdb.o: ghash2lmdb.c gcache.h
+storage.o: storage.c storage.h util.h gcache.h config.mk
+ghash2lmdb.o: ghash2lmdb.c gcache.h config.mk
 
 
 clean:
