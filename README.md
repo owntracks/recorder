@@ -1,10 +1,88 @@
 # OwnTracks Recorder
 
+The _OwnTracks Recorder_ is a lightweight "recorder" for storing and accessing location data published via MQTT by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily installed and operated even on low-end hardware, and it doesn't require external an external database.
+
+There are two main components: the _recorder_ obtains, stores, and serves data, and the _ocat_ command-line utility to read stored data in a variety of formats.
+
 ## `recorder`
+
+The _recorder_ serves two purposes:
+
+1. It subscribes to an MQTT broker and awaits messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of files on the file system.
+2. It provides an HTTP interface (REST API) from which you can obtain this data in different formats.
+
+Some examples of what the _recorder_'s built-in HTTP server is capable of:
+
+#### Last position of a particular user
+
+Retrieve the last position of a particular user. Note that we get the same data as reported by _ocat_.
+
+```
+$ curl http://127.0.0.2:8083/api/0/last -d user=demo -d device=iphone
+[
+ {
+  "tst": 1440405601,
+  "acc": 10,
+  "_type": "location",
+  "alt": 262,
+  "lon": 13.60279820860699,
+  "vac": 6,
+  "vel": 18,
+  "lat": 51.06263391678321,
+  "cog": 82,
+  "tid": "NE",
+  "batt": 99,
+  "username": "demo",
+  "device": "iphone",
+  "topic": "owntracks/demo/iphone",
+  "ghash": "u31dmx9",
+  "cc": "DE",
+  "addr": "E40, 01156 Dresden, Germany"
+ }
+]
+```
+
+#### Display map with points starting at a particular date
+
+By specifying a `format` we can produce GeoJSON, say. Normally, the API retrieves the last 6 hours of data but we can extend or limit this with the `from` and `to` parameters.
+
+```
+http://127.0.0.2:8083/map/index.html?user=demo&device=iphone&format=geojson&from=2014-01-01
+```
+
+In a suitable Web browser, the result is
+
+![GeoJSON points](assets/demo-geojson-points.png)
+
+#### Display a track (a.k.a linestring)
+
+If we change the `format` parameter of the previous URL to `linestring`, the result is
+
+![GeoJSON linestring](assets/demo-geojson-linestring.png)
+
+#### Tabular display
+
+The _recorder_'s Web server also provides a tabular display which shows the last position of devices, their address, country, etc. Some of the columns are sortable, you can search for users/devices and click on the address to have a map opened at the device's last location.
+
+![Table](assets/demo-table.png)
+
+#### Live map
+
+The _recorder_'s built-in Websocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
+
+![Live map](assets/demo-live-map.png)
+
 
 ## `ocat`
 
-The _ocat_ utility prints data from the _storage_ which is updated by the _recorder_, accessing it directly via the file system (not via the _recorder_'s REST API). _ocat_ has a daunting number of options, some combinations of which make no sense at all.
+_ocat_ is a CLI query program for data stored by _recorder_: it prints data from storage in a variety of output formats:
+
+* JSON
+* GeoJSON (points)
+* GeoJSON (line string)
+* CSV
+
+The _ocat_ utility accesses _storage_ directly — it doesn’t use the _recorder_’s REST interface. _ocat_ has a daunting number of options, some combinations of which make no sense at all.
 
 Some example uses we consider useful:
 
@@ -14,6 +92,8 @@ Some example uses we consider useful:
    show devices for the specified user
 * `ocat --user jjolie --device ipad`
    print JSON data for the user's device produced during the last 6 hours.
+* `ocat --last`
+    print the LAST position of all users, devices. Can be combined with `--user` and `--device`.
 * `ocat ... --format csv`
    produces CSV. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
 * `ocat ... --limit 10`
@@ -21,13 +101,115 @@ Some example uses we consider useful:
 
 Specifying `--fields lat,tid,lon` will request just those JSON elements from _storage_. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat	 is missing in the list of fields.)
 
+## `ocat` examples
+
+The _recorder_ has been running for a while, and the OwnTracks apps have published data. Let us have a look at some of this data.
+
+#### List users and devices
+
+We obtain a list of users from the _store_:
+
+```
+$ ocat --list
+{
+ "results": [
+  "demo"
+ ]
+}
+```
+
+From which devices has user _demo_ published data?
+
+```
+$ ocat --list --user demo
+{
+ "results": [
+  "iphone"
+ ]
+}
+```
+
+#### Show the last position reported by a user
+
+Where was _demo_'s _iphone_ last seen?
+
+```
+$ ocat --last --user demo --device iphone
+[
+ {
+  "tst": 1440405601,
+  "acc": 10,
+  "_type": "location",
+  "alt": 262,
+  "lon": 13.60279820860699,
+  "vac": 6,
+  "vel": 18,
+  "lat": 51.06263391678321,
+  "cog": 82,
+  "tid": "NE",
+  "batt": 99,
+  "username": "demo",
+  "device": "iphone",
+  "topic": "owntracks/demo/iphone",
+  "ghash": "u31dmx9",
+  "cc": "DE",
+  "addr": "E40, 01156 Dresden, Germany"
+ }
+]
+```
+
+Several things worth mentioning:
+
+* The returned data structure is an array of JSON objects; had we omitted specifying a particular device or even a particular user we would have obtained the last position of all this user's devices or all users' devices respectively.
+* If you are familiar with the [JSON data reported by the OwnTracks apps](http://owntracks.org/booklet/tech/json/) you'll notice that this JSON contains more information: this is provided on the fly by _ocat_ and the REST API, e.g. from the reverse-geo cache the _recorder_ maintains.
+
+#### What were the last 4 positions reported?
+
+We can limit the number of returned elements: Let's do this as CSV, and limit the fields we are given:
+
+```
+$ ocat --user demo --device iphone --limit 4 --format csv --fields isotst,vel,addr
+isotst,vel,addr
+2015-08-24T08:40:01Z,18,E40, 01156 Dresden, Germany
+2015-08-24T08:35:01Z,40,E40, 01723 Wilsdruff, Germany
+2015-08-24T08:30:00Z,50,A14, 01683 Nossen, Germany
+2015-08-24T08:24:59Z,40,A14, 04741 Roßwein, Germany
+```
+
+## Getting started
+
+You will require:
+
+* [libmosquitto](http://mosquitto.org)
+* [libCurl](http://curl.haxx.se/libcurl/)
+* [lmdb](http://symas.com/mdb) included
+
+Obtain and download the software, either directly as a clone of the repository or as a tar ball which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files.
+
+Type `make` and watch the fun. When that finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like.
+
+### Launching `ot-recorder`
+
+The _recorder_ has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
+
+If you require authentication or TLS to connect to your MQTT broker, pay attention to the `$OTR_` environment variables listed in the help. 
+
+Launch the recorder:
+
+```
+$ ./ot-recorder 'owntracks/#'
+```
+
+Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
+
+The location message received by the _recorder_ will be written to storage. 
 
 ## Design decisions
 
 We took a number of decisions for the design of the recorder and its utilities:
 
-* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups you can employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
-* Storage format is typically JSON because it's extensible. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs have a leading timestamp and a relative topic; see below.
+* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
+* Storage format is typically JSON because it's extensible. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below.
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
 * The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it.
@@ -45,23 +227,12 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 * `photos/` optional; contains the binary photos from a _card_.
 * `rec/` the recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
 
+You should definitely **not** modify or touch these files: they remain under the control of the _recorder_. You can of course, remove old `.rec` files if they consume too much space.
 
-
-
-## Requirements
-
-* [libmosquitto](http://mosquitto.org)
-* [libCurl](http://curl.haxx.se/libcurl/)
-* [lmdb](http://symas.com/mdb) unless `HAVE_LMDB` is false.
-
-## Installation
-
-1. Copy `config.mk.in` to `config.mk` and select the features you want (defaults should be ok).
-3. Type `make`
 
 ## Reverse Geo
 
-If not disabled with option `-G`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains. This is stored in LMDB if it can be obtained. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a `missing` file:
+If not disabled with option `-G`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
 
 ```
 $ cat store/ghash/missing
@@ -70,31 +241,26 @@ u0m97hc 46.652733 7.868803
 ...
 ```
 
-This can be used to subsequently obtain said geo lookups.
+This can be used to subsequently obtain missed lookups.
 
 
 ## Monitoring
 
-In order to monitor the _recorder_, whenever an MQTT message is received, the _recorder_ will add an epoch timestamp and the last received topic to a file. 
-
-The `monitor` file is located relative to STORE and contains a single line, the epoch timestamp at the moment of message reception and the topic separated from eachother by a single space:
+In order to monitor the _recorder_, whenever an MQTT message is received, a `monitor` file located relative to STORAGEDEFAULT is maintained. It contains a single line of text: the epoch timestamp and the last received topic separated from each other by a space. 
 
 ```
 1439738692 owntracks/jjolie/ipad
 ```
 
 
-If _recorder_ is built with `HAVE_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be  used to round-trip-test the recorder. For this particular username/device combination, _recorder_ will store LAST position, but it will not keep a .REC file for it. This can be used to verify, say, via your favorite monitoring system, that the _recorder_ is still operational.
+If _recorder_ is built with `HAVE_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be  used to round-trip-test the recorder. For this particular username/device combination, _recorder_ will store LAST position, but it will not keep a `.REC` file for it. This can be used to verify, say, via your favorite monitoring system, that the _recorder_ is still operational.
 
-After sending a _pingping_, query the REST interface to deterrmine the difference in time. The `contrib/` directory has an example which can be adapted for use by Icinga or Nagios.
+After sending a _pingping_, you can query the REST interface to determine the difference in time. The `contrib/` directory has an example Python program (`ot-ping.py`) which you can adapt as needed for use by Icinga or Nagios.
 
 ```
 OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 ```
 
-## `ocat`
-
-_ocat_ is a CLI driver for _recorder_: it prints data stored by the _recorder_ in a variety of output formats.
 
 #### Environment
 
@@ -106,7 +272,7 @@ The following environment variables control _ocat_'s behaviour:
 
 ### nginx
 
-Running the _recorder_ protected by an _nginx_ or _Apache_ server should be possible. This snippet shows how to do it, but you would also add authentication to that.
+Running the _recorder_ protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. This snippet shows how to do it, but you would also add authentication to that.
 
 ```
 server {
