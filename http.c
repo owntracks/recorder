@@ -260,7 +260,6 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	JsonNode *json, *obj, *locs;
 	// struct udata *ud = (struct udata *)conn->server_param;
 
-	fprintf(stderr, "DISPATCH: %s\n", uri);
 
 	if ((nparts = splitter((char *)uri, "/", uparts)) == -1) {
 		mg_send_status(conn, 405);
@@ -268,9 +267,12 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		return (MG_TRUE);
 	}
 
+#if 0
+	fprintf(stderr, "DISPATCH: %s\n", uri);
 	for (ret = 0; ret < nparts; ret++) {
 		fprintf(stderr, "%d = %s\n", ret, uparts[ret]);
 	}
+#endif
 
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
