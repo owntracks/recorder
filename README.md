@@ -81,6 +81,7 @@ _ocat_ is a CLI query program for data stored by _recorder_: it prints data from
 * GeoJSON (points)
 * GeoJSON (line string)
 * CSV
+* GPX
 
 The _ocat_ utility accesses _storage_ directly — it doesn’t use the _recorder_’s REST interface. _ocat_ has a daunting number of options, some combinations of which make no sense at all.
 
