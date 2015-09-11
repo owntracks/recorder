@@ -101,6 +101,18 @@ Some example uses we consider useful:
 
 Specifying `--fields lat,tid,lon` will request just those JSON elements from _storage_. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat	 is missing in the list of fields.)
 
+The `--from` and `--to` options allow you to specify a UTC date and/or timestamp from which respectively until which data will be read. By default, the last 6 hours of data are produced. If `--from` is not specified, it therefore defaults to _now minus 6 hours_. If `--to` is not specified it defaults to _now_. Dates and times must be specified as strings, and the following formats are recognized:
+
+```
+%Y-%m-%dT%H:%M:%S
+%Y-%m-%dT%H:%M
+%Y-%m-%dT%H
+%Y-%m-%d
+%Y-%m
+```
+
+The `--limit` option restricts the output to the last specified number of records. This is a bit of an "expensive" operation because we search the `.rec` files backwards (i.e. from end to beginning).
+
 ## `ocat` examples
 
 The _recorder_ has been running for a while, and the OwnTracks apps have published data. Let us have a look at some of this data.
@@ -184,7 +196,7 @@ You will require:
 * [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) included
 
-Obtain and download the software, either directly as a clone of the repository or as a tar ball which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files.
+Obtain and download the software, either directly as a clone of the repository or as a tar ball which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
 
 Type `make` and watch the fun. When that finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like.
 
@@ -261,6 +273,11 @@ After sending a _pingping_, you can query the REST interface to determine the di
 OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 ```
 
+## HTTP server
+
+The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in Websocket server for the live map.
+
+The API basically serves the same data as _ocat_ is able to produce.
 
 #### Environment
 
