@@ -33,6 +33,12 @@ ifeq ($(HAVE_HTTP),yes)
 	LIBS += -lssl
 endif
 
+ifeq ($(JSON_INDENT),yes)
+	CFLAGS += -DJSON_INDENT="\" \""
+else
+	CFLAGS += -DJSON_INDENT=NULL
+endif
+
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\"
 
 
