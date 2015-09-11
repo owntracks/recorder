@@ -222,7 +222,7 @@ The location message received by the _recorder_ will be written to storage.
 You have an account with our Hosted platform and you want to store the data published by your device and the devices you track. Proceed as follows:
 
 1. Download the [StartCom ca-bundle.pem](https://www.startssl.com/certs/ca-bundle.pem) file to a directory of choice, and make a note of the path to that file.
-2. Create a small shell script modelled after the one hereafter with which to launch the _recorder_.
+2. Create a small shell script modelled after the one hereafter (you can copy it from [etc/hosted.sh](etc/hosted.sh)) with which to launch the _recorder_.
 3. Launch that shell script to have the _recorder_ connect to _Hosted_ and subscribe to messages your OwnTracks apps publish via _Hosted_.
 
 ```bash
