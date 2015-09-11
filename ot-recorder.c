@@ -707,7 +707,7 @@ void usage(char *prog)
 	printf("  --http-port <port>	-A     HTTP port (8083)\n");
 	printf("  --doc-root <directory>       document root (./wdocs)\n");
 #endif
-	printf("  --precision		       ghash precision (dflt: %d)\n", GEOHASH_PREC);
+	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_HOST		MQTT hostname\n");

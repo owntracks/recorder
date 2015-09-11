@@ -14,6 +14,8 @@ OTR_OBJS = json.o \
 	   util.o \
 	   storage.o
 
+CFLAGS += -DGHASHPREC=$(GHASHPREC)
+
 ifeq ($(HAVE_PING),yes)
 	CFLAGS += -DHAVE_PING=1
 endif

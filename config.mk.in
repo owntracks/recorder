@@ -8,3 +8,20 @@ STORAGEDEFAULT = "./store"
 # Optionally specify the path to the Mosquitto libs, include here
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
+
+# Define the precision for reverse-geo lookups. The higher
+# the number, the more granular reverse-geo will be.
+#
+# 1	=> 5,009.4km x 4,992.6km
+# 2	=> 1,252.3km x 624.1km
+# 3	=> 156.5km x 156km
+# 4	=> 39.1km x 19.5km
+# 5	=> 4.9km x 4.9km
+# 6	=> 1.2km x 609.4m
+# 7	=> 152.9m x 152.4m
+# 8	=> 38.2m x 19m
+# 9	=> 4.8m x 4.8m
+# 10	=> 1.2m x 59.5cm
+
+GHASHPREC = 7
+

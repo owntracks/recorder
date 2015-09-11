@@ -143,7 +143,7 @@ void usage(char *prog)
 	printf("  --killdata                   	requires -u and -d\n");
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
-	printf("  --precision		        ghash precision (dflt: %d)\n", GEOHASH_PREC);
+	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --version			print version information\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
@@ -169,7 +169,7 @@ void print_versioninfo()
 	printf("\tHAVE_PING = yes\n");
 #endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
-	printf("\tGEOHASH_PREC = %d\n", GEOHASH_PREC);
+	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
 	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
 

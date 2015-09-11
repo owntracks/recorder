@@ -529,7 +529,7 @@ int safewrite(char *filename, char *buf)
         return (0);
 }
 
-static int _precision = GEOHASH_PREC;
+static int _precision = GHASHPREC;
 void geohash_setprec(int precision)
 {
 	_precision = precision;
