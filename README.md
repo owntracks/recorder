@@ -1,6 +1,6 @@
 # OwnTracks Recorder
 
-The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily installed and operated even on low-end hardware, and it doesn't require external an external database.
+The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily installed and operated even on low-end hardware, and it doesn't require external an external database. It is also suited for you to record and store the data you publish via our [Hosted mode](http://owntracks.org/booklet/features/hosted/).
 
 There are two main components: the _recorder_ obtains, stores, and serves data, and the _ocat_ command-line utility reads stored data in a variety of formats.
 
@@ -215,6 +215,30 @@ $ ./ot-recorder 'owntracks/#'
 Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
 
 The location message received by the _recorder_ will be written to storage. 
+
+### Launching `ot-recorder` for _Hosted mode_
+
+You have an account with our Hosted platform and you want to store the data published by your device and the devices you track. Proceed as follows:
+
+1. Download the [StartCom ca-bundle.pem](https://www.startssl.com/certs/ca-bundle.pem) file to a directory of choice, and make a note of the path to that file.
+2. Create a small shell script modelled after the one hereafter with which to launch the _recorder_.
+3. Launch that shell script to have the _recorder_ connect to _Hosted_ and subscribe to messages your OwnTracks apps publish via _Hosted_.
+
+```bash
+#!/bin/sh
+
+export OTR_USER="username"          # your OwnTracks Hosted username
+export OTR_DEVICE="device"          # one of your OwnTracks Hosted device names
+export OTR_TOKEN="xab0x993z8tdw"    # the Token corresponding to above pair
+export OTR_CAFILE="/path/to/startcom-ca-bundle.pem"
+
+
+ot-recorder --hosted "owntracks/#"
+```
+
+Note in particular the `--hosted` option: you specify neither a host name or a port number; the _recorder_ has those built-in, and it uses a specific _clientID_ for the MQTT connection. Other than that, there is no difference between the _recorder_ connecting to Hosted or to your private MQTT broker.
+
+
 
 ## Design decisions
 

@@ -707,6 +707,7 @@ void usage(char *prog)
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
+	printf("  --hosted		       use OwnTracks Hosted\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_HOST		MQTT hostname\n");
@@ -715,6 +716,10 @@ void usage(char *prog)
 	printf("  $OTR_USER\n");
 	printf("  $OTR_PASS\n");
 	printf("  $OTR_CAFILE		PEM CA certificate chain\n");
+	printf("For --hosted:\n");
+	printf("  $OTR_USER		username as registered on Hosted\n");
+	printf("  $OTR_DEVICE		connect as device\n");
+	printf("  $OTR_TOKEN		device token\n");
 
 	exit(1);
 }
@@ -723,10 +728,10 @@ void usage(char *prog)
 int main(int argc, char **argv)
 {
 	struct mosquitto *mosq = NULL;
-	char err[1024], *p, *username, *password, *cafile;
+	char err[1024], *p, *username, *password, *cafile, *device;
 	char *hostname = "localhost", *logfacility = "local0";
 	int port = 1883;
-	int rc, i, ch;
+	int rc, i, ch, hosted = FALSE;
 	static struct udata udata, *ud = &udata;
 	struct utsname uts;
 	UT_string *clientid;
@@ -782,6 +787,7 @@ int main(int argc, char **argv)
 			{ "storage",	required_argument,	0, 	'S'},
 			{ "logfacility",	required_argument,	0, 	4},
 			{ "precision",	required_argument,	0, 	5},
+			{ "hosted",	no_argument,		0, 	6},
 #ifdef HAVE_HTTP
 			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
@@ -796,6 +802,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 6:
+				hosted = TRUE;
+				break;
 			case 5:
 				geohash_setprec(atoi(optarg));
 				break;
@@ -849,7 +858,7 @@ int main(int argc, char **argv)
 				usage(progname);
 				exit(0);
 			default:
-				abort();
+				exit(1);
 		}
 
 	}
@@ -860,6 +869,42 @@ int main(int argc, char **argv)
 	if (argc < 1) {
 		usage(progname);
 		return (-1);
+	}
+
+	if (hosted) {
+		char tmp[BUFSIZ];
+
+		hostname = strdup("hosted.owntracks.org");
+		port = 8883;
+
+		if ((username = getenv("OTR_USER")) == NULL) {
+			fprintf(stderr, "%s requires $OTR_USER\n", progname);
+			exit(1);
+		}
+		if ((device = getenv("OTR_DEVICE")) == NULL) {
+			fprintf(stderr, "%s requires $OTR_DEVICE\n", progname);
+			exit(1);
+		}
+		if ((password = getenv("OTR_TOKEN")) == NULL) {
+			fprintf(stderr, "%s requires $OTR_TOKEN\n", progname);
+			exit(1);
+		}
+		if ((cafile = getenv("OTR_CAFILE")) == NULL) {
+			fprintf(stderr, "%s requires $OTR_CAFILE\n", progname);
+			exit(1);
+		}
+
+		utstring_renew(clientid);
+		utstring_printf(clientid, "ot-RECORDER-%s-%s", username, device);
+		if (uname(&uts) == 0) {
+			utstring_printf(clientid, "-%s", uts.nodename);
+		}
+
+		snprintf(tmp, sizeof(tmp), "%s|%s", username, device);
+		username = strdup(tmp);
+	} else {
+		username = getenv("OTR_USER");
+		password = getenv("OTR_PASS");
 	}
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
@@ -925,10 +970,8 @@ int main(int argc, char **argv)
 	mosquitto_connect_callback_set(mosq, on_connect);
 	mosquitto_disconnect_callback_set(mosq, on_disconnect);
 
-	if ((username = getenv("OTR_USER")) != NULL) {
-		if ((password = getenv("OTR_PASS")) != NULL) {
+	if (username && password) {
 			mosquitto_username_pw_set(mosq, username, password);
-		}
 	}
 
 	cafile = getenv("OTR_CAFILE");
