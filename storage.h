@@ -5,6 +5,8 @@
 #include "gcache.h"
 #include "json.h"
 
+#define DEFAULT_HISTORY_HOURS 6
+
 typedef enum {
 	GEOJSON = 0,
 	CSV,

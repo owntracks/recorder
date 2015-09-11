@@ -6,8 +6,3 @@
 
 #define GURL "http://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN"
 
-/*
- * How many hours back should `ocat' display data by default
- */
-
-#define DEFAULT_HISTORY_HOURS 6
