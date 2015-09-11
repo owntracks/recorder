@@ -144,7 +144,7 @@ void usage(char *prog)
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
-	printf("  --version			print version information\n");
+	printf("  --version		-v	print version information\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 	while (1) {
 		static struct option long_options[] = {
 			{ "help",	no_argument,	0, 	'h'},
-			{ "version",	no_argument,	0, 	3},
+			{ "version",	no_argument,	0, 	'v'},
 			{ "list",	no_argument,	0, 	'l'},
 			{ "user",	required_argument, 0, 	'u'},
 			{ "device",	required_argument, 0, 	'd'},
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 		  };
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:GN:", long_options, &optindex);
+		c = getopt_long(argc, argv, "hlu:d:F:T:f:KLS:GN:v", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 			case 2:
 				geohash_setprec(atoi(optarg));
 				break;
-			case 3:
+			case 'v':
 				print_versioninfo();
 				break;
 			case 'l':
