@@ -704,7 +704,7 @@ void usage(char *prog)
 #ifdef HAVE_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083)\n");
-	printf("  --doc-root <directory>       document root (./wdocs)\n");
+	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("\n");
@@ -732,7 +732,7 @@ int main(int argc, char **argv)
 	UT_string *clientid;
 #ifdef HAVE_HTTP
 	int http_port = 8083;
-	char *doc_root = "./wdocs";
+	char *doc_root = DOCROOT;
 	char *http_host = "localhost";
 #endif
 	char *progname = *argv;

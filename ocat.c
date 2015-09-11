@@ -169,6 +169,7 @@ void print_versioninfo()
 	printf("\tHAVE_PING = yes\n");
 #endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
+	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
 	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");

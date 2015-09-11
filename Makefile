@@ -43,7 +43,7 @@ ifneq ($(APIKEY),)
 	CFLAGS += -DAPIKEY="\"$(APIKEY)\""
 endif
 
-CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\"
+CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 
 
 
@@ -92,6 +92,8 @@ mdb/liblmdb.a:
 
 install: ot-recorder ocat
 	mkdir -p $(BUILDROOT)$(INSTALLDIR)/{bin,sbin}
-	mkdir -p $(STORAGEDEFAULT)
+	mkdir -p $(BUILDROOT)$(STORAGEDEFAULT)
+	mkdir -p $(BUILDROOT)$(DOCROOT)
+	cp -R wdocs $(BUILDROOT)$(DOCROOT)/
 	install --mode 0755 ot-recorder $(BUILDROOT)$(INSTALLDIR)/sbin
 	install --mode 0755 ocat $(BUILDROOT)$(INSTALLDIR)/bin
