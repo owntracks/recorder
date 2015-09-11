@@ -48,16 +48,20 @@ function refreshmarkers(m) {
 function map_marker(loc)
 {
 	var id = loc.topic.replace(/\//g, '-');
-	var d;
+	var htmldesc;
+	var shortdesc;
 
 	if (loc.addr && loc.topic) {
-		d = loc.topic + " " + loc.addr;
-		d = "<b>" + loc.topic.split('/')[2] + "</b><br />" + loc.addr;
+		htmldesc = loc.topic + " " + loc.addr;
+		htmldesc = "<b>" + loc.topic.split('/')[2] + "</b><br />" + loc.addr;
+		shortdesc = loc.topic.split('/')[2] + " " + loc.addr;
 	} else {
-		d = loc.lat + ", " + loc.lon;
+		htmldesc = loc.lat + ", " + loc.lon;
+		shortdesc = htmldesc;
 	}
 
-	loc.description = d;
+	loc.description = shortdesc;
+	loc.htmldesc = htmldesc;
 
 	if (markers.hasOwnProperty(id)) {
 		clog("UPD", id, JSON.stringify(loc));
@@ -67,7 +71,7 @@ function map_marker(loc)
 		m.setTitle(loc.description);
 
 		/* Grab the InfoWindow of this marker and change content */
-		m['infowindow'].setContent(loc.description);
+		m['infowindow'].setContent(loc.htmldesc);
 		if (livemarkers) {
 			refreshmarkers(m);
 		}
@@ -94,7 +98,7 @@ function map_marker(loc)
 
 		/* Create a new InfoWindow for this marker, and add listener */
 		m['infowindow'] = new google.maps.InfoWindow({
-					content: loc.description
+					content: loc.htmldesc
 				  });
 		google.maps.event.addListener(m, "click", function(e) {
 			this['infowindow'].open(map, this);
