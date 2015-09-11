@@ -1,5 +1,7 @@
 # Select features you want. Default is fine for most installations
 
+INSTALLDIR = /usr/local
+
 # Do you want recorder's built-in HTTP REST API?
 HAVE_HTTP ?= yes
 

@@ -90,3 +90,8 @@ clobber: clean
 mdb/liblmdb.a:
 	(cd mdb && make)
 
+install: ot-recorder ocat
+	mkdir -p $(BUILDROOT)$(INSTALLDIR)/{bin,sbin}
+	mkdir -p $(STORAGEDEFAULT)
+	install --mode 0755 ot-recorder $(BUILDROOT)$(INSTALLDIR)/sbin
+	install --mode 0755 ocat $(BUILDROOT)$(INSTALLDIR)/bin
