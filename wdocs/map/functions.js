@@ -48,9 +48,18 @@ function initialize() {
 
 	map.data.loadGeoJson(dataURL);
 
+        var circle ={
+                  path: google.maps.SymbolPath.CIRCLE,
+                  fillColor: '#ff0000',
+                  fillOpacity: .9,
+                  scale: 5.5,
+                  strokeColor: 'white',
+                  strokeWeight: 2
+        };
         var featureStyle = {
                 strokeColor: 'red',
-                strokeWeight: 4
+                strokeWeight: 4,
+		icon: circle
         };
         map.data.setStyle(featureStyle);
 
