@@ -874,7 +874,7 @@ int main(int argc, char **argv)
 	if (hosted) {
 		char tmp[BUFSIZ];
 
-		hostname = strdup("hosted.owntracks.org");
+		hostname = strdup("hosted-mqtt.owntracks.org");
 		port = 8883;
 
 		if ((username = getenv("OTR_USER")) == NULL) {
