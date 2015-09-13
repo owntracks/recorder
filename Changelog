@@ -1,0 +1,13 @@
+2015-09-13 version 0.2.4
+
+- FIX: incorrect install of wdocs/ (thanks to @rk295)
+- FIX: use correct hostname for --hosted mode
+- FIX: live map had ugly HTML on hover-over point
+
+2015-09-11 version 0.2.3
+
+- NEW: --hosted mode for recorder
+
+2015-09-11 version 0.2.2
+
+- first public release
