@@ -999,6 +999,9 @@ int main(int argc, char **argv)
 
 	}
 
+	if (hosted) {
+		olog(LOG_NOTICE, "connecting to Hosted as clientID %s", utstring_body(clientid));
+	}
 
 	rc = mosquitto_connect(mosq, hostname, port, 60);
 	if (rc) {
