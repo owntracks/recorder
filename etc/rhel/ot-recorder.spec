@@ -28,13 +28,11 @@ rm -rf recorder
 git clone https://github.com/owntracks/recorder.git
 cd recorder
 cp config.mk.in config.mk
-sed -i -e 's|^STORAGEDEFAULT.*|STORAGEDEFAULT="/var/spool/owntracks/store"|' config.mk
-cp config.h.example config.h
 make
 
 %install
 mkdir -p %{buildroot}%{_bindir}
-mkdir -p %{buildroot}%{_sbindir}
+mkdir -p %{buildroot}%{_sbindir} %{buildroot}%{_datadir}/doc/owntracks
 cd recorder
 install --strip --mode 0755 ot-recorder %{buildroot}%{_sbindir}
 install --strip --mode 0755 ocat %{buildroot}%{_bindir}
@@ -43,6 +41,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/default
 mkdir -p %{buildroot}%{_sysconfdir}/init.d
 cp etc/rhel/ot-recorder.sysconfig %{buildroot}%{_sysconfdir}/default/ot-recorder
 install --mode 0755 etc/rhel/ot-recorder.init %{buildroot}%{_sysconfdir}/init.d/ot-recorder
+install --mode 0444 README.md %{buildroot}%{_datadir}/doc/owntracks
 
 mkdir -p %{buildroot}/var/spool/owntracks/docroot
 cp -R wdocs/* %{buildroot}/var/spool/owntracks/docroot
@@ -60,6 +59,10 @@ echo "%%defattr(-, root, root)" >MANIFEST
 %config(noreplace) /etc/default/ot-recorder
 
 %changelog
+
+* Sun Sep 13 2015 Jan-Piet Mens <jpmens@gmail.com>
+- remove config.h.example
+- use plain config.mk
 
 * Thu Sep 09 2015 Jan-Piet Mens <jpmens@gmail.com>
 - Add owntracks group and chmod to SGID for ocat to be able to open LMDB env
