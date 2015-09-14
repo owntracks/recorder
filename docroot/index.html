@@ -1,9 +1,99 @@
-<html>
-<ul>
-<li><a href="map/index.html?user=jpm&device=test&format=geojson&from=2014-01-01">Example Map with GEOJSON</a></li>
-<li><a href="map/index.html?user=jpm&device=test&format=linestring&from=2014-01-01">Example Map with LINESTRING</a></li>
-<li><a href="test-ws.html">Click for Websocket demo; new pubs will be shown there</a></li>
-<li><a href="last/index.html">Click for MAP of current locations</a></li>
-<li><a href="table/index.html">Click for TABLE of current locations</a></li>
-</ul>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Recorder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="table/js/jquery-1.11.3.min.js" type="text/javascript"></script>
+    <script src="table/js/mustache.js" type="text/javascript"></script>
+    <style>
+    body, a, a:visited {
+        font-family: Helvetica, sans-serif;
+	color: #3f72b5;
+    }
+    #usertable {
+        font-family: Helvetica, sans-serif;
+        width: 80%;
+        border-collapse: collapse;
+    }
+
+    #usertable td, #usertable th {
+        font-size: 1em;
+        border: 1px solid #305e9f;
+        padding: 3px 7px 2px 7px;
+    }
+
+    #usertable th {
+        font-size: 1.1em;
+        text-align: left;
+        padding-top: 5px;
+        padding-bottom: 4px;
+        background-color: #305e9f;
+	color: white;
+    }
+    </style>
+
+    <script type="text/javascript">
+
+    function getuserlist() {
+        var dataURI = location.protocol + "//" + location.host;
+
+        var parts = location.pathname.split('/');
+        for (var i = 1; i < parts.length - 1; i++) {
+                dataURI = dataURI + "/" + parts[i];
+        }
+        dataURI = dataURI + "/api/0/last" + location.search;
+
+        console.log("dataURI = " + dataURI);
+
+	$.ajax({
+		url: dataURI,
+		type: "GET",
+		dataType: 'json',
+		success: function(data) {
+			// console.log(JSON.stringify(data));
+
+			for (var i = 0; i < data.length; i++) {
+				var d = data[i];
+
+	var line = "<tr><td>{{ username }} / {{ device }}</td><td><a href='map/index.html?user={{username}}&device={{device}}&format=geojson'>points</a></td><td><a href='map/index.html?user={{username}}&device={{device}}&format=linestring'>track</a></td></tr>";
+
+				var row = Mustache.render(line, d);
+
+				$('#usertable > tbody:last-child').append(row);
+			}
+		},
+		error: function(jqXHR, textstatus, errorthrown) {
+			console.log(textstatus, errorthrown);
+			console.log(jqXHR.status + " " + jqXHR.responseText);
+		},
+	});
+    }
+
+    $(document).ready(function() {
+	getuserlist();
+
+    });
+
+    </script>
+  </head>
+  <body>
+<div>
+  <ul>
+  <li><a href="last/index.html">MAP of current locations</a></li>
+  <li><a href="table/index.html">TABLE of current locations</a></li>
+  </ul>
+</div>
+
+    <div id='content'>
+    <table id='usertable'>
+      <thead>
+        <tr><th>User/Device</th><th>Points</th><th>Track</th></tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    </div>
+
+  </body>
 </html>
