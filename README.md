@@ -197,7 +197,7 @@ You will require:
 * [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) included
 
-Obtain and download the software, either directly as a clone of the repository or as a tar ball which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
+Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), directly as a clone of the repository, or as a tar ball which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
 
 Type `make` and watch the fun. When that finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like.
 
