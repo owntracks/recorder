@@ -172,10 +172,7 @@ void print_versioninfo()
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
-	printf("\tJSON_INDENT = ");
-	if (JSON_INDENT)
-		printf("\"%s\"\n", JSON_INDENT);
-	else printf("NULL\n");
+	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
 
 	exit(0);
 }
