@@ -1,3 +1,11 @@
+
+2015-09-14 version 0.2.5
+
+- FIX: renamed wdocs to htdocs
+- FIX: updated spec file and renamed defaults
+- FIX: log with which clientID user is connecting to Hosted
+	to aid in trouble-shooting
+
 2015-09-13 version 0.2.4
 
 - FIX: incorrect install of wdocs/ (thanks to @rk295)

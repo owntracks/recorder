@@ -94,6 +94,6 @@ install: ot-recorder ocat
 	mkdir -p $(BUILDROOT)$(INSTALLDIR)/{bin,sbin}
 	mkdir -p $(BUILDROOT)$(STORAGEDEFAULT)
 	mkdir -p $(BUILDROOT)$(DOCROOT)
-	cp -R wdocs/* $(BUILDROOT)$(DOCROOT)/
+	cp -R htdocs/* $(BUILDROOT)$(DOCROOT)/
 	install --mode 0755 ot-recorder $(BUILDROOT)$(INSTALLDIR)/sbin
 	install --mode 0755 ocat $(BUILDROOT)$(INSTALLDIR)/bin

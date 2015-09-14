@@ -16,7 +16,7 @@ HAVE_PING ?= yes
 STORAGEDEFAULT = "/var/spool/owntracks/recorder/store"
 
 # Where should the recorder find its document root (HTTP)?
-DOCROOT = "/var/spool/owntracks/recorder/wdocs"
+DOCROOT = "/var/spool/owntracks/recorder/htdocs"
 
 # Define the precision for reverse-geo lookups. The higher
 # the number, the more granular reverse-geo will be:
