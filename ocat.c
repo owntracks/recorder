@@ -145,6 +145,7 @@ void usage(char *prog)
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --version		-v	print version information\n");
+	printf("  --dump-ghash		  	dump content of ghash cache\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -181,7 +182,7 @@ int main(int argc, char **argv)
 {
 	char *progname = *argv, *p;
 	int c;
-	int list = 0, killdata = 0, last = 0, limit = 0;
+	int list = 0, killdata = 0, last = 0, limit = 0, dumpghash = FALSE;
 	int revgeo = TRUE;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
@@ -228,6 +229,7 @@ int main(int argc, char **argv)
 			{ "last",	no_argument, 0, 	'L'},
 			{ "fields",	required_argument, 0, 	1},
 			{ "precision",	required_argument, 0, 	2},
+			{ "dump-ghash",	no_argument, 0, 	3},
 			{ "killdata",	no_argument, 0, 	'K'},
 			{ "norevgeo",	no_argument, 0, 	'G'},
 		  	{0, 0, 0, 0}
@@ -245,6 +247,9 @@ int main(int argc, char **argv)
 				break;
 			case 2:
 				geohash_setprec(atoi(optarg));
+				break;
+			case 3:
+				dumpghash = TRUE;
 				break;
 			case 'v':
 				print_versioninfo();
@@ -314,6 +319,11 @@ int main(int argc, char **argv)
 	argv += (optind);
 
 	storage_init(revgeo);
+
+	if (dumpghash) {
+		storage_gcache_dump();
+		exit(0);
+	}
 
 	if (killdata) {
 		JsonNode *obj; //, *killed, *f;

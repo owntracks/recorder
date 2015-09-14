@@ -185,7 +185,7 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 
 	key.mv_data = k;
 	key.mv_size = strlen(k);
-	
+
 	rc = mdb_get(txn, gc->dbi, &key, &data);
 	if (rc != 0) {
 		if (rc != MDB_NOTFOUND) {
@@ -226,7 +226,7 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 
 	key.mv_data = k;
 	key.mv_size = strlen(k);
-	
+
 	rc = mdb_get(txn, gc->dbi, &key, &data);
 	if (rc != 0) {
 		if (rc != MDB_NOTFOUND) {
@@ -245,4 +245,35 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 	mdb_txn_commit(txn);
 
 	return (geo);
+}
+
+void gcache_dump(struct gcache *gc)
+{
+	MDB_val key, data;
+	MDB_txn *txn;
+	MDB_cursor *cursor;
+	int rc;
+
+	if (gc == NULL)
+		return;
+
+	key.mv_size = 0;
+	key.mv_data = NULL;
+
+	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
+	if (rc) {
+		olog(LOG_ERR, "gcache_dump: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
+		return;
+	}
+
+	rc = mdb_cursor_open(txn, gc->dbi, &cursor);
+
+	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
+		printf("%*.*s %*.*s\n",
+			(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data,
+			(int)data.mv_size, (int)data.mv_size, (char *)data.mv_data);
+	}
+	mdb_cursor_close(cursor);
+	mdb_txn_commit(txn);
+
 }

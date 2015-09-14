@@ -1,3 +1,7 @@
+
+- NEW: ocat --dump-ghash dumps content of revgeo db
+- FIX: main index now shows users/devices already in storage
+
 2015-09-14 version 0.2.8
 - FIX: undo ocat -v change
 

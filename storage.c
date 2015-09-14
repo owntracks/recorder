@@ -55,6 +55,11 @@ void storage_init(int revgeo)
 	}
 }
 
+void storage_gcache_dump()
+{
+	gcache_dump(gc);
+}
+
 void get_geo(JsonNode *o, char *ghash)
 {
 	JsonNode *geo;

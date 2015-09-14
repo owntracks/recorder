@@ -26,5 +26,6 @@ JsonNode *kill_datastore(char *username, char *device);
 JsonNode *last_users(char *user, char *device);
 char *gpx_string(JsonNode *json);
 void storage_init(int revgeo);
+void storage_gcache_dump();
 
 #endif

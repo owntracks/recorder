@@ -2,7 +2,6 @@
 ot-recorder
 ocat
 ghashfind
-gcache-dump
 ghash2lmdb
 *.dSYM
 .DS_Store

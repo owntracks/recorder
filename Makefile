@@ -24,7 +24,7 @@ ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
 	LIBS += mdb/liblmdb.a -lpthread
-	TARGETS += mdb/liblmdb.a gcache-dump ghash2lmdb
+	TARGETS += mdb/liblmdb.a ghash2lmdb
 endif
 
 ifeq ($(HAVE_HTTP),yes)
@@ -60,9 +60,6 @@ ocat: ocat.o $(OTR_OBJS)
 ghashfind: ghashfind.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ghashfind ghashfind.o $(OTR_OBJS) $(LIBS)
 
-gcache-dump: gcache-dump.o
-	$(CC) $(CFLAGS) -o gcache-dump gcache-dump.o $(LIBS)
-
 ghash2lmdb: ghash2lmdb.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.o $(OTR_OBJS) $(LIBS)
 
@@ -85,7 +82,7 @@ ghash2lmdb.o: ghash2lmdb.c gcache.h config.mk
 clean:
 	rm -f *.o
 clobber: clean
-	rm -f ot-recorder ocat ghashfind gcache-dump
+	rm -f ot-recorder ocat ghashfind
 
 mdb/liblmdb.a:
 	(cd mdb && make)
