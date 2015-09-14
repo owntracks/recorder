@@ -1,3 +1,7 @@
+2015-09-14 version 0.2.7
+
+- FIX: ocat -v correctly displays configured JSON_INDENT
+- FIX: spec file now builds packages on OBS
 
 2015-09-14 version 0.2.6
 
