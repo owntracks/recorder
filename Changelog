@@ -1,4 +1,8 @@
 
+2015-09-14 version 0.2.6
+
+- FIX: source of doc root renamed to docroot
+
 2015-09-14 version 0.2.5
 
 - FIX: renamed wdocs to htdocs
