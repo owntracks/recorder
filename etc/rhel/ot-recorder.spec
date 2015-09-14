@@ -52,8 +52,8 @@ make
 ## make install
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sbindir} %{buildroot}%{_datadir}/doc/owntracks
-mkdir -p %{buildroot}%{_sbindir} %{buildroot}var/spool/owntracks/htdocs
-cp -R docroot/* %{buildroot}%{_sbindir} %{buildroot}var/spool/owntracks/htdocs/
+mkdir -p %{buildroot}%{_sbindir} %{buildroot}/var/spool/owntracks/recorder/htdocs
+cp -R docroot/* %{buildroot}/var/spool/owntracks/recorder/htdocs
 install --strip --mode 0755 ot-recorder %{buildroot}%{_sbindir}
 install --strip --mode 0755 ocat %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sysconfdir}/default
