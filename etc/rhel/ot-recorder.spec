@@ -1,4 +1,4 @@
-%define version 0.2.5
+%define version 0.2.6
 
 Name:           ot-recorder
 Version:        %{version}
@@ -49,8 +49,11 @@ cp config.mk.in config.mk
 make
 
 %install
+## make install
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sbindir} %{buildroot}%{_datadir}/doc/owntracks
+mkdir -p %{buildroot}%{_sbindir} %{buildroot}var/spool/owntracks/htdocs
+cp -R docroot/* %{buildroot}%{_sbindir} %{buildroot}var/spool/owntracks/htdocs/
 install --strip --mode 0755 ot-recorder %{buildroot}%{_sbindir}
 install --strip --mode 0755 ocat %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sysconfdir}/default
@@ -58,6 +61,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/init.d
 cp etc/rhel/ot-recorder.defaults %{buildroot}%{_sysconfdir}/default/ot-recorder
 install --mode 0755 etc/rhel/ot-recorder.init %{buildroot}%{_sysconfdir}/init.d/ot-recorder
 install --mode 0444 README.md %{buildroot}%{_datadir}/doc/owntracks
+mkdir -p %{buildroot}/var/spool/owntracks/recorder/store
 
 # Build a manifest of the RPM's directory hierarchy.
 echo "%%defattr(-, root, root)" >MANIFEST
