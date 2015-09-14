@@ -1,4 +1,4 @@
-%define version 0.0.1
+%define version 0.2.5
 
 Name:           ot-recorder
 Version:        %{version}
@@ -8,13 +8,31 @@ Group:          Applications/Location
 License:        MIT
 URL:            http://owntracks.org/
 Vendor:         OwnTracks team@owntracks.org
-Source:         https://github.com/owntracks/recorder
+Source:         https://github.com/owntracks/recorder/archive/%{version}.tar.gz
 Packager: 	jpmens
 Requires:	libmosquitto1
 Requires:	libcurl
-BuildRequires:	libmosquitto-devel
-BuildRequires:	libcurl-devel
-BuildRoot:      %{_tmppath}/%{name}-root
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%if %{defined suse_version}
+Requires:  libopenssl1_0_0, libcurl
+BuildRequires:  libopenssl-devel, libcurl-devel, libmosquitto-devel
+%endif
+
+%if %{defined rhel_version}
+Requires:   openssl
+BuildRequires:  openssl-devel, libcurl-devel, libmosquitto-devel
+%endif
+
+%if %{defined centos_version}
+Requires:   openssl
+BuildRequires:  openssl-devel, libcurl-devel, libmosquitto-devel
+%endif
+
+%if %{defined fedora_version}
+Requires:   openssl
+BuildRequires:  openssl-devel, libcurl-devel, libmosquitto-devel
+%endif
 
 %description
 OwnTracks is a location-based service which runs over MQTT. The
@@ -23,28 +41,23 @@ publishes from the OwnTracks apps (iOS, Android) into files which
 can be viewed through the supporting ocat utility and via a REST
 API provided by the Recorder itself.
 
+%prep
+%setup -n recorder-%{version}
+
 %build
-rm -rf recorder
-git clone https://github.com/owntracks/recorder.git
-cd recorder
 cp config.mk.in config.mk
 make
 
 %install
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sbindir} %{buildroot}%{_datadir}/doc/owntracks
-cd recorder
 install --strip --mode 0755 ot-recorder %{buildroot}%{_sbindir}
 install --strip --mode 0755 ocat %{buildroot}%{_bindir}
-mkdir -p %{buildroot}/var/spool/owntracks/store/ghash
 mkdir -p %{buildroot}%{_sysconfdir}/default
 mkdir -p %{buildroot}%{_sysconfdir}/init.d
-cp etc/rhel/ot-recorder.sysconfig %{buildroot}%{_sysconfdir}/default/ot-recorder
+cp etc/rhel/ot-recorder.defaults %{buildroot}%{_sysconfdir}/default/ot-recorder
 install --mode 0755 etc/rhel/ot-recorder.init %{buildroot}%{_sysconfdir}/init.d/ot-recorder
 install --mode 0444 README.md %{buildroot}%{_datadir}/doc/owntracks
-
-mkdir -p %{buildroot}/var/spool/owntracks/docroot
-cp -R wdocs/* %{buildroot}/var/spool/owntracks/docroot
 
 # Build a manifest of the RPM's directory hierarchy.
 echo "%%defattr(-, root, root)" >MANIFEST
@@ -54,11 +67,15 @@ echo "%%defattr(-, root, root)" >MANIFEST
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT MANIFEST
 
 # %defattr(-,root,owntracks)
-%files -f recorder/MANIFEST
-%config(noreplace) /var/spool/owntracks/store
-%config(noreplace) /etc/default/ot-recorder
+%files -f MANIFEST
+%config /var/spool/owntracks/recorder/store
+%config /etc/default/ot-recorder
 
 %changelog
+
+* Mon Sep 14 2015 Jan-Piet Mens <jpmens@gmail.com>
+- munge for OBS (thank you, Roger Light, for your help!)
+- relocate spool dir
 
 * Sun Sep 13 2015 Jan-Piet Mens <jpmens@gmail.com>
 - remove config.h.example
@@ -72,8 +89,10 @@ echo "%%defattr(-, root, root)" >MANIFEST
 
 %post
 getent group owntracks > /dev/null || /usr/sbin/groupadd -r owntracks
-chmod 775 /var/spool/owntracks/store/ghash
-chgrp owntracks /var/spool/owntracks/store/ghash
+mkdir -p /var/spool/owntracks/recorder/store/ghash
+chmod 775 /var/spool/owntracks/recorder/store/ghash
+chgrp owntracks /var/spool/owntracks/recorder/store
+chgrp owntracks /var/spool/owntracks/recorder/store/ghash
 chgrp owntracks /usr/bin/ocat /usr/sbin/ot-recorder
 chmod 3755 /usr/bin/ocat /usr/sbin/ot-recorder
 chkconfig --add ot-recorder
