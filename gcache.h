@@ -20,6 +20,7 @@ int gcache_json_put(struct gcache *, char *ghash, JsonNode *geo);
 long gcache_get(struct gcache *, char *key, char *buf, long buflen);
 JsonNode *gcache_json_get(struct gcache *, char *key);
 void gcache_dump(struct gcache *gc);
+void gcache_load(char *path);
 
 #endif
 #endif

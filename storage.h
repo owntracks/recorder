@@ -27,5 +27,6 @@ JsonNode *last_users(char *user, char *device);
 char *gpx_string(JsonNode *json);
 void storage_init(int revgeo);
 void storage_gcache_dump();
+void storage_gcache_load();
 
 #endif

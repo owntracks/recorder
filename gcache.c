@@ -51,6 +51,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 	if (rdonly) {
 		flags |= MDB_RDONLY;
 		perms = 0444;
+		perms = 0664;
 	} else {
 		dbiflags = MDB_CREATE;
 	}
@@ -275,5 +276,29 @@ void gcache_dump(struct gcache *gc)
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
+}
 
+void gcache_load(char *path)
+{
+	struct gcache *gc;
+	char buf[8192], *bp;
+
+	if ((gc = gcache_open(path, NULL, FALSE)) == NULL) {
+		olog(LOG_ERR, "gcache_load: gcache_open");
+		return;
+	}
+
+	while (fgets(buf, sizeof(buf), stdin) != NULL) {
+
+		if ((bp = strchr(buf, '\n')) != NULL)
+			*bp = 0;
+
+		if ((bp = strchr(buf, ' ')) != NULL) {
+			*bp = 0;
+
+			gcache_put(gc, buf, bp+1);
+		}
+	}
+
+	gcache_close(gc);
 }

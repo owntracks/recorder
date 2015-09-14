@@ -1,4 +1,5 @@
 
+- NEW: ocat --load-ghash can load revgeo db
 - NEW: ocat --dump-ghash dumps content of revgeo db
 - FIX: main index now shows users/devices already in storage
 

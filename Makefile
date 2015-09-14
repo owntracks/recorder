@@ -24,7 +24,7 @@ ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
 	LIBS += mdb/liblmdb.a -lpthread
-	TARGETS += mdb/liblmdb.a ghash2lmdb
+	TARGETS += mdb/liblmdb.a
 endif
 
 ifeq ($(HAVE_HTTP),yes)
@@ -60,9 +60,6 @@ ocat: ocat.o $(OTR_OBJS)
 ghashfind: ghashfind.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ghashfind ghashfind.o $(OTR_OBJS) $(LIBS)
 
-ghash2lmdb: ghash2lmdb.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) -o ghash2lmdb ghash2lmdb.o $(OTR_OBJS) $(LIBS)
-
 
 ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk
 geo.o: geo.h geo.c udata.h Makefile config.mk
@@ -76,7 +73,6 @@ ghashfind.o: ghashfind.c util.h config.mk
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h config.mk version.h
 storage.o: storage.c storage.h util.h gcache.h config.mk
-ghash2lmdb.o: ghash2lmdb.c gcache.h config.mk
 
 
 clean:

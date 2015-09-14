@@ -52,12 +52,23 @@ void storage_init(int revgeo)
 	if (revgeo) {
 		snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
 		gc = gcache_open(path, NULL, TRUE);
+		if (gc == NULL) {
+			olog(LOG_ERR, "storage_init(): gc is NULL");
+		}
 	}
 }
 
 void storage_gcache_dump()
 {
 	gcache_dump(gc);
+}
+
+void storage_gcache_load()
+{
+	char path[BUFSIZ];
+
+	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
+	gcache_load(path);
 }
 
 void get_geo(JsonNode *o, char *ghash)
