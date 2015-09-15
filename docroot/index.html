@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="table/js/jquery-1.11.3.min.js" type="text/javascript"></script>
     <script src="table/js/mustache.js" type="text/javascript"></script>
+    <script src="table/js/moment.min.js" type="text/javascript"></script>
     <style>
     body, a, a:visited {
         font-family: Helvetica, sans-serif;
@@ -46,6 +47,12 @@
 
         console.log("dataURI = " + dataURI);
 
+	var now = moment();
+
+	var f12 = now.subtract(12, 'hours').format('YYYY-MM-DDTHH:MM');
+	var f7 = now.subtract(7, 'days').format('YYYY-MM-DDTHH:MM');
+	var f30 = now.subtract(30, 'days').format('YYYY-MM-DDTHH:MM');
+
 	$.ajax({
 		url: dataURI,
 		type: "GET",
@@ -55,8 +62,20 @@
 
 			for (var i = 0; i < data.length; i++) {
 				var d = data[i];
+				d['udev'] = "user=" + d['username'] + "&device=" + d['device'];
+				d['f12'] = f12;
+				d['f7'] = f7;
+				d['f30'] = f30;
 
-	var line = "<tr><td>{{ username }} / {{ device }}</td><td><a href='map/index.html?user={{username}}&device={{device}}&format=geojson'>points</a></td><td><a href='map/index.html?user={{username}}&device={{device}}&format=linestring'>track</a></td></tr>";
+	var line = "<tr><td>{{ username }} / {{ device }}</td>" +
+	"<td><a href='map/index.html?{{udev}}&format=geojson&from={{f12}}'>12h</a></td>" +
+	"<td><a href='map/index.html?{{udev}}&format=geojson&from={{f7}}'>7d</a></td>" +
+	"<td><a href='map/index.html?{{udev}}&format=geojson&from={{f30}}'>30d</a></td>" +
+
+	"<td><a href='map/index.html?{{udev}}&format=linestring&from={{f12}}'>12h</a></td>" +
+	"<td><a href='map/index.html?{{udev}}&format=linestring&from={{f7}}'>7d</a></td>" +
+	"<td><a href='map/index.html?{{udev}}&format=linestring&from={{f30}}'>30d</a></td>" +
+	"</tr>";
 
 				var row = Mustache.render(line, d);
 
@@ -88,7 +107,7 @@
     <div id='content'>
     <table id='usertable'>
       <thead>
-        <tr><th>User/Device</th><th>Points</th><th>Track</th></tr>
+        <tr><th>User/Device</th><th>Points</th><th>Points</th><th>Points</th><th>Track</th><th>Track</th><th>Track</th></tr>
       </thead>
       <tbody>
       </tbody>
