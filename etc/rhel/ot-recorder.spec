@@ -1,4 +1,4 @@
-%define version 0.2.7
+%define version 0.2.9
 
 Name:           ot-recorder
 Version:        %{version}

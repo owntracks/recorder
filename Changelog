@@ -1,4 +1,6 @@
 
+2015-09-15 version 0.2.9
+- FIX: added API description and diagram to documentation
 - NEW: kill has been surfaced into the API (disabled by compile flag by default)
 - FIX: kill now also deletes LAST file and its parent directories if empty
 - NEW: ocat --load-ghash can load revgeo db
