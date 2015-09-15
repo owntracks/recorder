@@ -524,10 +524,11 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			if ((j = json_find_member(geo, "addr")) != NULL) {
 				utstring_printf(addr, "%s", j->string_);
 			}
-			
+			json_delete(geo);
 		} else {
 			if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
 				gcache_json_put(ud->gc, utstring_body(ghash), geo);
+				json_delete(geo);
 			} else {
 				/* We didn't obtain reverse Geo, maybe because of over
 				 * quota; make a note of the missing geohash */
