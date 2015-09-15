@@ -87,9 +87,9 @@ mdb/liblmdb.a:
 	(cd mdb && make)
 
 install: ot-recorder ocat
-	mkdir -p $(BUILDROOT)$(INSTALLDIR)/{bin,sbin}
-	mkdir -p $(BUILDROOT)$(STORAGEDEFAULT)
-	mkdir -p $(BUILDROOT)$(DOCROOT)
-	cp -R docroot/* $(BUILDROOT)$(DOCROOT)/
-	install --mode 0755 ot-recorder $(BUILDROOT)$(INSTALLDIR)/sbin
-	install --mode 0755 ocat $(BUILDROOT)$(INSTALLDIR)/bin
+	mkdir -p $(DESTDIR)$(INSTALLDIR)/{bin,sbin}
+	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)
+	mkdir -p $(DESTDIR)$(DOCROOT)
+	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
+	install --mode 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
+	install --mode 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
