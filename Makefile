@@ -88,7 +88,7 @@ mdb/liblmdb.a:
 install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
-	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)
+	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)/ghash
 	mkdir -p $(DESTDIR)$(DOCROOT)
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install --mode 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
