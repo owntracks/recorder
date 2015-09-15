@@ -911,6 +911,13 @@ JsonNode *kill_datastore(char *user, char *device)
 		json_append_member(obj, "error", json_mkstring( strerror(errno)));
 	} else {
 		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+
+		/* Attempt to remove containing directory */
+		utstring_renew(path);
+		utstring_printf(path, "%s/rec/%s", STORAGEDIR, user);
+		if (rmdir(utstring_body(path)) == 0) {
+			olog(LOG_NOTICE, "removed %s", utstring_body(path));
+		}
 	}
 
 	utstring_renew(path);
