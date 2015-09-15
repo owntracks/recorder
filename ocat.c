@@ -377,13 +377,24 @@ int main(int argc, char **argv)
 		JsonNode *user_array;
 
 		if ((user_array = last_users(username, device)) != NULL) {
-			char *js;
 
-			if ((js = json_stringify(user_array, JSON_INDENT)) != NULL) {
-				printf("%s\n", js);
-				free(js);
+			if (otype == JSON) {
+				char *js;
+				if ((js = json_stringify(user_array, JSON_INDENT)) != NULL) {
+					printf("%s\n", js);
+					free(js);
+				}
+				json_delete(user_array);
+			} else if (otype == CSV) {
+				JsonNode *o = json_mkobject();
+
+				json_append_member(o, "locations", user_array);
+				csv_output(o, CSV, fields);
+				json_delete(o);
+
+			} else {
+				fprintf(stderr, "%s: unsupported output type for LAST\n", progname);
 			}
-			json_delete(user_array);
 		}
 		return (0);
 	}
