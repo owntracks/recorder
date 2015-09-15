@@ -19,6 +19,9 @@ CFLAGS += -DGHASHPREC=$(GHASHPREC)
 ifeq ($(HAVE_PING),yes)
 	CFLAGS += -DHAVE_PING=1
 endif
+ifeq ($(HAVE_KILL),yes)
+	CFLAGS += -DHAVE_KILL=1
+endif
 
 ifeq ($(HAVE_LMDB),yes)
 	CFLAGS += -DHAVE_LMDB=1 -Imdb/

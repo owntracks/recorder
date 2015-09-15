@@ -140,7 +140,9 @@ void usage(char *prog)
 	printf("           payload		Like RAW but JSON payload only\n");
 	printf("  --fields tst,lat,lon,...     	Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     	JSON object with last users\n");
+#if HAVE_KILL
 	printf("  --killdata                   	requires -u and -d\n");
+#endif
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
@@ -182,7 +184,10 @@ int main(int argc, char **argv)
 {
 	char *progname = *argv, *p;
 	int c;
-	int list = 0, killdata = 0, last = 0, limit = 0, dumpghash = FALSE, loadghash = FALSE;
+	int list = 0, last = 0, limit = 0, dumpghash = FALSE, loadghash = FALSE;
+#if HAVE_KILL
+	int killdata = FALSE;
+#endif
 	int revgeo = TRUE;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
@@ -231,7 +236,9 @@ int main(int argc, char **argv)
 			{ "precision",	required_argument, 0, 	2},
 			{ "dump-ghash",	no_argument, 0, 	3},
 			{ "load-ghash",	no_argument, 0, 	4},
+#if HAVE_KILL
 			{ "killdata",	no_argument, 0, 	'K'},
+#endif
 			{ "norevgeo",	no_argument, 0, 	'G'},
 		  	{0, 0, 0, 0}
 		  };
@@ -302,9 +309,11 @@ int main(int argc, char **argv)
 					exit(2);
 				}
 				break;
+#if HAVE_KILL
 			case 'K':
 				killdata = 1;
 				break;
+#endif
 			case 'L':
 				last = 1;
 				break;
@@ -334,6 +343,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
+#if HAVE_KILL
 	if (killdata) {
 		JsonNode *obj; //, *killed, *f;
 
@@ -358,6 +368,7 @@ int main(int argc, char **argv)
 		}
 		return (0);
 	}
+#endif
 
 	if (last) {
 		JsonNode *user_array;

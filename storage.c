@@ -842,6 +842,8 @@ char *gpx_string(JsonNode *location_array)
 	return (utstring_body(xml));
 }
 
+#if HAVE_KILL
+
 /*
  * Remove all data for a user's device. Return a JSON object with a status
  * and an array of deleted files.
@@ -893,6 +895,7 @@ JsonNode *kill_datastore(char *user, char *device)
 
 		p = utstring_body(fname);
 		if (remove(p) == 0) {
+			olog(LOG_NOTICE, "removed %s", p);
 			json_append_element(killed, json_mkstring(namelist[i]->d_name));
 		} else {
 			perror(p);
@@ -906,8 +909,33 @@ JsonNode *kill_datastore(char *user, char *device)
 	if (rmdir(utstring_body(path)) != 0) {
 		json_append_member(obj, "status", json_mkstring("ERROR"));
 		json_append_member(obj, "error", json_mkstring( strerror(errno)));
+	} else {
+		olog(LOG_NOTICE, "removed %s", utstring_body(path));
 	}
+
+	utstring_renew(path);
+	utstring_printf(path, "%s/last/%s/%s/%s-%s.json", STORAGEDIR, user, device, user, device);
+	if (remove(utstring_body(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+		json_append_member(obj, "last", json_mkstring(utstring_body(path)));
+	}
+
+	/* Attempt to remove containing directory */
+	utstring_renew(path);
+	utstring_printf(path, "%s/last/%s/%s", STORAGEDIR, user, device);
+	if (rmdir(utstring_body(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+	}
+
+	/* Attempt to remove it's parent directory */
+	utstring_renew(path);
+	utstring_printf(path, "%s/last/%s", STORAGEDIR, user);
+	if (rmdir(utstring_body(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+	}
+
 
 	json_append_member(obj, "killed", killed);
 	return (obj);
 }
+#endif /* HAVE_KILL */

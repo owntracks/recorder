@@ -278,6 +278,28 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	time_from = field(conn, "from");
 	time_to	  = field(conn, "to");
 
+#if HAVE_KILL
+	if (nparts == 1 && !strcmp(uparts[0], "kill")) {
+		JsonNode *deleted;
+
+		if (!u || !*u || !d || !*d) {
+			CLEANUP;
+			mg_send_status(conn, 416);
+			mg_printf_data(conn, "user and device are required\n");
+			return (MG_TRUE);
+		}
+
+		if ((deleted = kill_datastore(u, d)) == NULL) {
+			mg_send_status(conn, 416);
+			mg_printf_data(conn, "cannot kill data for %s/%s\n", u, d);
+			CLEANUP;
+			return (MG_TRUE);
+		}
+		CLEANUP;
+		return (json_response(conn, deleted));
+	}
+#endif /* HAVE_KILL */
+
 	if (nparts == 1 && !strcmp(uparts[0], "last")) {
                 JsonNode *user_array;
 

@@ -11,6 +11,9 @@ HAVE_LMDB ?= yes
 # Do you want support for the `pingping' monitoring feature?
 HAVE_PING ?= yes
 
+# Do you want support for removing data via the API? (Dangerous)
+HAVE_KILL ?= no
+
 # Where should the recorder store its data? This directory must
 # exist and be writeable by recorder (and readable by ocat)
 STORAGEDEFAULT = "/var/spool/owntracks/recorder/store"

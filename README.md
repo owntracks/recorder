@@ -304,6 +304,33 @@ The _recorder_ has a built-in HTTP server with which it servers static files fro
 
 The API basically serves the same data as _ocat_ is able to produce.
 
+## API
+
+The _recorder_'s API provides most of the function that are surfaced by _ocat_.
+Both GET and POST requests are supported, and if a username and device are
+needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers.
+From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
+respectively.
+
+
+#### `kill`
+
+If support for this is compiled in, this endpoint allows a client to remove data from _storage_. (Note: *any* client can do this, as there is no authentication/authorization in the _recorder_!)
+
+```
+curl 'http://127.0.0.1:8085/api/0/kill?user=ngin&device=ojo'
+
+{
+ "path": "s0/rec/ngin/ojo",
+ "status": "OK",
+ "last": "s0/last/ngin/ojo/ngin-ojo.json",
+ "killed": [
+  "2015-09.rec",
+ ]
+}
+```
+The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
+
 #### Environment
 
 The following environment variables control _ocat_'s behaviour:
