@@ -1,7 +1,7 @@
 include config.mk
 
 CFLAGS	=-Wall -Werror $(MOSQUITTO_INC)
-LIBS	= $(MOSQUITTO_LIB) -lmosquitto
+LIBS	= $(MORELIBS) $(MOSQUITTO_LIB) -lmosquitto
 LIBS 	+= -lcurl
 
 TARGETS=
@@ -33,7 +33,6 @@ endif
 ifeq ($(HAVE_HTTP),yes)
 	CFLAGS += -DHAVE_HTTP=1
 	OTR_OBJS += mongoose.o http.o
-	LIBS += -lssl
 endif
 
 ifeq ($(JSON_INDENT),yes)
