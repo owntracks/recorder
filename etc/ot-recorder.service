@@ -1,0 +1,23 @@
+# /etc/systemd/system/ot-recorder.service
+#	systemctl enable ot-recorder
+#	systemctl start ot-recorder
+#	journalctl -f
+[Unit]
+Description=OwnTracks Recorder
+
+[Service]
+Type=simple
+# User=
+Group=owntracks
+WorkingDirectory=/
+Environment='OTR_HOST=127.0.0.1'
+# Environment='OTR_USER=xxx'
+ExecStart=/usr/local/sbin/ot-recorder "owntracks/#"
+Restart=always
+RestartSec=15
+StandardOutput=null
+StandardError=syslog
+SyslogIdentifier=ot-recorder
+
+[Install]
+WantedBy=multi-user.target
