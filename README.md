@@ -306,19 +306,62 @@ The API basically serves the same data as _ocat_ is able to produce.
 
 ## API
 
-The _recorder_'s API provides most of the function that are surfaced by _ocat_.
+The _recorder_'s API provides most of the functions that are surfaced by _ocat_.
 Both GET and POST requests are supported, and if a username and device are
-needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers.
-From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
-respectively.
+needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters.
+(From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
+respectively.)
+
+The API endpoint is at `/api/0` and is followed by the verb.
+
+#### `monitor`
+
+Returns the content of the `monitor` file as plain text.
+
+```
+curl 'http://127.0.0.1:8083/api/0/monitor'
+1441962082 owntracks/jjolie/phone
+```
+
+#### `last`
+
+Returns a list of last users' positions. (Can be limited by _user_ and _device_.)
+
+```
+curl http://127.0.0.1:8083/api/0/last [-d user=jjolie [-d device=phone]]
+```
+
+#### `list`
+
+List users. If _user_ is specified, lists that user's devices. If both _user_ and _device_ are specified, lists that device's `.rec` files.
+
+#### `locations`
+
+Here comes the actual data. This lists users' locations and requires both _user_ and _device_. Output format is JSON unless a different _format_ is given (`json`, `geojson`, and `linestring` are supported).
+
+In order to limit the number of records returned, use _limit_ which causes a reverse search through the `.rec` files; this can be used to find the last N positions.
+
+Date/time ranges may be specified as _from_ and _to_ with dates/times specified as described for _ocat_ above.
+
+```
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d limit=1
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d format=geojson
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d from=2014-08-03
+```
+
+
+#### `block`
+
+Requires POST method and _user_. This is currently incomplete; it simply writes a key into LMDB consisting of "blockme user".
 
 
 #### `kill`
 
-If support for this is compiled in, this endpoint allows a client to remove data from _storage_. (Note: *any* client can do this, as there is no authentication/authorization in the _recorder_!)
+If support for this is compiled in, this API endpoint allows a client to remove data from _storage_. (Warning: *any* client can do this, as there is no authentication/authorization in the _recorder_!)
 
 ```
-curl 'http://127.0.0.1:8085/api/0/kill?user=ngin&device=ojo'
+curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
 
 {
  "path": "s0/rec/ngin/ojo",
