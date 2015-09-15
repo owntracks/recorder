@@ -1,0 +1,10 @@
+This is demo data. After installing the recorder with
+`make install', create a directory within your storage
+called `rec', within that one named `demo' and again
+therein `iphone`, and then copy `demo-iphone.rec' into 
+that so the result will be
+
+  <storagedirectory>/rec/demo/iphone/demo-iphone.rec
+
+You can then use this data for demonstration purposes,
+taking into account that it's dated 2015-08-24.
