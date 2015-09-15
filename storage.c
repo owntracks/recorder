@@ -138,6 +138,12 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 	last = json_mkobject();
 	if (json_copy_from_file(last, path) == TRUE) {
+		JsonNode *tst;
+
+		if ((tst = json_find_member(last, "tst")) != NULL) {
+			json_append_member(last, "isotst", json_mkstring(isotime(tst->number_)));
+		}
+
 		json_append_element(userlist, last);
 	} else {
 		json_delete(last);
