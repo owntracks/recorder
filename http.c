@@ -29,6 +29,7 @@
 #include "util.h"
 #include "misc.h"
 #include "storage.h"
+#include "geohash.h"
 #include "udata.h"
 #ifdef HAVE_HTTP
 # include "http.h"
@@ -226,11 +227,15 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 	mg_send_header(conn, "Content-Type", "application/json");
 	mg_send_header(conn, "Access-Control-Allow-Origin", "*");
 
-	if ((js = json_stringify(json, JSON_INDENT)) != NULL) {
-		mg_printf_data(conn, js);
-		free(js);
+	if (json == NULL) {
+		mg_printf_data(conn, "{}");
+	} else {
+		if ((js = json_stringify(json, JSON_INDENT)) != NULL) {
+			mg_printf_data(conn, js);
+			free(js);
+		}
+		json_delete(json);
 	}
-	json_delete(json);
 	return (MG_TRUE);
 }
 
@@ -257,7 +262,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	char *time_from = NULL, *time_to = NULL;
 	time_t s_lo, s_hi;
 	JsonNode *json, *obj, *locs;
-	// struct udata *ud = (struct udata *)conn->server_param;
+	struct udata *ud = (struct udata *)conn->server_param;
 
 
 	if ((nparts = splitter((char *)uri, "/", uparts)) == -1) {
@@ -391,6 +396,25 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			}
 		}
         }
+
+	if (nparts == 1 && !strcmp(uparts[0], "q")) {
+		JsonNode *geo = NULL;
+		char *lat = field(conn, "lat");
+		char *lon = field(conn, "lon");
+		char *ghash;
+
+		if (lat && lon) {
+			if ((ghash = geohash_encode(atof(lat), atof(lon), geohash_prec())) != NULL) {
+				geo = gcache_json_get(ud->gc, ghash);
+				free(ghash);
+			}
+		}
+
+		if (lat) free(lat);
+		if (lon) free(lon);
+
+		return (json_response(conn, geo));
+	}
 
 	// mg_printf_data(conn, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
 	mg_printf_data(conn, "no comprendo");

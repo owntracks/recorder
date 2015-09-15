@@ -352,6 +352,20 @@ curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d format=ge
 curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d from=2014-08-03
 ```
 
+#### `q`
+
+Query the geo cache for a particular _lat_ and _lon_.
+
+```
+curl 'http://127.0.0.1:8083/api/0/q?lat=48.85833&lon=2.295'
+{
+ "cc": "FR",
+ "addr": "9 Avenue Anatole France, 75007 Paris, France",
+ "tst": 1441984405
+}
+```
+
+The reported timestamp was the time at which this cache entry was made. Note that this interface queries only -- it does not populate the cache.
 
 #### `block`
 
