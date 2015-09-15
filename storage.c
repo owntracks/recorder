@@ -517,6 +517,7 @@ static JsonNode *line_to_location(char *line)
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
 
 	get_geo(o, ghash);
+	free(ghash);
 
 	return (o);
 }
