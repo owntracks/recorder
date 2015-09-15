@@ -171,6 +171,9 @@ void print_versioninfo()
 #ifdef HAVE_PING
 	printf("\tHAVE_PING = yes\n");
 #endif
+#ifdef HAVE_KILL
+	printf("\tHAVE_KILL = yes\n");
+#endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
