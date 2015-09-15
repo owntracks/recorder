@@ -248,6 +248,8 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 #define MAXPARTS 40
 
 #define CLEANUP do {\
+		int k; \
+		for (k = 0; k < nparts; k++) free(uparts[k]);\
 		if (u) free(u);\
 		if (d) free(d);\
 		if (time_from) free(time_from);\
@@ -339,7 +341,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		return (MG_TRUE);
 	}
 
-	fprintf(stderr, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
+	// fprintf(stderr, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
 
 	/* /list			[<username>[<device>]] */
 
@@ -412,10 +414,12 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 		if (lat) free(lat);
 		if (lon) free(lon);
+		CLEANUP;
 
 		return (json_response(conn, geo));
 	}
 
+	CLEANUP;
 	// mg_printf_data(conn, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
 	mg_printf_data(conn, "no comprendo");
 
