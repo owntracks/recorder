@@ -49,7 +49,7 @@ CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 
 
 
-TARGETS += ot-recorder ocat ghashfind
+TARGETS += ot-recorder ocat
 
 all: $(TARGETS)
 
@@ -58,9 +58,6 @@ ot-recorder: ot-recorder.o $(OTR_OBJS)
 
 ocat: ocat.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
-
-ghashfind: ghashfind.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) -o ghashfind ghashfind.o $(OTR_OBJS) $(LIBS)
 
 
 ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk
@@ -71,7 +68,6 @@ gcache.o: gcache.c gcache.h json.h config.mk
 misc.o: misc.c misc.h udata.h Makefile config.mk
 http.o: http.c mongoose.h util.h http.h storage.h config.mk
 util.o: util.c util.h Makefile config.mk
-ghashfind.o: ghashfind.c util.h config.mk
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h config.mk version.h
 storage.o: storage.c storage.h util.h gcache.h config.mk
@@ -80,7 +76,7 @@ storage.o: storage.c storage.h util.h gcache.h config.mk
 clean:
 	rm -f *.o
 clobber: clean
-	rm -f ot-recorder ocat ghashfind
+	rm -f ot-recorder ocat
 
 mdb/liblmdb.a:
 	(cd mdb && make)

@@ -1,10 +1,9 @@
 *.o
 ot-recorder
 ocat
-ghashfind
 *.dSYM
 .DS_Store
 store/
 jpm-test/
 config.mk
-config.h
+obsolete/
