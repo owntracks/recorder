@@ -16,10 +16,10 @@ HAVE_KILL ?= no
 
 # Where should the recorder store its data? This directory must
 # exist and be writeable by recorder (and readable by ocat)
-STORAGEDEFAULT = "/var/spool/owntracks/recorder/store"
+STORAGEDEFAULT = /var/spool/owntracks/recorder/store
 
 # Where should the recorder find its document root (HTTP)?
-DOCROOT = "/var/spool/owntracks/recorder/htdocs"
+DOCROOT = /var/spool/owntracks/recorder/htdocs
 
 # Define the precision for reverse-geo lookups. The higher
 # the number, the more granular reverse-geo will be:
