@@ -87,7 +87,7 @@ install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)/ghash
 	mkdir -p $(DESTDIR)$(DOCROOT)
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
-	install --mode 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
-	install --mode 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
+	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
+	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
 	# mkdir -p $(DESTDIR)/etc/systemd/system/
 	# install --mode 0644 etc/ot-recorder.service $(DESTDIR)/etc/systemd/system/ot-recorder.service
