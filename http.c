@@ -382,11 +382,11 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		if (otype == JSON) {
 			return (json_response(conn, obj));
 		} else if (otype == LINESTRING) {
-			JsonNode *geolinestring = geo_linestring(locs);
+			JsonNode *geoline = geo_linestring(locs);
 
-			if (geolinestring != NULL) {
+			if (geoline != NULL) {
 				json_delete(obj);
-				return (json_response(conn, geolinestring));
+				return (json_response(conn, geoline));
 			}
 
 		} else if (otype == GEOJSON) {
