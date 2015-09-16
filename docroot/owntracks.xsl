@@ -14,6 +14,7 @@
     <td><xsl:value-of select="lat"/>, <xsl:value-of select="lon"/></td>
     <td><xsl:value-of select="ghash"/></td>
     <td><xsl:value-of select="addr"/></td>
+    <td><xsl:value-of select="cc"/></td>
 
   </tr>
 </xsl:for-each>

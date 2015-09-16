@@ -953,3 +953,88 @@ JsonNode *kill_datastore(char *user, char *device)
 	return (obj);
 }
 #endif /* HAVE_KILL */
+
+/*
+ * Print the value in a single JSON node as XML by invoking func(). If string,
+ * easy. If number account for what we call 'integer' types which shouldn't be
+ * printed as floats.
+ */
+
+static void emit_one(JsonNode *j, JsonNode *inttypes, void (func)(char *line, void *param), void *param)
+{
+	static UT_string *line = NULL;
+
+
+	if (!strcmp(j->key, "_type"))
+		return;
+
+	utstring_renew(line);
+	utstring_printf(line, "  <%s>", j->key);
+	/* Check if the value should be an "integer" (ie not float) */
+	if (j->tag == JSON_NUMBER) {
+		if (json_find_member(inttypes, j->key)) {
+			utstring_printf(line, "%.lf", j->number_);
+		} else {
+			utstring_printf(line, "%lf", j->number_);
+		}
+	} else if (j->tag == JSON_STRING) {
+		char *bp;
+
+		for (bp = j->string_; bp && *bp; bp++) {
+			switch (*bp) {
+				case '&':	utstring_printf(line, "&amp;"); break;
+				case '<':	utstring_printf(line, "&lt;"); break;
+				case '>':	utstring_printf(line, "&gt;"); break;
+				case '"':	utstring_printf(line, "&quot;"); break;
+				case '\'':	utstring_printf(line, "&apos;"); break;
+				default:	utstring_printf(line, "%c", *bp); break;
+			}
+		}
+	} else if (j->tag == JSON_BOOL) {
+		utstring_printf(line, "%s", (j->bool_) ? "true" : "false");
+	} else if (j->tag == JSON_NULL) {
+		utstring_printf(line, "null");
+	}
+	utstring_printf(line, "</%s>", j->key);
+	func(utstring_body(line), param);
+}
+
+void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)
+{
+	JsonNode *node, *inttypes;
+	JsonNode *arr, *one, *j;
+
+	/* Prime the inttypes object with types we consider "integer" */
+	inttypes = json_mkobject();
+	json_append_member(inttypes, "batt", json_mkbool(1));
+	json_append_member(inttypes, "vel", json_mkbool(1));
+	json_append_member(inttypes, "cog", json_mkbool(1));
+	json_append_member(inttypes, "tst", json_mkbool(1));
+	json_append_member(inttypes, "alt", json_mkbool(1));
+	json_append_member(inttypes, "dist", json_mkbool(1));
+	json_append_member(inttypes, "trip", json_mkbool(1));
+
+	func("<?xml version='1.0' encoding='UTF-8'?>\n\
+	<?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>", param);
+	func("<owntracks>", param);
+
+	arr = json_find_member(json, "locations");
+	json_foreach(one, arr) {
+		func(" <point>", param);
+		if (fields) {
+			json_foreach(node, fields) {
+				if ((j = json_find_member(one, node->string_)) != NULL) {
+					emit_one(j, inttypes, func, param);
+				}
+			}
+		} else {
+			json_foreach(j, one) {
+				emit_one(j, inttypes, func, param);
+			}
+		}
+		func(" </point>\n", param);
+	}
+	func("</owntracks>", param);
+
+	json_delete(inttypes);
+}

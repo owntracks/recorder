@@ -29,5 +29,6 @@ char *gpx_string(JsonNode *json);
 void storage_init(int revgeo);
 void storage_gcache_dump();
 void storage_gcache_load();
+void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param);
 
 #endif

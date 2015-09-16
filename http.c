@@ -229,6 +229,22 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 	return (MG_TRUE);
 }
 
+static void emit_xml_line(char *line, void *param)
+{
+	struct mg_connection *conn = (struct mg_connection *)param;
+
+	mg_printf_data(conn, line);
+	mg_printf_data(conn, "\n");
+}
+
+static int xml_response(struct mg_connection *conn, JsonNode *obj)
+{
+	/* TODO: support fields? */
+	xml_output(obj, CSV, NULL, emit_xml_line, conn);
+
+	json_delete(obj);
+	return (MG_TRUE);
+}
 
 /*
  * We are being called with the portion behind /api/0/ as in
@@ -317,6 +333,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			otype = JSON;
 		else if (!strcmp(buf, "linestring"))
 			otype = LINESTRING;
+		else if (!strcmp(buf, "xml"))
+			otype = XML;
 		else {
 			mg_send_status(conn, 400);
 			mg_printf_data(conn, "unrecognized format\n");
@@ -372,6 +390,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 		if (otype == JSON) {
 			return (json_response(conn, obj));
+		} else if (otype == XML) {
+			return (xml_response(conn, obj));
 		} else if (otype == LINESTRING) {
 			JsonNode *geoline = geo_linestring(locs);
 
