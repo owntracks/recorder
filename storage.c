@@ -387,8 +387,8 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 	utstring_renew(path);
 
 	/* Set global t_ values */
-	t_lo = s_lo; //month_part(s_lo);
-	t_hi = s_hi; //month_part(s_hi);
+	t_lo = s_lo;
+	t_hi = s_hi;
 
 	if ((n = scandir(pathpat, &namelist, filter_filename, cmp)) < 0) {
 		json_append_member(obj, "error", json_mkstring("Cannot lsscan requested directory"));
