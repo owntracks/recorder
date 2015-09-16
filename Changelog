@@ -1,3 +1,15 @@
+2015-09-15 version 0.3.0
+- FIX: ocat lowercases device/username (reported by tiptronic)
+- NEW: XML support in storage and ocat --format xml
+- FIX: display (lat,lon) in table if no address available
+- FIX: nasty memory leak in locations from storage
+- FIX: LAST now carries isotst
+- FIX: ocat --last now supports CSV output (with fields)
+- NEW: demo data in etc/ with description
+- NEW: index.html has links to -12h, -7d, and -30d for convenience
+- NEW: add API q= to query geo cache for particular lat,lon
+- FIX: close two memory leaks
+- NEW: add systemd unit file
 
 2015-09-15 version 0.2.9
 - FIX: added API description and diagram to documentation
