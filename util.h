@@ -29,5 +29,6 @@ int safewrite(char *filename, char *buf);
 void olog(int level, char *fmt, ...);
 void geohash_setprec(int precision);
 int geohash_prec(void);
+void lowercase(char *s);
 
 #endif

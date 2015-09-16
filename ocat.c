@@ -488,6 +488,9 @@ int main(int argc, char **argv)
 		return (0);
 	}
 
+	lowercase(username);
+	lowercase(device);
+
 	if (!username && device) {
 		fprintf(stderr, "%s: device name without username doesn't make sense\n", progname);
 		return (-2);

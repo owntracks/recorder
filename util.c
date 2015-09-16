@@ -540,3 +540,13 @@ int geohash_prec(void)
 {
 	return (_precision);
 }
+
+void lowercase(char *s)
+{
+        char *bp;
+
+        for (bp = s; bp && *bp; bp++) {
+                if (isupper(*bp))
+                        *bp = tolower(*bp);
+        }
+}

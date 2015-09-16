@@ -37,16 +37,6 @@
 
 #ifdef HAVE_HTTP
 
-static void lowercase(char *s)
-{
-	char *bp;
-
-	for (bp = s; bp && *bp; bp++) {
-		if (isupper(*bp))
-			*bp = tolower(*bp);
-	}
-}
-
 /*
  * Return a lowercased copy of a GET/POST parameter or NULL. The parameter
  * may be overriden by an HTTP header called X-Limit-<fieldname>.
