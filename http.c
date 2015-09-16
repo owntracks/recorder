@@ -356,8 +356,9 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 	if (nparts == 1 && !strcmp(uparts[0], "locations")) {
                 /*
-                 * Obtain a list of .rec files from lister(), possibly limited by s_lo/s_hi times,
-                 * process each and build the JSON `obj' with an array of locations.
+		 * Obtain a list of .rec files from lister(), possibly limited
+		 * by s_lo/s_hi times, process each and build the JSON `obj'
+		 * with an array of locations.
                  */
 
 		obj = json_mkobject();
@@ -368,7 +369,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 			CLEANUP;
 
-                        if ((arr = json_find_member(json, "results")) != NULL) { // get array
+                        if ((arr = json_find_member(json, "results")) != NULL) {
 				JsonNode *f;
                                 json_foreach(f, arr) {
                                         locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, NULL);

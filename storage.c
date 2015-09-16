@@ -155,9 +155,8 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 	card = json_mkobject();
 	if (json_copy_from_file(card, path) == TRUE) {
 		json_copy_to_object(last, card, FALSE);
-	} else {
-		json_delete(card);
 	}
+	json_delete(card);
 
 	if ((node = json_find_member(last, "ghash")) != NULL) {
 		if (node->tag == JSON_STRING) {
@@ -311,7 +310,6 @@ static void ls(char *path, JsonNode *obj)
 
         while ((dp = readdir(dirp)) != NULL) {
                 if ((*dp->d_name != '.') && (dp->d_type == DT_DIR)) {
-                        // char *s = strdup(dp->d_name);
 			json_append_element(jarr, json_mkstring(dp->d_name));
                 }
         }
@@ -503,6 +501,7 @@ static JsonNode *line_to_location(char *line)
 		json_delete(json);
 		return (NULL);
 	}
+	json_delete(json);	/* Done with this -- we've copied it. */
 
 	lat = lon = 0.0;
 	if ((j = json_find_member(o, "lat")) != NULL) {
