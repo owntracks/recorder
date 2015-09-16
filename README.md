@@ -99,6 +99,32 @@ Some example uses we consider useful:
     print the LAST position of all users, devices. Can be combined with `--user` and `--device`.
 * `ocat ... --format csv`
    produces CSV. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
+* `ocat ... --format xml`
+   produces XML. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
+```
+<?xml version='1.0' encoding='UTF-8'?>
+        <?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>
+<owntracks>
+ <point>
+  <tst>1440395361</tst>
+  <acc>3000.000000</acc>
+  <alt>51</alt>
+  <lon>10.027857</lon>
+  <vac>29.000000</vac>
+  <vel>-1</vel>
+  <lat>52.378886</lat>
+  <cog>-1</cog>
+  <tid>NE</tid>
+  <batt>96</batt>
+  <ghash>u1r1upq</ghash>
+  <cc>DE</cc>
+  <addr>Heidecker Weg 86, 31275 Lehrte, Germany</addr>
+  <isorcv>2015-08-24T05:55:07Z</isorcv>
+  <isotst>2015-08-24T05:49:21Z</isotst>
+ </point>
+ ...
+</owntracks>
+```
 * `ocat ... --limit 10`
    prints data  for the current month, starting now and going backwards; only 10 locations will be printed. Generally, the `--limit` option reads the storage back to front which makes no sense in some combinations.
 

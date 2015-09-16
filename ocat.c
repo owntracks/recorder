@@ -56,6 +56,44 @@ static void print_one(JsonNode *j, JsonNode *inttypes)
 }
 
 /*
+ * Print the value in a single JSON node as XML. If string, easy. If number account for
+ * what we call 'integer' types which shouldn't be printed as floats.
+ */
+
+static void emit_one(JsonNode *j, JsonNode *inttypes)
+{
+	if (!strcmp(j->key, "_type"))
+		return;
+
+	printf("  <%s>", j->key);
+	/* Check if the value should be an "integer" (ie not float) */
+	if (j->tag == JSON_NUMBER) {
+		if (json_find_member(inttypes, j->key)) {
+			printf("%.lf", j->number_);
+		} else {
+			printf("%lf", j->number_);
+		}
+	} else if (j->tag == JSON_STRING) {
+		char *bp;
+
+		for (bp = j->string_; bp && *bp; bp++) {
+			switch (*bp) {
+				case '&':	printf("&amp;"); break;
+				case '<':	printf("&lt;"); break;
+				case '>':	printf("&gt;"); break;
+				case '"':	printf("&quot;"); break;
+				case '\'':	printf("&apos;"); break;
+				default:	putc(*bp, stdout); break;
+			}
+		}
+	} else if (j->tag == JSON_BOOL) {
+		printf("%s", (j->bool_) ? "true" : "false");
+	} else if (j->tag == JSON_NULL) {
+		printf("null");
+	}
+	printf("</%s>\n", j->key);
+}
+/*
  * Output location data as CSV. If `fields' is not NULL, it's a JSON
  * array of JSON elment names which should be printed instead of the
  * default ALL.
@@ -116,6 +154,47 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
 	json_delete(inttypes);
 }
 
+
+void xml_output(JsonNode *json, output_type otype, JsonNode *fields)
+{
+	JsonNode *node, *inttypes;
+	JsonNode *arr, *one, *j;
+
+	/* Prime the inttypes object with types we consider "integer" */
+	inttypes = json_mkobject();
+	json_append_member(inttypes, "batt", json_mkbool(1));
+	json_append_member(inttypes, "vel", json_mkbool(1));
+	json_append_member(inttypes, "cog", json_mkbool(1));
+	json_append_member(inttypes, "tst", json_mkbool(1));
+	json_append_member(inttypes, "alt", json_mkbool(1));
+	json_append_member(inttypes, "dist", json_mkbool(1));
+	json_append_member(inttypes, "trip", json_mkbool(1));
+
+	printf("<?xml version='1.0' encoding='UTF-8'?>\n\
+	<?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>\n");
+	printf("<owntracks>\n");
+
+	arr = json_find_member(json, "locations");
+	json_foreach(one, arr) {
+		printf(" <point>\n");
+		if (fields) {
+			json_foreach(node, fields) {
+				if ((j = json_find_member(one, node->string_)) != NULL) {
+					emit_one(j, inttypes);
+				}
+			}
+		} else {
+			json_foreach(j, one) {
+				emit_one(j, inttypes);
+			}
+		}
+		printf(" </point>\n\n");
+	}
+	printf("</owntracks>\n");
+
+	json_delete(inttypes);
+}
+
 void usage(char *prog)
 {
 	printf("Usage: %s [options..] [file ...]\n", prog);
@@ -136,6 +215,7 @@ void usage(char *prog)
 	printf("           geojson		Geo-JSON points\n");
 	printf("           linestring		Geo-JSON LineString\n");
 	printf("           gpx\n");
+	printf("           xml\n");
 	printf("           raw\n");
 	printf("           payload		Like RAW but JSON payload only\n");
 	printf("  --fields tst,lat,lon,...     	Choose fields for CSV. (dflt: ALL)\n");
@@ -303,6 +383,8 @@ int main(int argc, char **argv)
 					otype = RAW;
 				else if (!strcmp(optarg, "payload"))
 					otype = RAWPAYLOAD;
+				else if (!strcmp(optarg, "xml"))
+					otype = XML;
 				else if (!strcmp(optarg, "gpx"))
 					otype = GPX;
 				else if (!strcmp(optarg, "csv"))
@@ -390,6 +472,13 @@ int main(int argc, char **argv)
 
 				json_append_member(o, "locations", user_array);
 				csv_output(o, CSV, fields);
+				json_delete(o);
+
+			} else if (otype == XML) {
+				JsonNode *o = json_mkobject();
+
+				json_append_member(o, "locations", user_array);
+				xml_output(o, CSV, fields);
 				json_delete(o);
 
 			} else {
@@ -503,6 +592,8 @@ int main(int argc, char **argv)
 
 	} else if (otype == CSV) {
 		csv_output(obj, CSV, fields);
+	} else if (otype == XML) {
+		xml_output(obj, XML, fields);
 	} else if (otype == RAW || otype == RAWPAYLOAD) {
 		/* We've already done what we need to do in locations() */
 	} else if (otype == LINESTRING) {
