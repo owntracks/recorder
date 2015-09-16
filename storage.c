@@ -500,6 +500,7 @@ static JsonNode *line_to_location(char *line)
 
 	if (json_copy_to_object(o, json, FALSE) == FALSE) {
 		json_delete(o);
+		json_delete(json);
 		return (NULL);
 	}
 
@@ -513,7 +514,10 @@ static JsonNode *line_to_location(char *line)
 
 	if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
 		json_append_member(o, "ghash", json_mkstring(ghash));
+		get_geo(o, ghash);
+		free(ghash);
 	}
+
 	json_append_member(o, "isorcv", json_mkstring(tstamp));
 
 	tst = 0L;
@@ -521,9 +525,6 @@ static JsonNode *line_to_location(char *line)
 		tst = j->number_;
 	}
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
-
-	get_geo(o, ghash);
-	free(ghash);
 
 	return (o);
 }
