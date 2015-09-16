@@ -62,7 +62,7 @@
 
 		var dt = moment.utc(d.tst * 1000).local();
 		d['fulldate']	= dt.format("DD MMM YYYY HH:mm:ss");
-		d['addr']	= d['addr'] || '(unknown)';
+		d['addr']	= d['addr'] || '(' + d['lat'] + ',' + d['lon'] + ')';
 		d['cc']		= d['cc'] || '__';
 		d['tid']	= d['tid'] || '__';
 
