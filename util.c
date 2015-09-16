@@ -165,10 +165,12 @@ int json_copy_from_file(JsonNode *obj, char *filename)
 
 	if ((node = json_decode(js_string)) == NULL) {
 		fprintf(stderr, "json_copy_from_file can't decode JSON from %s\n", filename);
+		free(js_string);
 		return (FALSE);
 	}
 	json_copy_to_object(obj, node, FALSE);
 	json_delete(node);
+	free(js_string);
 
 	return (TRUE);
 }
