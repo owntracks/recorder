@@ -153,7 +153,7 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 #endif
 
 	curl_easy_setopt(curl, CURLOPT_URL, utstring_body(url));
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "ot-recorder-agent/1.0");
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writemem);
