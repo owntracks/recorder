@@ -214,7 +214,7 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 	MDB_val key, data;
 	MDB_txn *txn;
 	int rc;
-	JsonNode *geo = NULL;
+	JsonNode *json = NULL;
 
 	if (gc == NULL)
 		return (NULL);
@@ -234,18 +234,18 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 			olog(LOG_ERR, "gcache_json_get(%s): %s", k, mdb_strerror(rc));
 		} else {
 			// printf(" [%s] not found\n", k);
-			geo = NULL;
+			json = NULL;
 		}
 	} else {
 		// printf("%s\n", (char *)data.mv_data);
-		if ((geo = json_decode((char *)data.mv_data)) == NULL) {
+		if ((json = json_decode((char *)data.mv_data)) == NULL) {
 			olog(LOG_ERR, "gcache_json_get: Cannot decode JSON from lmdb");
 		}
 	}
 
 	mdb_txn_commit(txn);
 
-	return (geo);
+	return (json);
 }
 
 void gcache_dump(struct gcache *gc)
