@@ -948,6 +948,21 @@ JsonNode *kill_datastore(char *user, char *device)
 		olog(LOG_NOTICE, "removed %s", utstring_body(path));
 	}
 
+	/* Attempt to remove CARD ... */
+	utstring_renew(path);
+	utstring_printf(path, "%s/cards/%s/%s.json", STORAGEDIR, user, user);
+	if (remove(utstring_body(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+		json_append_member(obj, "card", json_mkstring(utstring_body(path)));
+	}
+
+	/* ... and it's parent directory */
+	utstring_renew(path);
+	utstring_printf(path, "%s/cards/%s", STORAGEDIR, user);
+	if (rmdir(utstring_body(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+	}
+
 
 	json_append_member(obj, "killed", killed);
 	return (obj);
