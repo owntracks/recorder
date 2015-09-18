@@ -1030,6 +1030,7 @@ int main(int argc, char **argv)
 
 		mg_set_option(udata.mgserver, "document_root", doc_root);
 		mg_set_option(udata.mgserver, "enable_directory_listing", "yes");
+		mg_set_option(udata.mgserver, "auth_domain", "owntracks-recorder");
 		// mg_set_option(udata.mgserver, "access_log_file", "access.log");
 		// mg_set_option(udata.mgserver, "cgi_pattern", "**.cgi");
 
@@ -1047,7 +1048,7 @@ int main(int argc, char **argv)
 		}
 #ifdef HAVE_HTTP
 		if (udata.mgserver) {
-			mg_poll_server(udata.mgserver, 50);
+			mg_poll_server(udata.mgserver, 200);
 		}
 #endif
 	}
