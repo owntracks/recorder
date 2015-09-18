@@ -1,7 +1,7 @@
 #ifndef UDATA_H_INCLUDED
 # define UDATA_H_INCLUDED
 
-#include "utarray.h"
+#include "json.h"
 
 #ifdef HAVE_HTTP
 # include "mongoose.h"
@@ -12,7 +12,7 @@
 
 
 struct udata {
-	UT_array *topics;		/* Array of topics to subscribe to */
+	JsonNode *topics;		/* Array of topics to subscribe to */
 	int ignoreretained;		/* True if retained messages should be ignored */
 	char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
 	int skipdemo;			/* True if _demo users are to be skipped */

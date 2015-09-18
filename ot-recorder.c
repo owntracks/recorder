@@ -33,7 +33,6 @@
 #include "json.h"
 #include <sys/utsname.h>
 #include "utstring.h"
-#include "utarray.h"
 #include "geo.h"
 #include "geohash.h"
 #include "base64.h"
@@ -658,11 +657,13 @@ void on_connect(struct mosquitto *mosq, void *userdata, int rc)
 {
 	struct udata *ud = (struct udata *)userdata;
 	int mid;
-	char **m = NULL;
+	JsonNode *t;
 
-	while ((m = (char **)utarray_next(ud->topics, m))) {
-		olog(LOG_DEBUG, "Subscribing to %s (qos=%d)", *m, ud->qos);
-		mosquitto_subscribe(mosq, &mid, *m, ud->qos);
+	json_foreach(t, ud->topics) {
+		if (t->tag == JSON_STRING) {
+			olog(LOG_DEBUG, "Subscribing to %s (qos=%d)", t->string_, ud->qos);
+			mosquitto_subscribe(mosq, &mid, t->string_, ud->qos);
+		}
 	}
 }
 
@@ -957,9 +958,9 @@ int main(int argc, char **argv)
 	 * Pushing list of topics into the array so that we can (re)subscribe on_connect()
 	 */
 
-	utarray_new(ud->topics, &ut_str_icd);
+	ud->topics = json_mkarray();
 	for (i = 0; i < argc; i++) {
-		utarray_push_back(ud->topics, &argv[i]);
+		json_append_element(ud->topics, json_mkstring(argv[i]));
 	}
 
 	mosquitto_reconnect_delay_set(mosq,
@@ -1052,6 +1053,8 @@ int main(int argc, char **argv)
 		}
 #endif
 	}
+
+	json_delete(ud->topics);
 
 #ifdef HAVE_HTTP
 	mg_destroy_server(&udata.mgserver);
