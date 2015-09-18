@@ -11,7 +11,7 @@ There are two main components: the _recorder_ obtains, stores, and serves data, 
 The _recorder_ serves two purposes:
 
 1. It subscribes to an MQTT broker and awaits messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of files on the file system.
-2. It provides an HTTP interface (REST API) from which you can obtain this data in different formats.
+2. It provides a Web server which serves static pages with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
 
 Some examples of what the _recorder_'s built-in HTTP server is capable of:
 
