@@ -705,7 +705,7 @@ void usage(char *prog)
 	printf("  --logfacility		       syslog facility (local0)\n");
 #ifdef HAVE_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
-	printf("  --http-port <port>	-A     HTTP port (8083)\n");
+	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
