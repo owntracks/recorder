@@ -173,6 +173,9 @@ void print_versioninfo()
 #ifdef HAVE_LMDB
 	printf("\tHAVE_LMDB = yes\n");
 #endif
+#ifdef WITH_LUA
+	printf("\tWITH_LUA  = yes\n");
+#endif
 #ifdef HAVE_HTTP
 	printf("\tHAVE_HTTP = yes\n");
 #endif

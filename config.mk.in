@@ -8,6 +8,9 @@ HAVE_HTTP ?= yes
 # Do you want to use reverse-geo caching? (Highly recommended)
 HAVE_LMDB ?= yes
 
+# Do you have Lua libraries installed and want the Lua hook integration?
+WITH_LUA ?= no
+
 # Do you want support for the `pingping' monitoring feature?
 HAVE_PING ?= yes
 
@@ -51,3 +54,6 @@ APIKEY ?=
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
 MORELIBS = # -lssl
+
+LUA_CFLAGS =
+LUA_LIBS   = -llua

@@ -24,6 +24,9 @@ struct udata {
 #ifdef HAVE_HTTP
 	struct mg_server *mgserver;	/* Mongoose */
 #endif
+#ifdef WITH_LUA
+	struct luadata *luadata;	/* Lua stuff */
+#endif
 };
 
 #endif

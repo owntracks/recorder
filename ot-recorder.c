@@ -45,6 +45,9 @@
 #ifdef HAVE_HTTP
 # include "http.h"
 #endif
+#ifdef WITH_LUA
+# include "hooks.h"
+#endif
 
 
 #define SSL_VERIFY_PEER (1)
@@ -357,7 +360,7 @@ JsonNode *csv(char *payload, char *tid, char *t, double *lat, double *lon, long 
 
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
-	JsonNode *json;
+	JsonNode *json, *fullo, *geo = NULL;
 	char tid[BUFSIZ], t[BUFSIZ], *p;
 	double lat, lon;
 	long tst;
@@ -510,7 +513,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
-		JsonNode *geo, *j;
+		JsonNode *j;
 
 		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
 			/* Habemus cached data */
@@ -523,11 +526,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			if ((j = json_find_member(geo, "addr")) != NULL) {
 				utstring_printf(addr, "%s", j->string_);
 			}
-			json_delete(geo);
 		} else {
 			if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
 				gcache_json_put(ud->gc, utstring_body(ghash), geo);
-				json_delete(geo);
 			} else {
 				/* We didn't obtain reverse Geo, maybe because of over
 				 * quota; make a note of the missing geohash */
@@ -551,44 +552,50 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
 	 */
 
+	/*
+	 * Create a new location object containing all the bits and
+	 * pieces we need and push that into connected Websockets.
+	 * and/or into Lua hooks.
+	 */
+
+	fullo = json_mkobject();
+	json_copy_to_object(fullo, json, TRUE);
+
+	if (geo != NULL) {
+		json_copy_to_object(fullo, geo, FALSE);
+		json_delete(geo);
+	}
+
+	/*
+	 * I need a unique "key" in the Websocket clients to keep track
+	 * of which device is being updated; use topic.
+	 */
+
+	json_append_member(fullo, "topic", json_mkstring(m->topic));
+
+	/*
+	 * We have to know which user/device this is for in order to
+	 * determine whether a connected Websocket client is authorized
+	 * to see this. Add user/device
+	 */
+
+	json_append_member(fullo, "user", json_mkstring(utstring_body(username)));
+	json_append_member(fullo, "device", json_mkstring(utstring_body(device)));
+
 #ifdef HAVE_HTTP
 	if (ud->mgserver && !pingping) {
 
-		/*
-		 * Create a new location object containing all the bits and
-		 * pieces we need and push that into connected Websockets.
-		 * TODO: clean up
-		 */
 
-		JsonNode *geo, *wso = json_mkobject();
-
-		json_copy_to_object(wso, json, TRUE);
-
-		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
-			json_copy_to_object(wso, geo, FALSE);
-			json_delete(geo);
-		}
-
-		/*
-		 * I need a unique "key" in the Websocket clients to keep track
-		 * of which device is being updated; use topic.
-		 */
-
-		json_append_member(wso, "topic", json_mkstring(m->topic));
-
-		/*
-		 * We have to know which user/device this is for in order to
-		 * determine whether a connected Websocket client is authorized
-		 * to see this. Add user/device
-		 */
-
-		json_append_member(wso, "user", json_mkstring(utstring_body(username)));
-		json_append_member(wso, "device", json_mkstring(utstring_body(device)));
-
-		http_ws_push_json(ud->mgserver, wso);
-		json_delete(wso);
+		http_ws_push_json(ud->mgserver, fullo);
 	}
 #endif
+
+#ifdef WITH_LUA
+	if (ud->luadata && !pingping) {
+		hooks_hook(ud, m->topic, fullo);
+	}
+#endif
+	json_delete(fullo);
 
 	
 	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
@@ -685,8 +692,7 @@ void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 static void catcher(int sig)
 {
         fprintf(stderr, "Going down on signal %d\n", sig);
-
-        exit(1);
+	run = 0;
 }
 
 void usage(char *prog)
@@ -707,6 +713,9 @@ void usage(char *prog)
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
+#endif
+#ifdef WITH_LUA
+	printf("  --lua-script <script.lua>    path to Lua script. If unset, no Lua hooks\n");
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --hosted		       use OwnTracks Hosted\n");
@@ -732,6 +741,9 @@ int main(int argc, char **argv)
 	struct mosquitto *mosq = NULL;
 	char err[1024], *p, *username, *password, *cafile, *device;
 	char *hostname = "localhost", *logfacility = "local0";
+#ifdef WITH_LUA
+	char *luascript = NULL;
+#endif
 	int port = 1883;
 	int rc, i, ch, hosted = FALSE;
 	static struct udata udata, *ud = &udata;
@@ -754,6 +766,9 @@ int main(int argc, char **argv)
 #endif
 #ifdef HAVE_HTTP
 	udata.mgserver		= NULL;
+#endif
+#ifdef WITH_LUA
+	udata.luadata		= NULL;
 #endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
@@ -790,6 +805,9 @@ int main(int argc, char **argv)
 			{ "logfacility",	required_argument,	0, 	4},
 			{ "precision",	required_argument,	0, 	5},
 			{ "hosted",	no_argument,		0, 	6},
+#ifdef WITH_LUA
+			{ "lua-script",	required_argument,	0, 	7},
+#endif
 #ifdef HAVE_HTTP
 			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
@@ -804,6 +822,12 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+#ifdef WITH_LUA
+			case 7:
+				/* FIXME: check existence of script file */
+				luascript = strdup(optarg);
+				break;
+#endif
 			case 6:
 				hosted = TRUE;
 				break;
@@ -911,6 +935,18 @@ int main(int argc, char **argv)
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
 
+#ifdef WITH_LUA
+	/*
+	 * If option for lua-script has not been given, ignore all hooks.
+	 */
+
+	if (luascript) {
+		if ((udata.luadata = hooks_init(luascript)) == NULL)
+			olog(LOG_NOTICE, "proceeding sans Lua");
+		free(luascript);
+	}
+#endif
+
 #ifdef HAVE_HTTP
 	if (http_port) {
 		if (!is_directory(doc_root)) {
@@ -946,6 +982,7 @@ int main(int argc, char **argv)
 
 
 	signal(SIGINT, catcher);
+	signal(SIGTERM, catcher);
 
 	mosq = mosquitto_new(utstring_body(clientid), CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
@@ -1058,6 +1095,10 @@ int main(int argc, char **argv)
 
 #ifdef HAVE_HTTP
 	mg_destroy_server(&udata.mgserver);
+#endif
+
+#ifdef WITH_LUA
+	hooks_exit(ud->luadata, "recorder stops");
 #endif
 	mosquitto_disconnect(mosq);
 

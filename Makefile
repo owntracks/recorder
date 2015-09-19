@@ -19,6 +19,13 @@ CFLAGS += -DGHASHPREC=$(GHASHPREC)
 ifeq ($(HAVE_PING),yes)
 	CFLAGS += -DHAVE_PING=1
 endif
+
+ifeq ($(WITH_LUA),yes)
+	CFLAGS += -DWITH_LUA=1 $(LUA_CFLAGS)
+	LIBS   += $(LUA_LIBS)
+	OTR_OBJS += hooks.o
+endif
+
 ifeq ($(HAVE_KILL),yes)
 	CFLAGS += -DHAVE_KILL=1
 endif
@@ -60,7 +67,7 @@ ocat: ocat.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
 
 
-ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk
+ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h
 geo.o: geo.h geo.c udata.h Makefile config.mk
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
 base64.o: base64.h base64.c
@@ -71,6 +78,7 @@ util.o: util.c util.h Makefile config.mk
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h config.mk version.h
 storage.o: storage.c storage.h util.h gcache.h config.mk
+hooks.o: hooks.c udata.h hooks.h util.h version.h
 
 
 clean:

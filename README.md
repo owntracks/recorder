@@ -224,6 +224,7 @@ You will require:
 * [libmosquitto](http://mosquitto.org)
 * [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) included
+* Optionally [Lua](http://lua.org)
 
 Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
 
@@ -416,6 +417,73 @@ curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
 }
 ```
 The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
+
+## Lua hook
+
+If _recorder_ is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:
+
+* insert publishes into a database of your choice
+* switch on the coffee machine when your OwnTracks device reports you're entering home (but see also [mqttwarn](http://jpmens.net/2014/02/17/introducing-mqttwarn-a-pluggable-mqtt-notifier/)
+* write a file with data in a format of your choice (see `etc/example.lua`)
+
+Run the _recorder_ with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the _recorder_ unloads Lua and continues *without* your script.
+
+Your Lua program is automatically provided with a table which contains the following members:
+
+* `otr.version` is a read-only string with the _recorder_ version (example: `"0.3.2"`)
+* `otr.log()` is a function which takes a string which is logged to syslog at the _recorder_'s facility and log level INFO.
+* `otr.strftime(fmt, t)` is a function which takes a format string (see `strftime(3)`) and an integer number of seconds and returns a string with the formatted UTC time. If `t` is 0 or negative, the current system time is used.
+
+Your Lua script must provide the following functions:
+
+### `otr_init`
+
+This is invoked at start of _recorder_. If the function returns a non-zero value, _recorder_ unloads Lua and disables its processing; i.e. the `hook()` will *not* be invoked on location publishes.
+
+### `otr_exit`
+
+This is invoked when the _recorder_ stops, which it doesn't really do unless you CTRL-C it.
+
+### `otr_hook`
+
+This function is invoked at every location publish processed by the _recorder_. Your function is passed three arguments:
+
+1. _topic_ is the topic published to (e.g. `owntracks/jane/phone`)
+2. _type_ is the type of MQTT message. This is the `_type` in our JSON messages (e.g. `location`) or `"unknown"`.
+3. _location_ is a [Lua table](http://www.lua.org/pil/2.5.html) (associative array) with all the elements obtained in the JSON message. In the case of _type_ being `location`, we also add country code (`cc`) and the location's address (`addr`) unless reverse-geo lookups have been disabled in _recorder_.
+
+Assume the following small example Lua script in `example.lua`:
+
+```lua
+local file
+
+function otr_init()
+	otr.log("example.lua starting; writing to /tmp/lua.out")
+	file = io.open("/tmp/lua.out", "a")
+	file:write("written by OwnTracks Recorder version " .. otr.version .. "\n")
+end
+
+function otr_hook(topic, _type, data)
+	local timestr = otr.strftime("It is %T in the year %Y", 0)
+	print("L: " .. topic .. " -> " .. _type)
+	file:write(timestr .. " " .. topic .. " lat=" .. data['lat'] .. data['addr'] .. "\n")
+end
+```
+
+When _recorder_ is launched with `--lua-script example.lua` it invokes `otr_init()` which opens a file. Then, for each location received, it calls `otr_hook()` which updates the file.
+
+Assuming an OwnTracks device publishes this payload
+
+```json
+{"cog":-1,"batt":-1,"lon":2.29513,"acc":5,"vel":-1,"vac":-1,"lat":48.85833,"t":"u","tst":1441984413,"alt":0,"_type":"location","tid":"JJ"}
+```
+
+the file `/tmp/lua.out` would contain
+
+```txt
+written by OwnTracks Recorder version 0.3.0
+It is 14:10:01 in the year 2015 owntracks/jane/phone lat=48.858339 Avenue Anatole France, 75007 Paris, France
+```
 
 #### Environment
 
