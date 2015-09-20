@@ -1039,7 +1039,12 @@ int main(int argc, char **argv)
 	}
 
 	if (hosted) {
-		olog(LOG_NOTICE, "connecting to Hosted as clientID %s", utstring_body(clientid));
+		olog(LOG_INFO, "connecting to Hosted as clientID %s", utstring_body(clientid));
+	} else {
+		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
+			hostname, port,
+			utstring_body(clientid),
+			(cafile) ? "with" : "without");
 	}
 
 	rc = mosquitto_connect(mosq, hostname, port, 60);
