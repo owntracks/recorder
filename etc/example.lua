@@ -11,3 +11,6 @@ function otr_hook(topic, _type, data)
 	print("L: " .. topic .. " -> " .. _type)
 	file:write(timestr .. " " .. topic .. " lat=" .. data['lat'] .. data['addr'] .. "\n")
 end
+
+function otr_exit()
+end
