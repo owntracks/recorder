@@ -11,7 +11,7 @@ There are two main components: the _recorder_ obtains, stores, and serves data, 
 The _recorder_ serves two purposes:
 
 1. It subscribes to an MQTT broker and awaits messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of files on the file system.
-2. It provides a Web server which serves static pages with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
+2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a Websocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
 
 Some examples of what the _recorder_'s built-in HTTP server is capable of:
 
@@ -230,6 +230,11 @@ Obtain and download the software, either [as a package, if available](https://pa
 
 Type `make` and watch the fun. When that finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like.
 
+Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
+
+* that each instance uses a distinct `--storage`
+* that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
+
 ### Launching `ot-recorder`
 
 The _recorder_ has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
@@ -275,7 +280,7 @@ When the recorder has received a publish or two, visit it with your favorite Web
 
 We took a number of decisions for the design of the recorder and its utilities:
 
-* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible.
+* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the _recorder_ send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
 * We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below.
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
@@ -288,7 +293,7 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 * `cards/`, optional, contains user cards which are published when either you or one of your trackers on Hosted adds a new device. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar.
 * `ghash/`, unless disabled, reverse Geo data is collected into an LMDB database located in this directory.
-* `last/` contains the last location publish from a device. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`.
+* `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`.
 * `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
 * `msg/` contains messages received by the Messaging system.
 * `photos/` optional; contains the binary photos from a _card_.
@@ -299,7 +304,7 @@ You should definitely **not** modify or touch these files: they remain under the
 
 ## Reverse Geo
 
-If not disabled with option `-G`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
+If not disabled with option `--norevgeo`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
 
 ```
 $ cat store/ghash/missing
@@ -309,6 +314,8 @@ u0m97hc 46.652733 7.868803
 ```
 
 This can be used to subsequently obtain missed lookups.
+
+We recommend you keep reverse-geo lookups enabled, this data (country code `cc`, and the locations address `addr`) is used by the example Web apps provided by the _recorder_ to show where a particular device is. In addition, this cached data is used the the API (also _ocat_) when printing location data.
 
 
 ## Monitoring
@@ -336,10 +343,7 @@ The API basically serves the same data as _ocat_ is able to produce.
 
 ## API
 
-The _recorder_'s API provides most of the functions that are surfaced by _ocat_.
-Both GET and POST requests are supported, and if a username and device are
-needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters.
-(From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
+The _recorder_'s API provides most of the functions that are surfaced by _ocat_. GET and POST requests are supported, and if a username and device are needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters. (From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
 respectively.)
 
 The API endpoint is at `/api/0` and is followed by the verb.
@@ -428,13 +432,13 @@ If _recorder_ is compiled with Lua support, a Lua script you provide is launched
 
 Run the _recorder_ with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the _recorder_ unloads Lua and continues *without* your script.
 
-Your Lua program is automatically provided with a table which contains the following members:
+If the Lua script can be loaded, it is automatically provided with a table variable called `otr` which contains the following members:
 
 * `otr.version` is a read-only string with the _recorder_ version (example: `"0.3.2"`)
-* `otr.log()` is a function which takes a string which is logged to syslog at the _recorder_'s facility and log level INFO.
-* `otr.strftime(fmt, t)` is a function which takes a format string (see `strftime(3)`) and an integer number of seconds and returns a string with the formatted UTC time. If `t` is 0 or negative, the current system time is used.
+* `otr.log(s)` is a function which takes a string `s` which is logged to syslog at the _recorder_'s facility and log level INFO.
+* `otr.strftime(fmt, t)` is a function which takes a format string `fmt` (see `strftime(3)`) and an integer number of seconds `t` and returns a string with the formatted UTC time. If `t` is 0 or negative, the current system time is used.
 
-Your Lua script must provide the following functions:
+Your Lua script *must* provide the following functions:
 
 ### `otr_init`
 
@@ -442,7 +446,7 @@ This is invoked at start of _recorder_. If the function returns a non-zero value
 
 ### `otr_exit`
 
-This is invoked when the _recorder_ stops, which it doesn't really do unless you CTRL-C it.
+This is invoked when the _recorder_ stops, which it doesn't really do unless you CTRL-C it or send it a SIGTERM signal.
 
 ### `otr_hook`
 
@@ -467,6 +471,9 @@ function otr_hook(topic, _type, data)
 	local timestr = otr.strftime("It is %T in the year %Y", 0)
 	print("L: " .. topic .. " -> " .. _type)
 	file:write(timestr .. " " .. topic .. " lat=" .. data['lat'] .. data['addr'] .. "\n")
+end
+
+function otr_exit()
 end
 ```
 
