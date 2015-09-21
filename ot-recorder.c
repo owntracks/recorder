@@ -549,6 +549,20 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			safewrite(utstring_body(ts), jsonstring);
 			free(jsonstring);
 		}
+	} else if (_type == T_WAYPOINT) {
+		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
+			/* Now safewrite the waypoint into a file with name UTC */
+			utstring_printf(ts, "%s/waypoints/%s/%s",
+				STORAGEDIR, utstring_body(username), utstring_body(device));
+			if (mkpath(utstring_body(ts)) < 0) {
+				perror(utstring_body(ts));
+			}
+			utstring_printf(ts, "/%s.json", isotime(tst));
+
+			safewrite(utstring_body(ts), jsonstring);
+
+			free(jsonstring);
+		}
 	}
 
 	/*
@@ -585,6 +599,18 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 				utstring_body(addr),
 				utstring_body(ghash)
 			);
+		} else if (_type == T_TRANSITION) {
+			JsonNode *e, *d;
+
+			e = json_find_member(json, "event");
+			d = json_find_member(json, "desc");
+			printf("transition: %s %s\n",
+				(e) ? e->string_ : "unknown",
+				(d) ? d->string_ : "unknown");
+
+		} else if (_type == T_WAYPOINT) {
+			j = json_find_member(json, "desc");
+			printf("waypoint: %s\n", (j) ? j->string_ : "unknown desc");
 		} else {
 			if ((jsonstring = json_stringify(json, NULL)) != NULL) {
 				printf("%s %s\n", _typestr, jsonstring);
