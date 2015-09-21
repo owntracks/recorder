@@ -1,3 +1,13 @@
+2015-09-21 version 0.4.0
+- NEW: ot-recorder stores received (shared) waypoints in waypoints/
+- NEW: ot-recorder --quiet to disable info on stdout
+- FIX: full rewrite of on_message(); needs testing!
+- FIX: recorder logs MQTT connection request
+- FIX: Lua's otr_exit is now invoked on exit
+- FIX: SIGINT and SIGTERM gracefully stop the recorder
+- NEW: Lua hook support
+- FIX: kill now removes card and its containing directory if available
+
 2015-09-15 version 0.3.0
 - FIX: ocat lowercases device/username (reported by tiptronic)
 - NEW: XML support in storage and ocat --format xml
