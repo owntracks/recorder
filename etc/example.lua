@@ -9,7 +9,11 @@ end
 function otr_hook(topic, _type, data)
 	local timestr = otr.strftime("It is %T in the year %Y", 0)
 	print("L: " .. topic .. " -> " .. _type)
-	file:write(timestr .. " " .. topic .. " lat=" .. data['lat'] .. data['addr'] .. "\n")
+	addr = data['addr']
+	if addr == nil then
+		addr = 'unknown'
+	end
+	file:write(timestr .. " " .. topic .. " lat=" .. data['lat'] .. addr .. "\n")
 end
 
 function otr_exit()
