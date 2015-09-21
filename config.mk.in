@@ -55,5 +55,5 @@ MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
 MORELIBS = # -lssl
 
-LUA_CFLAGS =
-LUA_LIBS   = -llua
+LUA_CFLAGS = `pkg-config --cflags lua`
+LUA_LIBS   = `pkg-config --libs lua`
