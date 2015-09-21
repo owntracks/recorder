@@ -11,6 +11,8 @@
 #include "json.h"
 #include "utstring.h"
 
+#define UB(x)	utstring_body(x)
+
 int mkpath(char *path);
 int is_directory(char *path);
 const char *isotime(time_t t);

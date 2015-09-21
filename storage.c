@@ -397,14 +397,14 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 		for (i = n - 1; i >= 0; i--) {
 			utstring_clear(path);
 			utstring_printf(path, "%s/%s", pathpat, namelist[i]->d_name);
-			json_append_element(jarr, json_mkstring(utstring_body(path)));
+			json_append_element(jarr, json_mkstring(UB(path)));
 			free(namelist[i]);
 		}
 	} else {
 		for (i = 0; i < n; i++) {
 			utstring_clear(path);
 			utstring_printf(path, "%s/%s", pathpat, namelist[i]->d_name);
-			json_append_element(jarr, json_mkstring(utstring_body(path)));
+			json_append_element(jarr, json_mkstring(UB(path)));
 			free(namelist[i]);
 		}
 	}
@@ -440,14 +440,14 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi, int reverse
 
 	if (!user && !device) {
 		utstring_printf(path, "%s/rec", STORAGEDIR);
-		ls(utstring_body(path), json);
+		ls(UB(path), json);
 	} else if (!device) {
 		utstring_printf(path, "%s/rec/%s", STORAGEDIR, user);
-		ls(utstring_body(path), json);
+		ls(UB(path), json);
 	} else {
 		utstring_printf(path, "%s/rec/%s/%s",
 			STORAGEDIR, user, device);
-		lsscan(utstring_body(path), s_lo, s_hi, json, reverse);
+		lsscan(UB(path), s_lo, s_hi, json, reverse);
 	}
 
 	return (json);
@@ -846,7 +846,7 @@ char *gpx_string(JsonNode *location_array)
 	}
 
 	utstring_printf(xml, "%s", "  </trkseg>\n</trk>\n</gpx>\n");
-	return (utstring_body(xml));
+	return (UB(xml));
 }
 
 #if HAVE_KILL
@@ -885,9 +885,9 @@ JsonNode *kill_datastore(char *user, char *device)
 	}
 
 	utstring_printf(path, "%s/rec/%s/%s", STORAGEDIR, user, device);
-	json_append_member(obj, "path", json_mkstring(utstring_body(path)));
+	json_append_member(obj, "path", json_mkstring(UB(path)));
 
-	if ((n = scandir(utstring_body(path), &namelist, kill_datastore_filter, NULL)) < 0) {
+	if ((n = scandir(UB(path), &namelist, kill_datastore_filter, NULL)) < 0) {
 		json_append_member(obj, "status", json_mkstring("ERROR"));
 		json_append_member(obj, "error", json_mkstring(strerror(errno)));
 		json_append_member(obj, "reason", json_mkstring("cannot scandir"));
@@ -898,9 +898,9 @@ JsonNode *kill_datastore(char *user, char *device)
 		char *p;
 
 		utstring_clear(fname);
-		utstring_printf(fname, "%s/%s", utstring_body(path), namelist[i]->d_name);
+		utstring_printf(fname, "%s/%s", UB(path), namelist[i]->d_name);
 
-		p = utstring_body(fname);
+		p = UB(fname);
 		if (remove(p) == 0) {
 			olog(LOG_NOTICE, "removed %s", p);
 			json_append_element(killed, json_mkstring(namelist[i]->d_name));
@@ -913,54 +913,54 @@ JsonNode *kill_datastore(char *user, char *device)
 	free(namelist);
 
 	json_append_member(obj, "status", json_mkstring("OK"));
-	if (rmdir(utstring_body(path)) != 0) {
+	if (rmdir(UB(path)) != 0) {
 		json_append_member(obj, "status", json_mkstring("ERROR"));
 		json_append_member(obj, "error", json_mkstring( strerror(errno)));
 	} else {
-		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+		olog(LOG_NOTICE, "removed %s", UB(path));
 
 		/* Attempt to remove containing directory */
 		utstring_renew(path);
 		utstring_printf(path, "%s/rec/%s", STORAGEDIR, user);
-		if (rmdir(utstring_body(path)) == 0) {
-			olog(LOG_NOTICE, "removed %s", utstring_body(path));
+		if (rmdir(UB(path)) == 0) {
+			olog(LOG_NOTICE, "removed %s", UB(path));
 		}
 	}
 
 	utstring_renew(path);
 	utstring_printf(path, "%s/last/%s/%s/%s-%s.json", STORAGEDIR, user, device, user, device);
-	if (remove(utstring_body(path)) == 0) {
-		olog(LOG_NOTICE, "removed %s", utstring_body(path));
-		json_append_member(obj, "last", json_mkstring(utstring_body(path)));
+	if (remove(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+		json_append_member(obj, "last", json_mkstring(UB(path)));
 	}
 
 	/* Attempt to remove containing directory */
 	utstring_renew(path);
 	utstring_printf(path, "%s/last/%s/%s", STORAGEDIR, user, device);
-	if (rmdir(utstring_body(path)) == 0) {
-		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
 	}
 
 	/* Attempt to remove it's parent directory */
 	utstring_renew(path);
 	utstring_printf(path, "%s/last/%s", STORAGEDIR, user);
-	if (rmdir(utstring_body(path)) == 0) {
-		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
 	}
 
 	/* Attempt to remove CARD ... */
 	utstring_renew(path);
 	utstring_printf(path, "%s/cards/%s/%s.json", STORAGEDIR, user, user);
-	if (remove(utstring_body(path)) == 0) {
-		olog(LOG_NOTICE, "removed %s", utstring_body(path));
-		json_append_member(obj, "card", json_mkstring(utstring_body(path)));
+	if (remove(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+		json_append_member(obj, "card", json_mkstring(UB(path)));
 	}
 
 	/* ... and it's parent directory */
 	utstring_renew(path);
 	utstring_printf(path, "%s/cards/%s", STORAGEDIR, user);
-	if (rmdir(utstring_body(path)) == 0) {
-		olog(LOG_NOTICE, "removed %s", utstring_body(path));
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
 	}
 
 
@@ -1011,7 +1011,7 @@ static void emit_one(JsonNode *j, JsonNode *inttypes, void (func)(char *line, vo
 		utstring_printf(line, "null");
 	}
 	utstring_printf(line, "</%s>", j->key);
-	func(utstring_body(line), param);
+	func(UB(line), param);
 }
 
 void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)

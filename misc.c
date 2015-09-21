@@ -43,7 +43,7 @@ char *bindump(char *buf, long buflen)
 			utstring_printf(out, " %02X ", ch & 0xFF);
 		}
 	}
-	return (utstring_body(out));
+	return (UB(out));
 }
 
 /*
@@ -65,7 +65,7 @@ void monitorhook(struct udata *userdata, time_t now, char *topic)
 	utstring_printf(us, "%ld %s\n", now, topic);
 
 	snprintf(mpath, sizeof(mpath), "%s/monitor", STORAGEDIR);
-	safewrite(mpath, utstring_body(us));
+	safewrite(mpath, UB(us));
 }
 
 /*

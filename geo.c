@@ -27,6 +27,7 @@
 #include "utstring.h"
 #include "geo.h"
 #include "json.h"
+#include "util.h"
 
 #define GURL "%s://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN"
 
@@ -63,7 +64,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 	* 	 "formatted_address" : "59 Example Street, Christchurch 8081, New Zealand",
 	*/
 
-	if ((json = json_decode(utstring_body(geodata))) == NULL) {
+	if ((json = json_decode(UB(geodata))) == NULL) {
 		return (0);
 	}
 
@@ -76,11 +77,11 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 	 *  }
 	 */
 
-	// printf("%s\n", utstring_body(geodata));
+	// printf("%s\n", UB(geodata));
 	if ((j = json_find_member(json, "status")) != NULL) {
 		// printf("}}}}}} %s\n", j->string_);
 		if (strcmp(j->string_, "OK") != 0) {
-			fprintf(stderr, "revgeo: %s (%s)\n", j->string_, utstring_body(geodata));
+			fprintf(stderr, "revgeo: %s (%s)\n", j->string_, UB(geodata));
 			return (0);
 		}
 	}
@@ -152,7 +153,7 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	utstring_printf(url, GURL, "http", lat, lon);
 #endif
 
-	curl_easy_setopt(curl, CURLOPT_URL, utstring_body(url));
+	curl_easy_setopt(curl, CURLOPT_URL, UB(url));
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
@@ -169,19 +170,19 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 		return (NULL);
 	}
 
-	// printf("%s\n", utstring_body(url));
+	// printf("%s\n", UB(url));
 
 	if (!(rc = goog_decode(cbuf, addr, cc))) {
 		json_delete(geo);
 		return (NULL);
 	}
 
-	// fprintf(stderr, "revgeo returns %d: %s\n", rc, utstring_body(addr));
+	// fprintf(stderr, "revgeo returns %d: %s\n", rc, UB(addr));
 
 	time(&now);
 
-	json_append_member(geo, "cc", json_mkstring(utstring_body(cc)));
-	json_append_member(geo, "addr", json_mkstring(utstring_body(addr)));
+	json_append_member(geo, "cc", json_mkstring(UB(cc)));
+	json_append_member(geo, "addr", json_mkstring(UB(addr)));
 	json_append_member(geo, "tst", json_mknumber((double)now));
 	return (geo);
 }
@@ -205,13 +206,13 @@ int main()
 
 	rc = revgeo(lat, lon, location);
 	if (rc == 1) {
-		puts(utstring_body(location));
+		puts(UB(location));
 	}
 
 	utstring_renew(location);
 	rc = revgeo(clat, clon, location);
 	if (rc == 1) {
-		puts(utstring_body(location));
+		puts(UB(location));
 	}
 
 

@@ -275,8 +275,8 @@ void olog(int level, char *fmt, ...)
 
 	utstring_printf_va(u, fmt, ap);
 
-	// fprintf(stderr, "+++++ [%s]\n", utstring_body(u));
-	syslog(level, "%s", utstring_body(u));
+	// fprintf(stderr, "+++++ [%s]\n", UB(u));
+	syslog(level, "%s", UB(u));
 
 	va_end(ap);
 }
@@ -413,7 +413,7 @@ static void ut_lower(UT_string *us)
 {
         char *p;
 
-        for (p = utstring_body(us); p && *p; p++) {
+        for (p = UB(us); p && *p; p++) {
                 if (!isalnum(*p) || isspace(*p))
                         *p = '-';
                 else if (isupper(*p))
@@ -426,7 +426,7 @@ static void ut_clean(UT_string *us)
 {
         char *p;
 
-        for (p = utstring_body(us); p && *p; p++) {
+        for (p = UB(us); p && *p; p++) {
                 if (isspace(*p))
                         *p = '-';
         }
@@ -447,15 +447,15 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 
 	if (device) {
 		ut_lower(device);
-		utstring_printf(path, "%s/%s/%s/%s", STORAGEDIR, prefix, utstring_body(user), utstring_body(device));
+		utstring_printf(path, "%s/%s/%s/%s", STORAGEDIR, prefix, UB(user), UB(device));
 	} else {
-		utstring_printf(path, "%s/%s/%s", STORAGEDIR, prefix, utstring_body(user));
+		utstring_printf(path, "%s/%s/%s", STORAGEDIR, prefix, UB(user));
 	}
 
         ut_clean(path);
 
-        if (mkpath(utstring_body(path)) < 0) {
-                olog(LOG_ERR, "Cannot create directory at %s: %m", utstring_body(path));
+        if (mkpath(UB(path)) < 0) {
+                olog(LOG_ERR, "Cannot create directory at %s: %m", UB(path));
                 return (NULL);
         }
 
@@ -463,10 +463,10 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 #if 0
 	if (device) {
 		utstring_printf(path, "/%s-%s.%s",
-			utstring_body(user), utstring_body(device), suffix);
+			UB(user), UB(device), suffix);
 	} else {
 		utstring_printf(path, "/%s.%s",
-			utstring_body(user), suffix);
+			UB(user), suffix);
 	}
 #endif
 
@@ -475,12 +475,12 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 		utstring_printf(path, "/%s.%s", yyyymm(now), suffix);
 	} else {
 		utstring_printf(path, "/%s.%s",
-			utstring_body(user), suffix);
+			UB(user), suffix);
 	}
 
         ut_clean(path);
 
-        return (fopen(utstring_body(path), mode));
+        return (fopen(UB(path), mode));
 
 }
 

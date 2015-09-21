@@ -131,7 +131,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	}
 
 	if (ud->verbose) {
-		printf("* CARD: %s-%s %s\n", utstring_body(username), utstring_body(device), utstring_body(name));
+		printf("* CARD: %s-%s %s\n", UB(username), UB(device), UB(name));
 	}
 
 
@@ -139,7 +139,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	if ((img = malloc(utstring_len(face))) != NULL) {
 		int imglen;
 
-		if ((imglen = base64_decode(utstring_body(face), img)) > 0) {
+		if ((imglen = base64_decode(UB(face), img)) > 0) {
 			if ((fp = pathn("wb", "photos", username, NULL, "png")) != NULL) {
 				fwrite(img, sizeof(char), imglen, fp);
 				fclose(fp);
@@ -170,7 +170,7 @@ void do_msg(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	}
 
 	if (ud->verbose) {
-		printf("* MSG: %s-%s\n", utstring_body(username), utstring_body(device));
+		printf("* MSG: %s-%s\n", UB(username), UB(device));
 	}
 }
 
@@ -203,9 +203,9 @@ void republish(struct mosquitto *mosq, struct udata *userdata, char *username, c
 
 
         if ((payload = json_stringify(json, NULL)) != NULL) {
-                mosquitto_publish(mosq, NULL, utstring_body(newtopic),
+                mosquitto_publish(mosq, NULL, UB(newtopic),
                                 strlen(payload), payload, 1, true);
-		fprintf(stderr, "%s %s\n", utstring_body(newtopic), payload);
+		fprintf(stderr, "%s %s\n", UB(newtopic), payload);
                 free(payload);
         }
 
@@ -266,11 +266,11 @@ static void putrec(time_t now, UT_string *reltopic, UT_string *username, UT_stri
 
 	if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
 		olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
-			utstring_body(username), utstring_body(device));
+			UB(username), UB(device));
 	}
 
 	fprintf(fp, RECFORMAT, isotime(now),
-			utstring_body(reltopic), string);
+			UB(reltopic), string);
 	fclose(fp);
 }
 
@@ -350,7 +350,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	mosquitto_sub_topic_tokens_free(&topics, count);
 
 #ifdef HAVE_PING
-	if (!strcmp(utstring_body(username), "ping") && !strcmp(utstring_body(device), "ping")) {
+	if (!strcmp(UB(username), "ping") && !strcmp(UB(device), "ping")) {
 		pingping = TRUE;
 	}
 #endif
@@ -468,7 +468,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
-		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
+		if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
 			/* Habemus cached data */
 			
 			cached = TRUE;
@@ -481,7 +481,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			}
 		} else {
 			if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
-				gcache_json_put(ud->gc, utstring_body(ghash), geo);
+				gcache_json_put(ud->gc, UB(ghash), geo);
 			} else {
 				/* We didn't obtain reverse Geo, maybe because of over
 				 * quota; make a note of the missing geohash */
@@ -491,7 +491,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 				snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
 				if ((fp = fopen(gfile, "a")) != NULL) {
-					fprintf(fp, "%s %lf %lf\n", utstring_body(ghash), lat, lon);
+					fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
 					fclose(fp);
 				}
 			}
@@ -529,38 +529,38 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * to see this. Add user/device
 	 */
 
-	json_append_member(json, "username", json_mkstring(utstring_body(username)));
-	json_append_member(json, "device", json_mkstring(utstring_body(device)));
+	json_append_member(json, "username", json_mkstring(UB(username)));
+	json_append_member(json, "device", json_mkstring(UB(device)));
 
-	json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
+	json_append_member(json, "ghash",    json_mkstring(UB(ghash)));
 
+	if (_type == T_LOCATION || _type == T_WAYPOINT) {
+		UT_string *filename = NULL;
+		char *component;
 
-	if (_type == T_LOCATION) {
-		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-			/* Now safewrite the last location */
-			utstring_printf(ts, "%s/last/%s/%s",
-				STORAGEDIR, utstring_body(username), utstring_body(device));
-			if (mkpath(utstring_body(ts)) < 0) {
-				perror(utstring_body(ts));
-			}
-			utstring_printf(ts, "/%s-%s.json",
-				utstring_body(username), utstring_body(device));
+		utstring_renew(filename);
 
-			safewrite(utstring_body(ts), jsonstring);
-			free(jsonstring);
+		if (_type == T_LOCATION) {
+				component = "last";
+				utstring_printf(filename, "%s-%s.json",
+					UB(username), UB(device));
+		} else if (_type == T_WAYPOINT) {
+				component = "waypoints";
+				utstring_printf(filename, "%s.json", isotime(tst));
 		}
-	} else if (_type == T_WAYPOINT) {
+
 		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-			/* Now safewrite the waypoint into a file with name UTC */
-			utstring_printf(ts, "%s/waypoints/%s/%s",
-				STORAGEDIR, utstring_body(username), utstring_body(device));
-			if (mkpath(utstring_body(ts)) < 0) {
-				perror(utstring_body(ts));
+			utstring_printf(ts, "%s/%s/%s/%s",
+				STORAGEDIR,
+				component,
+				UB(username),
+				UB(device));
+			if (mkpath(UB(ts)) < 0) {
+				olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
 			}
-			utstring_printf(ts, "/%s.json", isotime(tst));
 
-			safewrite(utstring_body(ts), jsonstring);
-
+			utstring_printf(ts, "/%s", UB(filename));
+			safewrite(UB(ts), jsonstring);
 			free(jsonstring);
 		}
 	}
@@ -595,9 +595,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 				(t) ? t : " ",
 				(tid) ? tid : "",
 				lat, lon,
-				utstring_body(cc),
-				utstring_body(addr),
-				utstring_body(ghash)
+				UB(cc),
+				UB(addr),
+				UB(ghash)
 			);
 		} else if (_type == T_TRANSITION) {
 			JsonNode *e, *d;
@@ -960,7 +960,7 @@ int main(int argc, char **argv)
 	signal(SIGINT, catcher);
 	signal(SIGTERM, catcher);
 
-	mosq = mosquitto_new(utstring_body(clientid), CLEAN_SESSION, (void *)&udata);
+	mosq = mosquitto_new(UB(clientid), CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
 		fprintf(stderr, "Error: Out of memory.\n");
 		mosquitto_lib_cleanup();
@@ -1015,11 +1015,11 @@ int main(int argc, char **argv)
 	}
 
 	if (hosted) {
-		olog(LOG_INFO, "connecting to Hosted as clientID %s", utstring_body(clientid));
+		olog(LOG_INFO, "connecting to Hosted as clientID %s", UB(clientid));
 	} else {
 		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
 			hostname, port,
-			utstring_body(clientid),
+			UB(clientid),
 			(cafile) ? "with" : "without");
 	}
 
