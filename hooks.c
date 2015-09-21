@@ -9,9 +9,9 @@
 # include "util.h"
 # include "udata.h"
 # include "hooks.h"
-# include "lua.h"
-# include "lualib.h"
-# include "lauxlib.h"
+# include <lua.h>
+# include <lualib.h>
+# include <lauxlib.h>
 # include "json.h"
 # include "version.h"
 

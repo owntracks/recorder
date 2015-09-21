@@ -2,7 +2,7 @@
 # define HOOKS_H_INCLUDED
 
 #ifdef WITH_LUA
-# include "lua.h"
+# include <lua.h>
 
 
 struct luadata {
