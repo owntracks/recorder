@@ -30,6 +30,7 @@
 #include <mosquitto.h>
 #include <getopt.h>
 #include <time.h>
+#include <math.h>
 #include "json.h"
 #include <sys/utsname.h>
 #include "utstring.h"
@@ -54,7 +55,6 @@
 #define SSL_VERIFY_NONE (0)
 
 #define TOPIC_PARTS     (4)             /* owntracks/user/device/info */
-#define TOPIC_SUFFIX    "info"
 #define DEFAULT_QOS	(2)
 #define CLEAN_SESSION	false
 
@@ -77,67 +77,7 @@ double number(JsonNode *j, char *element)
 		}
 	}
 
-	return (-7.0L);
-}
-
-JsonNode *extract(struct udata *ud, char *payload, char *tid, char *t, double *lat, double *lon, long *tst)
-
-{
-	JsonNode *json, *j;
-
-	*tid = *t = 0;
-	*lat = *lon = -1.0L;
-
-	if ((json = json_decode(payload)) == NULL)
-		return (NULL);
-
-	if (ud->skipdemo && (json_find_member(json, "_demo") != NULL)) {
-		json_delete(json);
-		return (NULL);
-	}
-
-	if ((j = json_find_member(json, "_type")) == NULL) {
-		json_delete(json);
-		return (NULL);
-	}
-	if ((j->tag != JSON_STRING) || (strcmp(j->string_, "location") != 0)) {
-		json_delete(json);
-		return (NULL);
-	}
-
-	if ((j = json_find_member(json, "tid")) != NULL) {
-		if (j->tag == JSON_STRING) {
-			// printf("I got: [%s]\n", m->string_);
-			strcpy(tid, j->string_);
-		}
-	}
-
-	if ((j = json_find_member(json, "t")) != NULL) {
-		if (j && j->tag == JSON_STRING) {
-			strcpy(t, j->string_);
-		}
-	}
-
-	/*
-	 * Normalize tst, lat, lon to numbers, particularly for Greenwich
-	 * which produces strings currently.
-	 */
-
-	*tst = time(NULL);
-	if ((j = json_find_member(json, "tst")) != NULL) {
-		if (j && j->tag == JSON_STRING) {
-			*tst = strtoul(j->string_, NULL, 10);
-			json_remove_from_parent(j);
-			json_append_member(json, "tst", json_mknumber(*tst));
-		} else {
-			*tst = (unsigned long)j->number_;
-		}
-	}
-
-	*lat = number(json, "lat");
-	*lon = number(json, "lon");
-
-	return (json);
+	return (NAN);
 }
 
 static const char *ltime(time_t t) {
@@ -151,10 +91,10 @@ static const char *ltime(time_t t) {
  * Process info/ message containing a CARD. If the payload is a card, return TRUE.
  */
 
-int do_info(void *userdata, UT_string *username, UT_string *device, char *payload)
+int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *json)
 {
 	struct udata *ud = (struct udata *)userdata;
-	JsonNode *json, *j;
+	JsonNode *j;
 	static UT_string *name = NULL, *face = NULL;
 	FILE *fp;
 	char *img;
@@ -163,26 +103,14 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 	utstring_renew(name);
 	utstring_renew(face);
 
-        if ((json = json_decode(payload)) == NULL) {
-		fprintf(stderr, "Can't decode INFO payload for username=%s\n", utstring_body(username));
-		return (FALSE);
-	}
-
-	if (ud->skipdemo && (json_find_member(json, "_demo") != NULL)) {
-		goto cleanup;
-	}
-
-	if ((j = json_find_member(json, "_type")) == NULL) {
-		goto cleanup;
-	}
-	if ((j->tag != JSON_STRING) || (strcmp(j->string_, "card") != 0)) {
-		goto cleanup;
-	}
-
 	/* I know the payload is valid JSON: write card */
 
 	if ((fp = pathn("wb", "cards", username, NULL, "json")) != NULL) {
-		fprintf(fp, "%s\n", payload);
+		char *js = json_stringify(json, NULL);
+		if (js) {
+			fprintf(fp, "%s\n", js);
+			free(js);
+		}
 		fclose(fp);
 	}
 	rc = TRUE;
@@ -202,15 +130,10 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 		}
 	}
 
-	fprintf(stderr, "* CARD: %s-%s %s\n", utstring_body(username), utstring_body(device), utstring_body(name));
-
-
-#ifdef HAVE_REDIS /* TODO: LMDB? */
-	if (ud->useredis) {
-		redis_ping(&ud->redis);
-		r = redisCommand(ud->redis, "HMSET card:%s name %s face %s", utstring_body(username), utstring_body(name), utstring_body(face));
+	if (ud->verbose) {
+		printf("* CARD: %s-%s %s\n", utstring_body(username), utstring_body(device), utstring_body(name));
 	}
-#endif
+
 
 	/* We have a base64-encoded "face". Decode it and store binary image */
 	if ((img = malloc(utstring_len(face))) != NULL) {
@@ -221,58 +144,34 @@ int do_info(void *userdata, UT_string *username, UT_string *device, char *payloa
 				fwrite(img, sizeof(char), imglen, fp);
 				fclose(fp);
 			}
-
-#ifdef HAVE_REDIS /* TODO: LMDB ? */
-			if (ud->useredis) {
-				/* Add photo (binary) to Redis as photo:username */
-				redis_ping(&ud->redis);
-				r = redisCommand(ud->redis, "SET photo:%s %b", utstring_body(username), img, imglen);
-			}
-#endif
 		}
 		free(img);
 	}
 
 
-    cleanup:
-	json_delete(json);
 	return (rc);
 }
 
-void do_msg(void *userdata, UT_string *username, UT_string *device, char *payload)
+void do_msg(void *userdata, UT_string *username, UT_string *device, JsonNode *json)
 {
 	struct udata *ud = (struct udata *)userdata;
-	JsonNode *json, *j;
 	FILE *fp;
-
-        if ((json = json_decode(payload)) == NULL) {
-		fprintf(stderr, "Can't decode MSG payload for username=%s, device=%s\n",
-			utstring_body(username), utstring_body(device));
-		return;
-	}
-
-	if (ud->skipdemo && (json_find_member(json, "_demo") != NULL)) {
-		goto cleanup;
-	}
-
-	if ((j = json_find_member(json, "_type")) == NULL) {
-		goto cleanup;
-	}
-	if ((j->tag != JSON_STRING) || (strcmp(j->string_, "msg") != 0)) {
-		goto cleanup;
-	}
 
 	/* I know the payload is valid JSON: write message */
 
 	if ((fp = pathn("ab", "msg", username, NULL, "json")) != NULL) {
-		fprintf(fp, "%s\n", payload);
+		char *js = json_stringify(json, NULL);
+
+		if (js) {
+			fprintf(fp, "%s\n", js);
+			free(js);
+		}
 		fclose(fp);
 	}
 
-	fprintf(stderr, "* MSG: %s-%s\n", utstring_body(username), utstring_body(device));
-
-    cleanup:
-	json_delete(json);
+	if (ud->verbose) {
+		printf("* MSG: %s-%s\n", utstring_body(username), utstring_body(device));
+	}
 }
 
 void republish(struct mosquitto *mosq, struct udata *userdata, char *username, char *topic, double lat, double lon, char *cc, char *addr, long tst, char *t)
@@ -315,38 +214,40 @@ void republish(struct mosquitto *mosq, struct udata *userdata, char *username, c
 }
 
 /*
- * Decode OwnTracks CSV and return a new JsonNode to a JSON object.
+ * Decode OwnTracks CSV (Greenwich) and return a new JSON object
+ * of _type = location.
  */
 
 #define MILL 1000000.0
 
-JsonNode *csv(char *payload, char *tid, char *t, double *lat, double *lon, long *tst)
+JsonNode *csv_to_json(char *payload)
 {
-	JsonNode *json = NULL;
-        double dist = 0;
+	JsonNode *json;
+	char tid[64], t[10];
+        double dist = 0, lat, lon, vel, trip, alt, cog;
+	long tst;
 	char tmptst[40];
-	double vel, trip, alt, cog;
 
-        if (sscanf(payload, "%[^,],%[^,],%[^,],%lf,%lf,%lf,%lf,%lf,%lf,%lf", tid, tmptst, t, lat, lon, &cog, &vel, &alt, &dist, &trip) != 10) {
+        if (sscanf(payload, "%[^,],%[^,],%[^,],%lf,%lf,%lf,%lf,%lf,%lf,%lf", tid, tmptst, t, &lat, &lon, &cog, &vel, &alt, &dist, &trip) != 10) {
 		// fprintf(stderr, "**** payload not CSV: %s\n", payload);
                 return (NULL);
         }
 
-        *lat /= MILL;
-        *lon /= MILL;
+        lat /= MILL;
+        lon /= MILL;
         cog *= 10;
         alt *= 10;
         trip *= 1000;
 
-	*tst = strtoul(tmptst, NULL, 16);
+	tst = strtoul(tmptst, NULL, 16);
 
 	json = json_mkobject();
 	json_append_member(json, "_type", json_mkstring("location"));
 	json_append_member(json, "t",	  json_mkstring(t));
 	json_append_member(json, "tid",	  json_mkstring(tid));
-	json_append_member(json, "tst",	  json_mknumber(*tst));
-	json_append_member(json, "lat",	  json_mknumber(*lat));
-	json_append_member(json, "lon",	  json_mknumber(*lon));
+	json_append_member(json, "tst",	  json_mknumber(tst));
+	json_append_member(json, "lat",	  json_mknumber(lat));
+	json_append_member(json, "lon",	  json_mknumber(lon));
 	json_append_member(json, "cog",	  json_mknumber(cog));
 	json_append_member(json, "vel",	  json_mknumber(vel));
 	json_append_member(json, "alt",	  json_mknumber(alt));
@@ -356,23 +257,38 @@ JsonNode *csv(char *payload, char *tid, char *t, double *lat, double *lon, long 
 
 	return (json);
 }
+
 #define RECFORMAT "%s\t%-18s\t%s\n"
+
+static void putrec(time_t now, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
+{
+	FILE *fp;
+
+	if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
+		olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
+			utstring_body(username), utstring_body(device));
+	}
+
+	fprintf(fp, RECFORMAT, isotime(now),
+			utstring_body(reltopic), string);
+	fclose(fp);
+}
 
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
-	JsonNode *json, *fullo, *geo = NULL;
-	char tid[BUFSIZ], t[BUFSIZ], *p;
+	JsonNode *json, *j, *geo = NULL;
+	char *tid = NULL, *t = NULL, *p;
 	double lat, lon;
 	long tst;
 	struct udata *ud = (struct udata *)userdata;
-	FILE *fp;
         char **topics;
         int count = 0, cached;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
 	static UT_string *reltopic = NULL;
-	char *jsonstring;
+	char *jsonstring, *_typestr = NULL;
 	time_t now;
 	int pingping = FALSE;
+	payload_type _type;
 
 	/*
 	 * mosquitto_message->
@@ -407,11 +323,31 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
+	/*
+	 * Determine "relative topic", relative to base, i.e. whatever comes
+	 * behind ownntracks/user/device/. If it's the base topic, use "*".
+	 */
+
+	utstring_renew(reltopic);
+	if (count != 3) {
+		int j;
+
+		for (j = 3; j < count; j++) {
+			utstring_printf(reltopic, "%s%c", topics[j], (j < count - 1) ? '/' : ' ');
+		}
+        } else {
+		utstring_printf(reltopic, "*");
+	}
+	if (utstring_len(reltopic) == 0)
+		utstring_printf(reltopic, "-");
+
 
 	/* FIXME: handle null leading topic `/` */
 	utstring_printf(basetopic, "%s/%s/%s", topics[0], topics[1], topics[2]);
 	utstring_printf(username, "%s", topics[1]);
 	utstring_printf(device, "%s", topics[2]);
+
+	mosquitto_sub_topic_tokens_free(&topics, count);
 
 #ifdef HAVE_PING
 	if (!strcmp(utstring_body(username), "ping") && !strcmp(utstring_body(device), "ping")) {
@@ -419,102 +355,119 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 #endif
 
-	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], TOPIC_SUFFIX) == 0)) {
-		if (do_info(ud, username, device, m->payload) == TRUE) {  /* this was a card */
-			return;
-		}
-	}
-
-	/* owntracks/user/device/msg */
-	if ((count == TOPIC_PARTS) && (strcmp(topics[count-1], "msg") == 0)) {
-		do_msg(ud, username, device, m->payload);
-	}
-
 	/*
-	 * Determine "relative topic", relative to base, i.e. whatever comes behind
-	 * ownntracks/user/device/
+	 * First things first: let's see if this contains some sort of valid JSON
+	 * or an OwnTracks CSV. If it doesn't, just store this payload because
+	 * there's nothing left for us to do with it.
 	 */
 
-	utstring_renew(reltopic);
-	if (count != 3) {
-		/*
-		 * Not a normal location publish. Build up a string consisting of the remaining
-		 * topic parts, i.e. whatever is after base topic, and record with whatever
-		 * (hopefully non-binary) payload we got.
-		 */
-
-		int j;
-
-		for (j = 3; j < count; j++) {
-			utstring_printf(reltopic, "%s%c", topics[j], (j < count - 1) ? '/' : ' ');
-		}
-
-
-		if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
-
-			fprintf(fp, RECFORMAT, isotime(now), utstring_body(reltopic), bindump(m->payload, m->payloadlen));
-			fclose(fp);
-		}
-
-		mosquitto_sub_topic_tokens_free(&topics, count);
-		return;
-        }
-
-	if (utstring_len(reltopic) == 0)
-		utstring_printf(reltopic, "-");
-
-	mosquitto_sub_topic_tokens_free(&topics, count);
-
-
-	/*
-	 * Try to decode JSON payload to find _type: location. If that doesn't work,
-	 * see if it's OwnTracks' Greenwich CSV
-	 */
-
-	json = extract(ud, m->payload, tid, t, &lat, &lon, &tst);
-	if (json == NULL) {
-		/* Is it OwnTracks Greenwich CSV? */
-
-		if ((json = csv(m->payload, tid, t, &lat, &lon, &tst)) == NULL) {
+	if ((json = json_decode(m->payload)) == NULL) {
+		if ((json = csv_to_json(m->payload)) == NULL) {
 			/* It's not JSON or it's not a location CSV; store it */
-			/* It may be an lwt */
-			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
-				fprintf(fp, RECFORMAT, isotime(now),
-					utstring_body(reltopic),
-					 bindump(m->payload, m->payloadlen));
-				fclose(fp);
-			}
+			putrec(now, reltopic, username, device, bindump(m->payload, m->payloadlen));
 			return;
 		}
-		// fprintf(stderr, "+++++ %s\n", json_stringify(json, NULL));
 	}
 
-#if 0
-	if (*t && (!strcmp(t, "p") || !strcmp(t, "b"))) {
-		// fprintf(stderr, "Ignore `t:%s' for %s\n", t, m->topic);
+	if (ud->skipdemo && (json_find_member(json, "_demo") != NULL)) {
 		json_delete(json);
 		return;
 	}
-#endif
+
+	_type = T_UNKNOWN;
+	if ((j = json_find_member(json, "_type")) != NULL) {
+		if (j->tag == JSON_STRING) {
+			_typestr = strdup(j->string_);
+			if (!strcmp(j->string_, "location"))		_type = T_LOCATION;
+			else if (!strcmp(j->string_, "beacon"))		_type = T_BEACON;
+			else if (!strcmp(j->string_, "card"))		_type = T_CARD;
+			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
+			else if (!strcmp(j->string_, "configuration"))	_type = T_CONFIG;
+			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
+			else if (!strcmp(j->string_, "msg"))		_type = T_MSG;
+			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
+			else if (!strcmp(j->string_, "transition"))	_type = T_TRANSITION;
+			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
+			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
+		}
+	}
+
+	switch (_type) {
+		case T_CARD:
+			do_info(ud, username, device, json);
+			goto cleanup;
+		case T_MSG:
+			do_msg(ud, username, device, json);
+			goto cleanup;
+		case T_BEACON:
+		case T_CMD:
+		case T_CONFIG:
+		case T_LWT:
+		case T_STEPS:
+		case T_WAYPOINTS:
+			putrec(now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			goto cleanup;
+		case T_WAYPOINT:
+		case T_TRANSITION:
+		case T_LOCATION:
+			break;
+		default:
+			putrec(now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			goto cleanup;
+	}
 
 	/*
-	 * We are now processing a _type location.
+	 * We are now handling location-related JSON.  Normalize tst, lat, lon
+	 * to numbers, particularly for Greenwich which produces strings
+	 * currently. We're normalizing *in* json which replaces strings by
+	 * numbers.
+	 */
+
+	tst = time(NULL);
+	if ((j = json_find_member(json, "tst")) != NULL) {
+		if (j && j->tag == JSON_STRING) {
+			tst = strtoul(j->string_, NULL, 10);
+			json_remove_from_parent(j);
+			json_append_member(json, "tst", json_mknumber(tst));
+		} else {
+			tst = (unsigned long)j->number_;
+		}
+	}
+
+	if (isnan(lat = number(json, "lat")) || isnan(lon = number(json, "lon"))) {
+		olog(LOG_ERR, "lat or lon are NaN");
+		goto cleanup;
+	}
+
+	if ((j = json_find_member(json, "tid")) != NULL) {
+		if (j->tag == JSON_STRING) {
+			tid = strdup(j->string_);
+		}
+	}
+
+	if ((j = json_find_member(json, "t")) != NULL) {
+		if (j && j->tag == JSON_STRING) {
+			t = strdup(j->string_);
+		}
+	}
+
+	/*
+	 * Chances are high that what we have now contains lat, lon. Attempt to
+	 * perform or retrieve reverse-geo.
 	 */
 
 	utstring_renew(ghash);
+	utstring_renew(addr);
+	utstring_renew(cc);
         p = geohash_encode(lat, lon, geohash_prec());
 	if (p != NULL) {
 		utstring_printf(ghash, "%s", p);
 		free(p);
 	}
 
-	utstring_renew(addr);
-	utstring_renew(cc);
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
-		JsonNode *j;
-
 		if ((geo = gcache_json_get(ud->gc, utstring_body(ghash))) != NULL) {
 			/* Habemus cached data */
 			
@@ -548,30 +501,27 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		utstring_printf(addr, "n.a.");
 	}
 
-	/*
-	 * We have exactly three topic parts (owntracks/user/device), and valid JSON.
-	 */
 
 	/*
-	 * Create a new location object containing all the bits and
-	 * pieces we need and push that into connected Websockets.
-	 * and/or into Lua hooks.
+	 * We have normalized data in the JSON, so we can now write it
+	 * out to the REC file.
 	 */
 
-	fullo = json_mkobject();
-	json_copy_to_object(fullo, json, TRUE);
-
-	if (geo != NULL) {
-		json_copy_to_object(fullo, geo, FALSE);
-		json_delete(geo);
+	if (!pingping) {
+		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
+			putrec(now, reltopic, username, device, jsonstring);
+			free(jsonstring);
+		}
 	}
 
 	/*
+	 * Append a few bits to the location type to add to LAST and
+	 * for Lua / Websockets.
 	 * I need a unique "key" in the Websocket clients to keep track
 	 * of which device is being updated; use topic.
 	 */
 
-	json_append_member(fullo, "topic", json_mkstring(m->topic));
+	json_append_member(json, "topic", json_mkstring(m->topic));
 
 	/*
 	 * We have to know which user/device this is for in order to
@@ -579,49 +529,14 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * to see this. Add user/device
 	 */
 
-	json_append_member(fullo, "user", json_mkstring(utstring_body(username)));
-	json_append_member(fullo, "device", json_mkstring(utstring_body(device)));
+	json_append_member(json, "username", json_mkstring(utstring_body(username)));
+	json_append_member(json, "device", json_mkstring(utstring_body(device)));
 
-#ifdef HAVE_HTTP
-	if (ud->mgserver && !pingping) {
+	json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
 
 
-		http_ws_push_json(ud->mgserver, fullo);
-	}
-#endif
-
-#ifdef WITH_LUA
-	if (ud->luadata && !pingping) {
-		hooks_hook(ud, m->topic, fullo);
-	}
-#endif
-	json_delete(fullo);
-
-	
-	if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-		char *js;
-
-#ifdef HAVE_REDIS /* TODO: shall we store last positions in LMDB? */
-		if (ud->useredis) {
-			/* add last to Redis as "lastpos:username-device" */
-			last_storeredis(&ud->redis, utstring_body(username), utstring_body(device), jsonstring);
-		}
-#endif
-
-		if (!pingping) {
-			if ((fp = pathn("a", "rec", username, device, "rec")) != NULL) {
-				fprintf(fp, RECFORMAT, isotime(now), "*", jsonstring);
-				fclose(fp);
-			}
-		}
-
-		/* Keep track of original username & device name in LAST. */
-		json_append_member(json, "username",    json_mkstring(utstring_body(username)));
-		json_append_member(json, "device",    json_mkstring(utstring_body(device)));
-		json_append_member(json, "topic",    json_mkstring(m->topic));
-		json_append_member(json, "ghash",    json_mkstring(utstring_body(ghash)));
-
-		if ((js = json_stringify(json, NULL)) != NULL) {
+	if (_type == T_LOCATION) {
+		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
 			/* Now safewrite the last location */
 			utstring_printf(ts, "%s/last/%s/%s",
 				STORAGEDIR, utstring_body(username), utstring_body(device));
@@ -631,33 +546,62 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			utstring_printf(ts, "/%s-%s.json",
 				utstring_body(username), utstring_body(device));
 
-			safewrite(utstring_body(ts), js);
-			free(js);
+			safewrite(utstring_body(ts), jsonstring);
+			free(jsonstring);
 		}
-		free(jsonstring);
 	}
 
-	/* publish  */
-	// republish(mosq, ud, utstring_body(username), m->topic, lat, lon, utstring_body(cc), utstring_body(addr), tst, t);
+	/*
+	 * Now add more bits for Lua and Websocket, in particular the
+	 * Geo data.
+	 */
 
-	if (*t == 0) {
-		strcpy(t, " ");
+	if (geo) {
+		json_copy_to_object(json, geo, FALSE);
 	}
 
-	fprintf(stderr, "%c %s %-35s t=%-1.1s tid=%-2.2s loc=%.5f,%.5f [%s] %s (%s)\n",
-		(cached) ? '*' : '-',
-		ltime(tst),
-		m->topic,
-		t,
-		tid,
-		lat, lon,
-		utstring_body(cc),
-		utstring_body(addr),
-		utstring_body(ghash)
-		);
+#ifdef HAVE_HTTP
+	if (ud->mgserver && !pingping) {
+		http_ws_push_json(ud->mgserver, json);
+	}
+#endif
+
+#ifdef WITH_LUA
+	if (ud->luadata && !pingping) {
+		hooks_hook(ud, m->topic, json);
+	}
+#endif
+
+	if (ud->verbose) {
+		if (_type == T_LOCATION) {
+			printf("%c %s %-35s t=%-1.1s tid=%-2.2s loc=%.5f,%.5f [%s] %s (%s)\n",
+				(cached) ? '*' : '-',
+				ltime(tst),
+				m->topic,
+				(t) ? t : " ",
+				(tid) ? tid : "",
+				lat, lon,
+				utstring_body(cc),
+				utstring_body(addr),
+				utstring_body(ghash)
+			);
+		} else {
+			if ((jsonstring = json_stringify(json, NULL)) != NULL) {
+				printf("%s %s\n", _typestr, jsonstring);
+				free(jsonstring);
+			} else {
+				printf("%s received\n", _typestr);
+			}
+		}
+	}
 	
 
-	json_delete(json);
+    cleanup:
+	if (geo)	json_delete(geo);
+	if (json)	json_delete(json);
+	if (tid)	free(tid);
+	if (t)		free(t);
+	if (_typestr)	free(_typestr);
 }
 
 void on_connect(struct mosquitto *mosq, void *userdata, int rc)
@@ -709,6 +653,7 @@ void usage(char *prog)
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
 	printf("  --logfacility		       syslog facility (local0)\n");
+	printf("  --quiet		       disable printing of messages to stdout\n");
 #ifdef HAVE_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
@@ -761,6 +706,7 @@ int main(int argc, char **argv)
 	udata.pubprefix		= NULL;
 	udata.skipdemo		= TRUE;
 	udata.revgeo		= TRUE;
+	udata.verbose		= TRUE;
 #ifdef HAVE_LMDB
 	udata.gc		= NULL;
 #endif
@@ -805,6 +751,7 @@ int main(int argc, char **argv)
 			{ "logfacility",	required_argument,	0, 	4},
 			{ "precision",	required_argument,	0, 	5},
 			{ "hosted",	no_argument,		0, 	6},
+			{ "quiet",	no_argument,		0, 	8},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
@@ -822,6 +769,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 8:
+				ud->verbose = FALSE;
+				break;
 #ifdef WITH_LUA
 			case 7:
 				/* FIXME: check existence of script file */

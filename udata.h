@@ -18,6 +18,7 @@ struct udata {
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
 	int qos;			/* Subscribe QoS */
+	int verbose;			/* TRUE if print verbose messages to stdout */
 #ifdef HAVE_LMDB
 	struct gcache *gc;
 #endif

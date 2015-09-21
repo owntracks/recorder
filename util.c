@@ -455,7 +455,7 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
         ut_clean(path);
 
         if (mkpath(utstring_body(path)) < 0) {
-                perror(utstring_body(path));
+                olog(LOG_ERR, "Cannot create directory at %s: %m", utstring_body(path));
                 return (NULL);
         }
 
