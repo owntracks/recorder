@@ -21,6 +21,7 @@ struct udata {
 	int verbose;			/* TRUE if print verbose messages to stdout */
 #ifdef HAVE_LMDB
 	struct gcache *gc;
+	struct gcache *t2t;		/* topic to tid */
 #endif
 #ifdef HAVE_HTTP
 	struct mg_server *mgserver;	/* Mongoose */

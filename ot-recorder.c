@@ -451,6 +451,24 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 	}
 
+#ifdef HAVE_LMDB
+	/*
+	 * If the topic we are handling is in topic2tid, replace the TID
+	 * in this payload with that from the database.
+	 */
+
+	if (ud->t2t) {
+		char newtid[BUFSIZ];
+		long blen;
+
+		if ((blen = gcache_get(ud->t2t, m->topic, newtid, sizeof(newtid))) > 0) {
+			if ((j = json_find_member(json, "tid")) != NULL)
+				json_remove_from_parent(j);
+			json_append_member(json, "tid", json_mkstring(newtid));
+		}
+	}
+#endif
+
 	/*
 	 * Chances are high that what we have now contains lat, lon. Attempt to
 	 * perform or retrieve reverse-geo.
@@ -735,6 +753,7 @@ int main(int argc, char **argv)
 	udata.verbose		= TRUE;
 #ifdef HAVE_LMDB
 	udata.gc		= NULL;
+	udata.t2t		= NULL;		/* Topic to TID */
 #endif
 #ifdef HAVE_HTTP
 	udata.mgserver		= NULL;
@@ -953,6 +972,10 @@ int main(int argc, char **argv)
 		revgeo_init();
 	}
 
+#ifdef HAVE_LMDB
+	snprintf(err, sizeof(err), "%s/ghash", STORAGEDIR);
+	ud->t2t = gcache_open(err, "topic2tid", TRUE);
+#endif
 
 	mosquitto_lib_init();
 
@@ -1073,6 +1096,11 @@ int main(int argc, char **argv)
 	}
 
 	json_delete(ud->topics);
+
+#ifdef HAVE_LMDB
+	if (ud->t2t)
+		gcache_close(ud->t2t);
+#endif
 
 #ifdef HAVE_HTTP
 	mg_destroy_server(&udata.mgserver);
