@@ -534,3 +534,9 @@ server {
     }
 }
 ```
+
+## Advanced topics
+
+### The LMDB database
+
+`ocat --load` and `ocat --dump` can be use to load and dump the lmdb database respectively. There is some support for loading/dumping named databases using `--load=xx` or `--dump=xx` to specify the name. Use the mdb utilities to actually perform backups of these.

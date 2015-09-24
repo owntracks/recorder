@@ -58,17 +58,20 @@ void storage_init(int revgeo)
 	}
 }
 
-void storage_gcache_dump()
+void storage_gcache_dump(char *lmdbname)
 {
-	gcache_dump(gc);
+	char path[BUFSIZ];
+	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
+
+	gcache_dump(path, lmdbname);
 }
 
-void storage_gcache_load()
+void storage_gcache_load(char *lmdbname)
 {
 	char path[BUFSIZ];
 
 	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
-	gcache_load(path);
+	gcache_load(path, lmdbname);
 }
 
 void get_geo(JsonNode *o, char *ghash)

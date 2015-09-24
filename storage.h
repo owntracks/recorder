@@ -44,8 +44,8 @@ JsonNode *kill_datastore(char *username, char *device);
 JsonNode *last_users(char *user, char *device);
 char *gpx_string(JsonNode *json);
 void storage_init(int revgeo);
-void storage_gcache_dump();
-void storage_gcache_load();
+void storage_gcache_dump(char *lmdbname);
+void storage_gcache_load(char *lmdbname);
 void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param);
 
 #endif

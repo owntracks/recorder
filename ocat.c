@@ -155,7 +155,7 @@ void usage(char *prog)
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --version		-v	print version information\n");
-	printf("  --dump-ghash / --load-ghash	dump/load content of ghash cache\n");
+	printf("  --dump / --load [<db>]        dump/load content of db (default ghash)\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -196,7 +196,7 @@ void print_versioninfo()
 
 int main(int argc, char **argv)
 {
-	char *progname = *argv, *p;
+	char *progname = *argv, *p, *lmdbname = NULL;
 	int c;
 	int list = 0, last = 0, limit = 0, dumpghash = FALSE, loadghash = FALSE;
 #if HAVE_KILL
@@ -249,8 +249,8 @@ int main(int argc, char **argv)
 			{ "last",	no_argument, 0, 	'L'},
 			{ "fields",	required_argument, 0, 	1},
 			{ "precision",	required_argument, 0, 	2},
-			{ "dump-ghash",	no_argument, 0, 	3},
-			{ "load-ghash",	no_argument, 0, 	4},
+			{ "dump",	optional_argument, 0, 	3},
+			{ "load",	optional_argument, 0, 	4},
 #if HAVE_KILL
 			{ "killdata",	no_argument, 0, 	'K'},
 #endif
@@ -273,9 +273,13 @@ int main(int argc, char **argv)
 				break;
 			case 3:
 				dumpghash = TRUE;
+				if (optarg)
+					lmdbname = strdup(optarg);
 				break;
 			case 4:
 				loadghash = TRUE;
+				if (optarg)
+					lmdbname = strdup(optarg);
 				break;
 			case 'v':
 				print_versioninfo();
@@ -348,17 +352,20 @@ int main(int argc, char **argv)
 	argc -= (optind);
 	argv += (optind);
 
+	// printf("lmdbname = %s\n", (lmdbname) ? lmdbname : "NULL");
+
 	if (loadghash) {
-		storage_gcache_load();
+		storage_gcache_load(lmdbname);
+		exit(0);
+	}
+
+	if (dumpghash) {
+		storage_gcache_dump(lmdbname);
 		exit(0);
 	}
 
 	storage_init(revgeo);
 
-	if (dumpghash) {
-		storage_gcache_dump();
-		exit(0);
-	}
 
 #if HAVE_KILL
 	if (killdata) {

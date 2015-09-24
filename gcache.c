@@ -248,15 +248,19 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 	return (json);
 }
 
-void gcache_dump(struct gcache *gc)
+void gcache_dump(char *path, char *lmdbname)
 {
+	struct gcache *gc;
 	MDB_val key, data;
 	MDB_txn *txn;
 	MDB_cursor *cursor;
 	int rc;
 
-	if (gc == NULL)
+	if ((gc = gcache_open(path, lmdbname, TRUE)) == NULL) {
+		fprintf(stderr, "Cannot open lmdb/%s at %s\n",
+			lmdbname ? lmdbname : "NULL", path);
 		return;
+	}
 
 	key.mv_size = 0;
 	key.mv_data = NULL;
@@ -264,6 +268,7 @@ void gcache_dump(struct gcache *gc)
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
 		olog(LOG_ERR, "gcache_dump: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
+		gcache_close(gc);
 		return;
 	}
 
@@ -276,14 +281,15 @@ void gcache_dump(struct gcache *gc)
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
+	gcache_close(gc);
 }
 
-void gcache_load(char *path)
+void gcache_load(char *path, char *lmdbname)
 {
 	struct gcache *gc;
 	char buf[8192], *bp;
 
-	if ((gc = gcache_open(path, NULL, FALSE)) == NULL) {
+	if ((gc = gcache_open(path, lmdbname, FALSE)) == NULL) {
 		olog(LOG_ERR, "gcache_load: gcache_open");
 		return;
 	}
