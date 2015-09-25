@@ -118,7 +118,36 @@ void gcache_close(struct gcache *gc)
 	free(gc);
 }
 
-int gcache_put(struct gcache *gc, char *ghash, char *payload)
+static int gcache_del(struct gcache *gc, char *keystr)
+{
+	int rc;
+	MDB_val key;
+	MDB_txn *txn;
+
+	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
+	if (rc != 0) {
+		olog(LOG_ERR, "gcache_del: mdb_txn_begin: %s", mdb_strerror(rc));
+		return (rc);
+	}
+
+	key.mv_data	= keystr;
+	key.mv_size	= strlen(keystr);
+
+	rc = mdb_del(txn, gc->dbi, &key, NULL);
+	if (rc != 0 && rc != MDB_NOTFOUND) {
+		olog(LOG_ERR, "gcache_del: mdb_del: %s", mdb_strerror(rc));
+		/* fall through to commit */
+	}
+
+	rc = mdb_txn_commit(txn);
+	if (rc) {
+		olog(LOG_ERR, "gcache_del: mdb_txn_commit: (%d) %s", rc, mdb_strerror(rc));
+		mdb_txn_abort(txn);
+	}
+	return (rc);
+}
+
+int gcache_put(struct gcache *gc, char *keystr, char *payload)
 {
 	int rc;
 	MDB_val key, data;
@@ -127,12 +156,15 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 	if (gc == NULL)
 		return (1);
 
+	if (strcmp(payload, "DELETE") == 0)
+		return gcache_del(gc, keystr);
+
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0)
 		olog(LOG_ERR, "gcache_put: mdb_txn_begin: %s", mdb_strerror(rc));
 
-	key.mv_data	= ghash;
-	key.mv_size	= strlen(ghash);
+	key.mv_data	= keystr;
+	key.mv_size	= strlen(keystr);
 	data.mv_data	= payload;
 	data.mv_size	= strlen(payload) + 1;	/* including nul-byte so we can
 						 * later decode string directly
@@ -150,7 +182,7 @@ int gcache_put(struct gcache *gc, char *ghash, char *payload)
 	return (rc);
 }
 
-int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
+int gcache_json_put(struct gcache *gc, char *keystr, JsonNode *json)
 {
 	int rc;
 	char *js;
@@ -158,12 +190,12 @@ int gcache_json_put(struct gcache *gc, char *ghash, JsonNode *geo)
 	if (gc == NULL)
 		return (1);
 
-	if ((js = json_stringify(geo, NULL)) == NULL) {
+	if ((js = json_stringify(json, NULL)) == NULL) {
 		olog(LOG_ERR, "gcache_json_put: CAN'T stringify JSON");
 		return (1);
 	}
 
-	rc = gcache_put(gc, ghash, js);
+	rc = gcache_put(gc, keystr, js);
 	free(js);
 	return (rc);
 }
@@ -204,9 +236,8 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 }
 
 /*
- * Attempt to get key `k` (a geohash string) from LMDB. If
- * found, decode the JSON string in it and return a JSON
- * object, else NULL.
+ * Attempt to get key `k` from LMDB. If found, decode the JSON string in it and
+ * return a JSON object, else NULL.
  */
 
 JsonNode *gcache_json_get(struct gcache *gc, char *k)
@@ -296,6 +327,8 @@ void gcache_load(char *path, char *lmdbname)
 
 	while (fgets(buf, sizeof(buf), stdin) != NULL) {
 
+		if ((bp = strchr(buf, '\r')) != NULL)
+			*bp = 0;
 		if ((bp = strchr(buf, '\n')) != NULL)
 			*bp = 0;
 

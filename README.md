@@ -539,7 +539,7 @@ server {
 
 ### The LMDB database
 
-`ocat --load` and `ocat --dump` can be use to load and dump the lmdb database respectively. There is some support for loading/dumping named databases using `--load=xx` or `--dump=xx` to specify the name. Use the mdb utilities to actually perform backups of these.
+`ocat --load` and `ocat --dump` can be use to load and dump the lmdb database respectively. There is some support for loading/dumping named databases using `--load=xx` or `--dump=xx` to specify the name. Use the mdb utilities to actually perform backups of these. _load_ expects key/value strings in pairs, separated by exactly one space. If the value is the string `DELETE`, the key is deleted from the database.
 
 #### `topic2tid`
 
