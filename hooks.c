@@ -261,12 +261,12 @@ static int otr_getdb(lua_State *lua)
 {
 	char buf[BUFSIZ];
 	const char *key;
-	int blen, rc = 0;
+	int rc = 0;
 
 	if (lua_gettop(lua) >= 1) {
 		key =  lua_tostring(lua, 1);
 
-		blen = gcache_get(LuaDB, (char *)key, buf, sizeof(buf));
+		gcache_get(LuaDB, (char *)key, buf, sizeof(buf));
 		// printf("K=[%s], blen=%d\n", key, blen);
 		lua_pushstring(lua, buf);
 		rc = 1;
