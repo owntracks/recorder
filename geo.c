@@ -43,7 +43,7 @@ static size_t writemem(void *contents, size_t size, size_t nmemb, void *userp)
 	return (realsize);
 }
 
-static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
+static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
 {
 	JsonNode *json, *results, *address, *ac, *zeroth, *j;
 
@@ -82,6 +82,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 		// printf("}}}}}} %s\n", j->string_);
 		if (strcmp(j->string_, "OK") != 0) {
 			fprintf(stderr, "revgeo: %s (%s)\n", j->string_, UB(geodata));
+			json_delete(json);
 			return (0);
 		}
 	}
@@ -97,7 +98,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 		/* Country */
 		if ((ac = json_find_member(zeroth, "address_components")) != NULL) {
 			JsonNode *comp, *j;
-			int have_cc = 0;
+			int have_cc = 0, have_locality = 0;
 
 			json_foreach(comp, ac) {
 				JsonNode *a;
@@ -112,10 +113,18 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc)
 								have_cc = 1;
 								break;
 							}
+						} else if ((a->tag == JSON_STRING) && (strcmp(a->string_, "locality") == 0)) {
+							JsonNode *l;
+
+							if ((l = json_find_member(comp, "long_name")) != NULL) {
+								utstring_printf(locality, "%s", l->string_);
+								have_locality = 1;
+								break;
+							}
 						}
 					}
 				}
-				if (have_cc)
+				if (have_cc && have_locality)
 					break;
 			}
 		}
@@ -129,6 +138,7 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 {
 	static UT_string *url;
 	static UT_string *cbuf;		/* Buffer for curl GET */
+	static UT_string *locality = NULL;
 	CURLcode res;
 	int rc;
 	JsonNode *geo;
@@ -146,6 +156,7 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	
 	utstring_renew(url);
 	utstring_renew(cbuf);
+	utstring_renew(locality);
 #ifdef APIKEY
 	utstring_printf(url, GURL, "https", lat, lon);
 	utstring_printf(url, "&key=%s", APIKEY);
@@ -172,7 +183,7 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 
 	// printf("%s\n", UB(url));
 
-	if (!(rc = goog_decode(cbuf, addr, cc))) {
+	if (!(rc = goog_decode(cbuf, addr, cc, locality))) {
 		json_delete(geo);
 		return (NULL);
 	}
@@ -184,6 +195,8 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	json_append_member(geo, "cc", json_mkstring(UB(cc)));
 	json_append_member(geo, "addr", json_mkstring(UB(addr)));
 	json_append_member(geo, "tst", json_mknumber((double)now));
+	json_append_member(geo, "locality", (utstring_len(locality) > 0) ?
+		json_mkstring(UB(locality)) : json_mknull());
 	return (geo);
 }
 
@@ -195,27 +208,32 @@ void revgeo_init()
 #if 0
 int main()
 {
-	double lat = 52.034403, lon = 8.476544;
+	double lat = 52.25458, lon = 5.1494;
 	double clat = 51.197500, clon = 6.699179;
-	static UT_string *location;
-	int rc;
+	UT_string *location = NULL, *cc = NULL;
+	JsonNode *json;
+	char *js;
 
 	curl = curl_easy_init();
 
 	utstring_renew(location);
+	utstring_renew(cc);
 
-	rc = revgeo(lat, lon, location);
-	if (rc == 1) {
-		puts(UB(location));
+	if ((json = revgeo(lat, lon, location, cc)) != NULL) {
+		js = json_stringify(json, " ");
+		printf("%s\n", js);
+		free(js);
+	} else {
+		printf("Cannot get revgeo\n");
 	}
 
-	utstring_renew(location);
-	rc = revgeo(clat, clon, location);
-	if (rc == 1) {
-		puts(UB(location));
+	if ((json = revgeo(clat, clon, location, cc)) != NULL) {
+		js = json_stringify(json, " ");
+		printf("%s\n", js);
+		free(js);
+	} else {
+		printf("Cannot get revgeo\n");
 	}
-
-
 
 	curl_easy_cleanup(curl);
 
