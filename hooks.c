@@ -34,6 +34,7 @@ static int l_function(lua_State *L, char *name)
 	} else {
 		lua_call(L, 0, 1);
 		rc = (int)lua_tonumber(L, -1);
+		lua_pop(L, 1);
 	}
 	lua_settop(L, 0);
 	return (rc);
@@ -114,6 +115,7 @@ static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *ful
 	char *_type = "unknown";
 	JsonNode *j;
 
+	lua_settop(ld->L, 0);
 	lua_getglobal(ld->L, hookname);
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
 		olog(LOG_NOTICE, "cannot invoke %s in Lua script", hookname);
@@ -187,6 +189,7 @@ static int otr_log(lua_State *lua)
 	if (lua_gettop(lua) >= 1) {
 		str =  lua_tostring(lua, 1);
 		olog(LOG_INFO, "%s", str);
+		lua_pop(lua, 1);
 	}
 	return 0;
 }
