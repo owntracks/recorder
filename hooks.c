@@ -12,11 +12,15 @@
 # include <lua.h>
 # include <lualib.h>
 # include <lauxlib.h>
+# include "gcache.h"
 # include "json.h"
 # include "version.h"
 
 static int otr_log(lua_State *lua);
 static int otr_strftime(lua_State *lua);
+static int otr_luadb(lua_State *lua);
+
+static struct gcache *LuaDB = NULL;
 
 /*
  * Invoke the function `name' in the Lua script, which _may_ return
@@ -40,7 +44,7 @@ static int l_function(lua_State *L, char *name)
 	return (rc);
 }
 
-struct luadata *hooks_init(char *script)
+struct luadata *hooks_init(struct udata *ud, char *script)
 {
 	struct luadata *ld;
 	int rc;
@@ -70,8 +74,14 @@ struct luadata *hooks_init(char *script)
 		lua_pushcfunction(ld->L, otr_strftime);
 		lua_setfield(ld->L, -2, "strftime");
 
+		lua_pushcfunction(ld->L, otr_luadb);
+		lua_setfield(ld->L, -2, "luadb");
+
 	lua_setglobal(ld->L, "otr");
 
+#ifdef HAVE_LMDB
+	LuaDB = ud->luadb;
+#endif
 
 	olog(LOG_DEBUG, "initializing Lua hooks at %s", script);
 
@@ -93,7 +103,6 @@ struct luadata *hooks_init(char *script)
 		hooks_exit(ld, "otr_init() returned non-zero");
 		ld = NULL;
 	}
-
 
 	return (ld);
 }
@@ -223,4 +232,24 @@ static int otr_strftime(lua_State *lua)
 	return (0);
 }
 
+/*
+ * Requires two string arguments: key, value
+ * These are written into the named LMDB database
+ * called `luadb'.
+ */
+
+static int otr_luadb(lua_State *lua)
+{
+	const char *key, *value;
+	int rc = 0;
+
+	if (lua_gettop(lua) >= 1) {
+		key =  lua_tostring(lua, 1);
+		value =  lua_tostring(lua, 2);
+
+		rc = gcache_put(LuaDB, (char *)key, (char *)value);
+		// olog(LOG_DEBUG, "LUA_PUT (%s, %s) == %d\n", key, value, rc);
+	}
+	return (rc);
+}
 #endif /* WITH_LUA */

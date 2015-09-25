@@ -776,6 +776,9 @@ int main(int argc, char **argv)
 #endif
 #ifdef WITH_LUA
 	udata.luadata		= NULL;
+# ifdef HAVE_LMDB
+	udata.luadb		= NULL;
+# endif
 #endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
@@ -946,18 +949,6 @@ int main(int argc, char **argv)
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
 
-#ifdef WITH_LUA
-	/*
-	 * If option for lua-script has not been given, ignore all hooks.
-	 */
-
-	if (luascript) {
-		if ((udata.luadata = hooks_init(luascript)) == NULL)
-			olog(LOG_NOTICE, "proceeding sans Lua");
-		free(luascript);
-	}
-#endif
-
 #ifdef HAVE_HTTP
 	if (http_port) {
 		if (!is_directory(doc_root)) {
@@ -991,6 +982,21 @@ int main(int argc, char **argv)
 #ifdef HAVE_LMDB
 	snprintf(err, sizeof(err), "%s/ghash", STORAGEDIR);
 	ud->t2t = gcache_open(err, "topic2tid", TRUE);
+# ifdef WITH_LUA
+	ud->luadb = gcache_open(err, "luadb", FALSE);
+# endif
+#endif
+
+#ifdef WITH_LUA
+	/*
+	 * If option for lua-script has not been given, ignore all hooks.
+	 */
+
+	if (luascript) {
+		if ((udata.luadata = hooks_init(ud, luascript)) == NULL)
+			olog(LOG_NOTICE, "proceeding sans Lua");
+		free(luascript);
+	}
 #endif
 
 	mosquitto_lib_init();
@@ -1117,6 +1123,10 @@ int main(int argc, char **argv)
 #ifdef HAVE_LMDB
 	if (ud->t2t)
 		gcache_close(ud->t2t);
+# ifdef WITH_LUA
+	if (ud->luadb)
+		gcache_close(ud->luadb);
+# endif
 #endif
 
 #ifdef HAVE_HTTP

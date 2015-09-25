@@ -10,7 +10,7 @@ struct luadata {
 	lua_State *L;			/* The Lua machine */
 };
 
-struct luadata *hooks_init(char *luascript);
+struct luadata *hooks_init(struct udata *ud, char *luascript);
 void hooks_exit(struct luadata *, char *reason);
 void hooks_hook(struct udata *ud, char *topic, JsonNode *obj);
 

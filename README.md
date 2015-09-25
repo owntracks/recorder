@@ -438,6 +438,11 @@ If the Lua script can be loaded, it is automatically provided with a table varia
 * `otr.version` is a read-only string with the _recorder_ version (example: `"0.3.2"`)
 * `otr.log(s)` is a function which takes a string `s` which is logged to syslog at the _recorder_'s facility and log level INFO.
 * `otr.strftime(fmt, t)` is a function which takes a format string `fmt` (see `strftime(3)`) and an integer number of seconds `t` and returns a string with the formatted UTC time. If `t` is 0 or negative, the current system time is used.
+* `otr.luadb(key, value)` is a function which takes two strings `k` and `v` and stores them in the named LMDB database called `luadb`. This can be viewed with
+
+```
+ocat --dump=luadb
+```
 
 Your Lua script *must* provide the following functions:
 
@@ -448,6 +453,7 @@ This is invoked at start of _recorder_. If the function returns a non-zero value
 ### `otr_exit`
 
 This is invoked when the _recorder_ stops, which it doesn't really do unless you CTRL-C it or send it a SIGTERM signal.
+
 
 ### `otr_hook`
 

@@ -78,7 +78,7 @@ util.o: util.c util.h Makefile config.mk
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h config.mk version.h
 storage.o: storage.c storage.h util.h gcache.h config.mk
-hooks.o: hooks.c udata.h hooks.h util.h version.h
+hooks.o: hooks.c udata.h hooks.h util.h version.h gcache.h
 
 
 clean:
@@ -98,5 +98,6 @@ install: ot-recorder ocat
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
 	$(DESTDIR)$(INSTALLDIR)/bin/ocat --load=topic2tid < /dev/null
+	$(DESTDIR)$(INSTALLDIR)/bin/ocat --load=luadb < /dev/null
 	# mkdir -p $(DESTDIR)/etc/systemd/system/
 	# install --mode 0644 etc/ot-recorder.service $(DESTDIR)/etc/systemd/system/ot-recorder.service
