@@ -423,7 +423,7 @@ curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
 ```
 The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
 
-## Lua hook
+## Lua hooks
 
 If _recorder_ is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:
 
@@ -492,6 +492,12 @@ the file `/tmp/lua.out` would contain
 written by OwnTracks Recorder version 0.3.0
 It is 14:10:01 in the year 2015 owntracks/jane/phone lat=48.858339 Avenue Anatole France, 75007 Paris, France
 ```
+
+### Hooklets
+
+After running `otr_hook()`, the _recorder_ attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
+
+You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
 
 #### Environment
 

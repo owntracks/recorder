@@ -108,15 +108,15 @@ void hooks_exit(struct luadata *ld, char *reason)
 	}
 }
 
-void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
+static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *fullo)
 {
 	struct luadata *ld = ud->luadata;
 	char *_type = "unknown";
 	JsonNode *j;
 
-	lua_getglobal(ld->L, "otr_hook");
+	lua_getglobal(ld->L, hookname);
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
-		olog(LOG_NOTICE, "cannot invoke otr_hook in Lua script");
+		olog(LOG_NOTICE, "cannot invoke %s in Lua script", hookname);
 		return;
 	}
 
@@ -153,6 +153,27 @@ void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
 
 	// rc = (int)lua_tonumber(ld->L, -1);
 	// printf("C: FILTER returns %d\n", rc);
+}
+
+static void hooks_hooklet(struct udata *ud, char *topic, JsonNode *fullo)
+{
+	JsonNode *j;
+	struct luadata *ld = ud->luadata;
+	char hookname[BUFSIZ];
+
+	json_foreach(j, fullo) {
+		snprintf(hookname, sizeof(hookname), "hooklet_%s", j->key);
+		lua_getglobal(ld->L, hookname);
+		if (lua_type(ld->L, -1) == LUA_TFUNCTION) {
+			do_hook(hookname, ud, topic, fullo);
+		}
+	}
+}
+
+void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
+{
+	do_hook("otr_hook", ud, topic, fullo);
+	hooks_hooklet(ud, topic, fullo);
 }
 
 /*
