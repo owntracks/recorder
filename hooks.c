@@ -18,7 +18,8 @@
 
 static int otr_log(lua_State *lua);
 static int otr_strftime(lua_State *lua);
-static int otr_luadb(lua_State *lua);
+static int otr_putdb(lua_State *lua);
+static int otr_getdb(lua_State *lua);
 
 static struct gcache *LuaDB = NULL;
 
@@ -74,8 +75,11 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 		lua_pushcfunction(ld->L, otr_strftime);
 		lua_setfield(ld->L, -2, "strftime");
 
-		lua_pushcfunction(ld->L, otr_luadb);
-		lua_setfield(ld->L, -2, "luadb");
+		lua_pushcfunction(ld->L, otr_putdb);
+		lua_setfield(ld->L, -2, "putdb");
+
+		lua_pushcfunction(ld->L, otr_getdb);
+		lua_setfield(ld->L, -2, "getdb");
 
 	lua_setglobal(ld->L, "otr");
 
@@ -238,7 +242,7 @@ static int otr_strftime(lua_State *lua)
  * called `luadb'.
  */
 
-static int otr_luadb(lua_State *lua)
+static int otr_putdb(lua_State *lua)
 {
 	const char *key, *value;
 	int rc = 0;
@@ -249,6 +253,23 @@ static int otr_luadb(lua_State *lua)
 
 		rc = gcache_put(LuaDB, (char *)key, (char *)value);
 		// olog(LOG_DEBUG, "LUA_PUT (%s, %s) == %d\n", key, value, rc);
+	}
+	return (rc);
+}
+
+static int otr_getdb(lua_State *lua)
+{
+	char buf[BUFSIZ];
+	const char *key;
+	int blen, rc = 0;
+
+	if (lua_gettop(lua) >= 1) {
+		key =  lua_tostring(lua, 1);
+
+		blen = gcache_get(LuaDB, (char *)key, buf, sizeof(buf));
+		// printf("K=[%s], blen=%d\n", key, blen);
+		lua_pushstring(lua, buf);
+		rc = 1;
 	}
 	return (rc);
 }
