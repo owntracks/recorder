@@ -662,18 +662,34 @@ void on_connect(struct mosquitto *mosq, void *userdata, int rc)
 	}
 }
 
+static char *mosquitto_reason(int rc)
+{
+	static char *reasons[] = {
+		"Connection accepted",					/* 0x00 */
+		"Connection refused: incorrect protocol version",	/* 0x01 */
+		"Connection refused: invalid client identifier",	/* 0x02 */
+		"Connection refused: server unavailable",		/* 0x03 */
+		"Connection refused: bad username or password",		/* 0x05 */
+		"Connection refused: not authorized",			/* 0x06 */
+		"Connection refused: TLS error",			/* 0x07 */
+	};
+
+	return ((rc >= 0 && rc <= 0x07) ? reasons[rc] : "unknown reason");
+}
+
+
 void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 {
 #ifdef HAVE_LMDB
 	struct udata *ud = (struct udata *)userdata;
 #endif
 
-	olog(LOG_INFO, "Disconnected. Reason: %d [%s]", reason, mosquitto_strerror(reason));
-
 	if (reason == 0) { 	// client wish
 #ifdef HAVE_LMDB
 		gcache_close(ud->gc);
 #endif
+	} else {
+		olog(LOG_INFO, "Disconnected. Reason: 0x%X [%s]", reason, mosquitto_reason(reason));
 	}
 }
 
@@ -1052,7 +1068,8 @@ int main(int argc, char **argv)
 			strerror_r(errno, err, 1024);
 			fprintf(stderr, "Error: %s\n", err);
 		} else {
-			fprintf(stderr, "Unable to connect (%d) [%s].\n", rc, mosquitto_strerror(rc));
+			fprintf(stderr, "Unable to connect (%d) [%s]: %s.\n",
+				rc, mosquitto_strerror(rc), mosquitto_reason(rc));
 		}
 		mosquitto_lib_cleanup();
 		return rc;
