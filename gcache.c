@@ -224,7 +224,7 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 		if (rc != MDB_NOTFOUND) {
 			printf("get: %s\n", mdb_strerror(rc));
 		} else {
-			printf(" [%s] not found\n", k);
+			// printf(" [%s] not found\n", k);
 		}
 	} else {
 		len =  (data.mv_size < buflen) ? data.mv_size : buflen;
