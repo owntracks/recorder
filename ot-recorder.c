@@ -324,14 +324,25 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 
 	/*
-	 * Determine "relative topic", relative to base, i.e. whatever comes
-	 * behind ownntracks/user/device/. If it's the base topic, use "*".
+	 * Do we have a leading / in topic?
+	 * Also, if topic is too short, ignore and return. We *demand* 3 parts
+	 * i.e. "owntracks/user/device"
 	 */
 
 	if (topics[0] == NULL) {
 		/* Topic has leading / */
 		skipslash = 1;
 	}
+	if (count - skipslash < 3) {
+		fprintf(stderr, "Ignoring short topic %s\n", m->topic);
+		mosquitto_sub_topic_tokens_free(&topics, count);
+		return;
+	}
+
+	/*
+	 * Determine "relative topic", relative to base, i.e. whatever comes
+	 * behind ownntracks/user/device/. If it's the base topic, use "*".
+	 */
 
 	utstring_renew(reltopic);
 	if (count != (3 + skipslash)) {
