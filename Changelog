@@ -1,3 +1,11 @@
+2015-09-26 version 0.4.1
+- FIX: recorder correctly handles topics with leading slash
+- NEW: Lua functions (putdb, getdb) have access to a `luadb'-named LMDB database
+- NEW: Lua hooklets
+- UPD: reverse geo JSON data in lmdb now contains locality (unless null)
+- UPD: ocat --load can delete individual keys from lmdb
+- NEW: recorder uses topic2tid named database for on-the-fly TID replacements in JSON payloads
+
 2015-09-21 version 0.4.0
 - NEW: ot-recorder stores received (shared) waypoints in waypoints/
 - NEW: ot-recorder --quiet to disable info on stdout
