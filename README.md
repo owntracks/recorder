@@ -552,8 +552,24 @@ server {
 
 ### The LMDB database
 
-`ocat --load` and `ocat --dump` can be use to load and dump the lmdb database respectively. There is some support for loading/dumping named databases using `--load=xx` or `--dump=xx` to specify the name. Use the mdb utilities to actually perform backups of these. _load_ expects key/value strings in pairs, separated by exactly one space. If the value is the string `DELETE`, the key is deleted from the database.
+`ocat --load` and `ocat --dump` can be use to load and dump the lmdb database respectively. There is some support for loading/dumping named databases using `--load=xx` or `--dump=xx` to specify the name. Use the mdb utilities to actually perform backups of these. _load_ expects key/value strings in pairs, separated by exactly one space. If the value is the string `DELETE`, the key is deleted from the database, which allows us to, say, remove a whole bunch of geohash prefixes in one go (but be careful doing this):
+
+```bash
+ocat --dump |
+    grep xxyz |
+    awk '{printf "%s DELETE\n", $1; }' |
+    ocat --load
+```
 
 #### `topic2tid`
 
 This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the topic of an incoming message is found in the database, the `tid` member in the JSON payload is replaced by the value of this key.
+
+## Prerequisites for building
+
+### Debian
+
+```
+apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev
+```
+
