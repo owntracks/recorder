@@ -287,7 +287,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	static UT_string *reltopic = NULL;
 	char *jsonstring, *_typestr = NULL;
 	time_t now;
-	int pingping = FALSE;
+	int pingping = FALSE, skipslash = 0;
 	payload_type _type;
 
 	/*
@@ -328,11 +328,16 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 * behind ownntracks/user/device/. If it's the base topic, use "*".
 	 */
 
+	if (topics[0] == NULL) {
+		/* Topic has leading / */
+		skipslash = 1;
+	}
+
 	utstring_renew(reltopic);
-	if (count != 3) {
+	if (count != (3 + skipslash)) {
 		int j;
 
-		for (j = 3; j < count; j++) {
+		for (j = 3 + skipslash; j < count; j++) {
 			utstring_printf(reltopic, "%s%c", topics[j], (j < count - 1) ? '/' : ' ');
 		}
         } else {
@@ -342,10 +347,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		utstring_printf(reltopic, "-");
 
 
-	/* FIXME: handle null leading topic `/` */
-	utstring_printf(basetopic, "%s/%s/%s", topics[0], topics[1], topics[2]);
-	utstring_printf(username, "%s", topics[1]);
-	utstring_printf(device, "%s", topics[2]);
+	utstring_printf(basetopic, "%s/%s/%s", topics[0 + skipslash], topics[1 + skipslash], topics[2 + skipslash]);
+	utstring_printf(username, "%s", topics[1 + skipslash]);
+	utstring_printf(device, "%s", topics[2 + skipslash]);
 
 	mosquitto_sub_topic_tokens_free(&topics, count);
 
