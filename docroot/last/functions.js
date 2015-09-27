@@ -50,14 +50,17 @@ function map_marker(loc)
 	var id = loc.topic.replace(/\//g, '-');
 	var htmldesc;
 	var shortdesc;
+	var s = loc.topic.split('/');
+	var username = (s[0]) ? s[1] : s[2];	/* cater for leading / in topic */
+	var device = (s[0]) ? s[2] : s[3];	/* cater for leading / in topic */
+	var userdev = username + "/" + device;
 
-	if (loc.addr && loc.topic) {
-		htmldesc = loc.topic + " " + loc.addr;
-		htmldesc = "<b>" + loc.topic.split('/')[2] + "</b><br />" + loc.addr;
-		shortdesc = loc.topic.split('/')[2] + " " + loc.addr;
+	if (loc.addr) {
+		htmldesc = "<b>" + userdev + "</b><br />" + loc.addr;
+		shortdesc = userdev + " " + loc.addr;
 	} else {
-		htmldesc = loc.lat + ", " + loc.lon;
-		shortdesc = htmldesc;
+		htmldesc = "<b>" + userdev + "</b><br />" + loc.lat + ", " + loc.lon;
+		shortdesc = userdev + " " + loc.lat + ", " + loc.lon;
 	}
 
 	loc.description = shortdesc;
