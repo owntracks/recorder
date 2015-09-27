@@ -10,6 +10,8 @@ case "$1" in
 	chgrp owntracks /var/spool/owntracks/recorder/store/ghash
 	chgrp owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder
 	chmod 3755 /usr/local/bin/ocat /usr/local/sbin/ot-recorder
+	/usr/local/bin/ocat --load=luadb < /dev/null
+	/usr/local/bin/ocat --load=topic2tid < /dev/null
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

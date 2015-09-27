@@ -2,6 +2,11 @@
 
 set -e
 
+if [ ! -f version.h ]; then
+	echo "$0 must be run from recorder source tree" >&2
+	exit 2
+fi
+
 tempdir=$(mktemp -d /tmp/ot-XXX)
 
 make install DESTDIR=$tempdir
@@ -24,6 +29,7 @@ fpm -s dir \
 	-p ${debfile} \
 	-d "libmosquitto1" \
 	-d "libcurl3" \
+	-d "liblua5.2" \
 	--post-install etc/debian/postinst \
 	usr var
 
