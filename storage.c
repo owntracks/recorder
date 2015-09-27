@@ -230,6 +230,9 @@ static int str_time_to_secs(char *s, time_t *secs)
 			"%Y-%m-%dT%H:%M:%S",
 			"%Y-%m-%dT%H:%M",
 			"%Y-%m-%dT%H",
+			"%Y-%m-%dt%H:%M:%S",
+			"%Y-%m-%dt%H:%M",
+			"%Y-%m-%dt%H",
 			"%Y-%m-%d",
 			"%Y-%m",
 			NULL
