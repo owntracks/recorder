@@ -58,7 +58,7 @@ window.onload = function() {
 	// var url = 'ws://' + location.host + '/ws/last';
 	// console.log(JSON.stringify(location));
 
-	var url = "ws://" + location.host + "/";
+	var url = ("https:" == document.location.protocol ? "wss://" : "ws://") + location.host + "/";
 	var parts = location.pathname.split('/');
 	for (var i = 1; i < parts.length - 2; i++) {
 		url = url + parts[i] + "/";
