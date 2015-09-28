@@ -160,8 +160,10 @@ int gcache_put(struct gcache *gc, char *keystr, char *payload)
 		return gcache_del(gc, keystr);
 
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
-	if (rc != 0)
+	if (rc != 0) {
 		olog(LOG_ERR, "gcache_put: mdb_txn_begin: %s", mdb_strerror(rc));
+		return (-1);
+	}
 
 	key.mv_data	= keystr;
 	key.mv_size	= strlen(keystr);
@@ -171,8 +173,10 @@ int gcache_put(struct gcache *gc, char *keystr, char *payload)
 						 * from this buffer */
 
 	rc = mdb_put(txn, gc->dbi, &key, &data, 0);
-	if (rc != 0)
+	if (rc != 0) {
 		olog(LOG_ERR, "gcache_put: mdb_put: %s", mdb_strerror(rc));
+		/* fall through to commit */
+	}
 
 	rc = mdb_txn_commit(txn);
 	if (rc) {
@@ -336,7 +340,9 @@ void gcache_load(char *path, char *lmdbname)
 		if ((bp = strchr(buf, ' ')) != NULL) {
 			*bp = 0;
 
-			gcache_put(gc, buf, bp+1);
+			if (gcache_put(gc, buf, bp+1) != 0) {
+				fprintf(stderr, "Cannot load key\n");
+			}
 		}
 	}
 
