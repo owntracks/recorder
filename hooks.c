@@ -185,6 +185,40 @@ static void hooks_hooklet(struct udata *ud, char *topic, JsonNode *fullo)
 	}
 }
 
+/*
+ * Invoked from putrec() in storage. If the Lua putrec function is available
+ * and it returns non-zero, do not putrec.
+ */
+
+int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
+{
+	struct luadata *ld = ud->luadata;
+	int rc;
+
+	if (ld == NULL)
+		return (0);
+
+	lua_settop(ld->L, 0);
+	lua_getglobal(ld->L, "putrec");
+	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
+		return (0);
+	}
+
+	lua_pushstring(ld->L, user);
+	lua_pushstring(ld->L, device);
+	lua_pushstring(ld->L, payload);
+
+	/* Invoke `hook' function in Lua with our args */
+	if (lua_pcall(ld->L, 3, 1, 0)) {
+		olog(LOG_ERR, "Failed to run putrec in Lua: %s", lua_tostring(ld->L, -1));
+		exit(1);
+	}
+
+	rc = (int)lua_tonumber(ld->L, -1);
+	printf("C: hooks_norec returns %d\n", rc);
+	return (rc);
+}
+
 void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
 {
 	do_hook("otr_hook", ud, topic, fullo);

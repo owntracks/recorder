@@ -260,18 +260,25 @@ JsonNode *csv_to_json(char *payload)
 
 #define RECFORMAT "%s\t%-18s\t%s\n"
 
-static void putrec(time_t now, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
+/*
+ * Store payload in REC file unless our Lua putrec() function says
+ * we shouldn't for this particular user/device combo.
+ */
+
+static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
 {
 	FILE *fp;
 
-	if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
-		olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
-			UB(username), UB(device));
-	}
+	if (hooks_norec(ud, UB(username), UB(device), string) == 0) {
+		if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
+			olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
+				UB(username), UB(device));
+		}
 
-	fprintf(fp, RECFORMAT, isotime(now),
+		fprintf(fp, RECFORMAT, isotime(now),
 			UB(reltopic), string);
-	fclose(fp);
+		fclose(fp);
+	}
 }
 
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
@@ -379,7 +386,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	if ((json = json_decode(m->payload)) == NULL) {
 		if ((json = csv_to_json(m->payload)) == NULL) {
 			/* It's not JSON or it's not a location CSV; store it */
-			putrec(now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
 			return;
 		}
 	}
@@ -420,14 +427,14 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		case T_LWT:
 		case T_STEPS:
 		case T_WAYPOINTS:
-			putrec(now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
 			goto cleanup;
 		case T_WAYPOINT:
 		case T_TRANSITION:
 		case T_LOCATION:
 			break;
 		default:
-			putrec(now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
 			goto cleanup;
 	}
 
@@ -542,7 +549,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	if (!pingping) {
 		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-			putrec(now, reltopic, username, device, jsonstring);
+			putrec(ud, now, reltopic, username, device, jsonstring);
 			free(jsonstring);
 		}
 	}

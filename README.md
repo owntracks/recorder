@@ -239,7 +239,7 @@ Unless already provided by the package you installed, we recommend you create a 
 
 The _recorder_ has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
 
-If you require authentication or TLS to connect to your MQTT broker, pay attention to the `$OTR_` environment variables listed in the help. 
+If you require authentication or TLS to connect to your MQTT broker, pay attention to the `$OTR_` environment variables listed in the help.
 
 Launch the recorder:
 
@@ -249,7 +249,7 @@ $ ./ot-recorder 'owntracks/#'
 
 Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
 
-The location message received by the _recorder_ will be written to storage. 
+The location message received by the _recorder_ will be written to storage.
 
 ### Launching `ot-recorder` for _Hosted mode_
 
@@ -321,7 +321,7 @@ We recommend you keep reverse-geo lookups enabled, this data (country code `cc`,
 
 ## Monitoring
 
-In order to monitor the _recorder_, whenever an MQTT message is received, a `monitor` file located relative to STORAGEDEFAULT is maintained. It contains a single line of text: the epoch timestamp and the last received topic separated from each other by a space. 
+In order to monitor the _recorder_, whenever an MQTT message is received, a `monitor` file located relative to STORAGEDEFAULT is maintained. It contains a single line of text: the epoch timestamp and the last received topic separated from each other by a space.
 
 ```
 1439738692 owntracks/jjolie/ipad
@@ -499,6 +499,13 @@ the file `/tmp/lua.out` would contain
 written by OwnTracks Recorder version 0.3.0
 It is 14:10:01 in the year 2015 owntracks/jane/phone lat=48.858339 Avenue Anatole France, 75007 Paris, France
 ```
+
+### `putrec`
+
+An optional function you provide is called `putrec(u, d, s)`. If it exists,
+it is called with the current user in `u`, the device in `d` and the payload
+(which is possibly not JSON) in the string `s`. If your function returns a
+non-zero value, the _recorder_ will *not* write the REC file for this publish.
 
 ### Hooklets
 

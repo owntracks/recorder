@@ -13,6 +13,7 @@ struct luadata {
 struct luadata *hooks_init(struct udata *ud, char *luascript);
 void hooks_exit(struct luadata *, char *reason);
 void hooks_hook(struct udata *ud, char *topic, JsonNode *obj);
+int hooks_norec(struct udata *ud, char *user, char *device, char *payload);
 
 #endif /* WITH_LUA */
 
