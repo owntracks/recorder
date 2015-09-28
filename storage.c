@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <fnmatch.h>
 #include <unistd.h>
+#include <glob.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include "utstring.h"
@@ -873,7 +874,8 @@ JsonNode *kill_datastore(char *user, char *device)
 	JsonNode *obj = json_mkobject(), *killed = json_mkarray();
 	char *bp;
 	struct dirent **namelist;
-	int i, n;
+	int i, n, rc;
+	glob_t results;
 
 	utstring_renew(path);
 	utstring_renew(fname);
@@ -980,6 +982,35 @@ JsonNode *kill_datastore(char *user, char *device)
 	/* ... and parent directory */
 	utstring_renew(path);
 	utstring_printf(path, "%s/photos/%s", STORAGEDIR, user);
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+	}
+
+	/* Remove waypoint files and containing directories */
+	utstring_renew(path);
+	utstring_printf(path, "%s/waypoints/%s/%s/*.json", STORAGEDIR, user, device);
+	rc = glob(UB(path), 0, 0, &results);
+	if (rc == 0) {
+		JsonNode *list = json_mkarray();
+
+		for (n = 0; n < results.gl_pathc; n++) {
+			if (remove(results.gl_pathv[n]) == 0) {
+				olog(LOG_NOTICE, "removed %s", results.gl_pathv[n]);
+				json_append_element(list, json_mkstring(results.gl_pathv[n]));
+			}
+		}
+		json_append_member(obj, "waypoint", list);
+	}
+	globfree(&results);
+
+	utstring_renew(path);
+	utstring_printf(path, "%s/waypoints/%s/%s", STORAGEDIR, user, device);
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+	}
+
+	utstring_renew(path);
+	utstring_printf(path, "%s/waypoints/%s", STORAGEDIR, user);
 	if (rmdir(UB(path)) == 0) {
 		olog(LOG_NOTICE, "removed %s", UB(path));
 	}
