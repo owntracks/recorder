@@ -969,6 +969,20 @@ JsonNode *kill_datastore(char *user, char *device)
 		olog(LOG_NOTICE, "removed %s", UB(path));
 	}
 
+	/* Attempt to remove PHOTO ... */
+	utstring_renew(path);
+	utstring_printf(path, "%s/photos/%s.png", STORAGEDIR, user);
+	if (remove(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+		json_append_member(obj, "photo", json_mkstring(UB(path)));
+	}
+
+	/* ... and parent directory */
+	utstring_renew(path);
+	utstring_printf(path, "%s/photos/%s", STORAGEDIR, user);
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+	}
 
 	json_append_member(obj, "killed", killed);
 	return (obj);
