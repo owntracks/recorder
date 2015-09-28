@@ -1099,6 +1099,7 @@ int main(int argc, char **argv)
 #ifdef HAVE_HTTP
 	if (http_port) {
 		char address[BUFSIZ];
+		const char *addressinfo;
 
 		sprintf(address, "%s:%d", http_host, http_port);
 
@@ -1114,7 +1115,12 @@ int main(int argc, char **argv)
 		// mg_set_option(udata.mgserver, "access_log_file", "access.log");
 		// mg_set_option(udata.mgserver, "cgi_pattern", "**.cgi");
 
-		olog(LOG_INFO, "HTTP listener started on %s", mg_get_option(udata.mgserver, "listening_port"));
+		addressinfo = mg_get_option(udata.mgserver, "listening_port");
+		olog(LOG_INFO, "HTTP listener started on %s", addressinfo);
+		if (addressinfo == NULL || *addressinfo == 0) {
+			olog(LOG_ERR, "HTTP port is in use. Exiting.");
+			exit(2);
+		}
 
 	}
 #endif
