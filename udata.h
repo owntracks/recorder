@@ -3,10 +3,10 @@
 
 #include "json.h"
 
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 # include "mongoose.h"
 #endif
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 # include "gcache.h"
 #endif
 
@@ -19,15 +19,15 @@ struct udata {
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
 	int qos;			/* Subscribe QoS */
 	int verbose;			/* TRUE if print verbose messages to stdout */
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	struct gcache *gc;
 	struct gcache *t2t;		/* topic to tid */
 #endif
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	struct mg_server *mgserver;	/* Mongoose */
 #endif
 #ifdef WITH_LUA
-# ifdef HAVE_LMDB
+# ifdef WITH_LMDB
 	struct luadata *luadata;	/* Lua stuff */
 	struct gcache *luadb;		/* lmdb named database 'luadb' */
 # endif

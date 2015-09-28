@@ -40,10 +40,10 @@
 #include "misc.h"
 #include "util.h"
 #include "storage.h"
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 # include "gcache.h"
 #endif
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 # include "http.h"
 #endif
 #ifdef WITH_LUA
@@ -371,7 +371,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	mosquitto_sub_topic_tokens_free(&topics, count);
 
-#ifdef HAVE_PING
+#ifdef WITH_PING
 	if (!strcmp(UB(username), "ping") && !strcmp(UB(device), "ping")) {
 		pingping = TRUE;
 	}
@@ -473,7 +473,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 	}
 
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	/*
 	 * If the topic we are handling is in topic2tid, replace the TID
 	 * in this payload with that from the database.
@@ -614,7 +614,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		json_copy_to_object(json, geo, FALSE);
 	}
 
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	if (ud->mgserver && !pingping) {
 		http_ws_push_json(ud->mgserver, json);
 	}
@@ -702,12 +702,12 @@ static char *mosquitto_reason(int rc)
 
 void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 {
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	struct udata *ud = (struct udata *)userdata;
 #endif
 
 	if (reason == 0) { 	// client wish
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 		gcache_close(ud->gc);
 #endif
 	} else {
@@ -736,7 +736,7 @@ void usage(char *prog)
 	printf("  --port		-p     MQTT port (1883)\n");
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
@@ -776,7 +776,7 @@ int main(int argc, char **argv)
 	static struct udata udata, *ud = &udata;
 	struct utsname uts;
 	UT_string *clientid;
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	int http_port = 8083;
 	char *doc_root = DOCROOT;
 	char *http_host = "localhost";
@@ -789,16 +789,16 @@ int main(int argc, char **argv)
 	udata.skipdemo		= TRUE;
 	udata.revgeo		= TRUE;
 	udata.verbose		= TRUE;
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	udata.gc		= NULL;
 	udata.t2t		= NULL;		/* Topic to TID */
 #endif
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	udata.mgserver		= NULL;
 #endif
 #ifdef WITH_LUA
 	udata.luadata		= NULL;
-# ifdef HAVE_LMDB
+# ifdef WITH_LMDB
 	udata.luadb		= NULL;
 # endif
 #endif
@@ -841,7 +841,7 @@ int main(int argc, char **argv)
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
 			{ "doc-root",	required_argument,	0, 	2},
@@ -873,7 +873,7 @@ int main(int argc, char **argv)
 			case 4:
 				logfacility = strdup(optarg);
 				break;
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 			case 'A':	/* API */
 				http_port = atoi(optarg);
 				break;
@@ -971,7 +971,7 @@ int main(int argc, char **argv)
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
 
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	if (http_port) {
 		if (!is_directory(doc_root)) {
 			olog(LOG_ERR, "%s is not a directory", doc_root);
@@ -984,7 +984,7 @@ int main(int argc, char **argv)
 	olog(LOG_DEBUG, "starting");
 
 	if (ud->revgeo == TRUE) {
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 		char db_filename[BUFSIZ], *pa;
 
 		snprintf(db_filename, BUFSIZ, "%s/ghash", STORAGEDIR);
@@ -1001,7 +1001,7 @@ int main(int argc, char **argv)
 		revgeo_init();
 	}
 
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	snprintf(err, sizeof(err), "%s/ghash", STORAGEDIR);
 	ud->t2t = gcache_open(err, "topic2tid", TRUE);
 # ifdef WITH_LUA
@@ -1103,7 +1103,7 @@ int main(int argc, char **argv)
 		return rc;
 	}
 
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	if (http_port) {
 		char address[BUFSIZ];
 		const char *addressinfo;
@@ -1139,7 +1139,7 @@ int main(int argc, char **argv)
 			sleep(10);
 			mosquitto_reconnect(mosq);
 		}
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 		if (udata.mgserver) {
 			mg_poll_server(udata.mgserver, 200);
 		}
@@ -1148,7 +1148,7 @@ int main(int argc, char **argv)
 
 	json_delete(ud->topics);
 
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	if (ud->t2t)
 		gcache_close(ud->t2t);
 # ifdef WITH_LUA
@@ -1157,7 +1157,7 @@ int main(int argc, char **argv)
 # endif
 #endif
 
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 	mg_destroy_server(&udata.mgserver);
 #endif
 

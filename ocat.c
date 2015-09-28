@@ -148,7 +148,7 @@ void usage(char *prog)
 	printf("           payload		Like RAW but JSON payload only\n");
 	printf("  --fields tst,lat,lon,...     	Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     	JSON object with last users\n");
-#if HAVE_KILL
+#if WITH_KILL
 	printf("  --killdata                   	requires -u and -d\n");
 #endif
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
@@ -170,20 +170,20 @@ void print_versioninfo()
 {
 	printf("This is OwnTracks Recorder, version %s\n", VERSION);
 	printf("built with:\n");
-#ifdef HAVE_LMDB
-	printf("\tHAVE_LMDB = yes\n");
+#ifdef WITH_LMDB
+	printf("\tWITH_LMDB = yes\n");
 #endif
 #ifdef WITH_LUA
 	printf("\tWITH_LUA  = yes\n");
 #endif
-#ifdef HAVE_HTTP
-	printf("\tHAVE_HTTP = yes\n");
+#ifdef WITH_HTTP
+	printf("\tWITH_HTTP = yes\n");
 #endif
-#ifdef HAVE_PING
-	printf("\tHAVE_PING = yes\n");
+#ifdef WITH_PING
+	printf("\tWITH_PING = yes\n");
 #endif
-#ifdef HAVE_KILL
-	printf("\tHAVE_KILL = yes\n");
+#ifdef WITH_KILL
+	printf("\tWITH_KILL = yes\n");
 #endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 	char *progname = *argv, *p, *lmdbname = NULL;
 	int c;
 	int list = 0, last = 0, limit = 0, dumpghash = FALSE, loadghash = FALSE;
-#if HAVE_KILL
+#if WITH_KILL
 	int killdata = FALSE;
 #endif
 	int revgeo = TRUE;
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 			{ "precision",	required_argument, 0, 	2},
 			{ "dump",	optional_argument, 0, 	3},
 			{ "load",	optional_argument, 0, 	4},
-#if HAVE_KILL
+#if WITH_KILL
 			{ "killdata",	no_argument, 0, 	'K'},
 #endif
 			{ "norevgeo",	no_argument, 0, 	'G'},
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 					exit(2);
 				}
 				break;
-#if HAVE_KILL
+#if WITH_KILL
 			case 'K':
 				killdata = 1;
 				break;
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 	storage_init(revgeo);
 
 
-#if HAVE_KILL
+#if WITH_KILL
 	if (killdata) {
 		JsonNode *obj; //, *killed, *f;
 

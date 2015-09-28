@@ -3,19 +3,19 @@
 INSTALLDIR = /usr/local
 
 # Do you want recorder's built-in HTTP REST API?
-HAVE_HTTP ?= yes
+WITH_HTTP ?= yes
 
 # Do you want to use reverse-geo caching? (Highly recommended)
-HAVE_LMDB ?= yes
+WITH_LMDB ?= yes
 
 # Do you have Lua libraries installed and want the Lua hook integration?
 WITH_LUA ?= no
 
 # Do you want support for the `pingping' monitoring feature?
-HAVE_PING ?= yes
+WITH_PING ?= yes
 
 # Do you want support for removing data via the API? (Dangerous)
-HAVE_KILL ?= no
+WITH_KILL ?= no
 
 # Where should the recorder store its data? This directory must
 # exist and be writeable by recorder (and readable by ocat)

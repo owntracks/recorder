@@ -83,7 +83,7 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 
 	lua_setglobal(ld->L, "otr");
 
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 	LuaDB = ud->luadb;
 #endif
 

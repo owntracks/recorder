@@ -1,7 +1,7 @@
 #ifndef _GCACHE_H_INCLUDED_
 # define _GCACHE_H_INCLUDED_
 
-#ifdef HAVE_LMDB
+#ifdef WITH_LMDB
 
 #include "json.h"
 #include "lmdb.h"

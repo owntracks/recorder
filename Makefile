@@ -16,8 +16,8 @@ OTR_OBJS = json.o \
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
-ifeq ($(HAVE_PING),yes)
-	CFLAGS += -DHAVE_PING=1
+ifeq ($(WITH_PING),yes)
+	CFLAGS += -DWITH_PING=1
 endif
 
 ifeq ($(WITH_LUA),yes)
@@ -26,19 +26,19 @@ ifeq ($(WITH_LUA),yes)
 	OTR_OBJS += hooks.o
 endif
 
-ifeq ($(HAVE_KILL),yes)
-	CFLAGS += -DHAVE_KILL=1
+ifeq ($(WITH_KILL),yes)
+	CFLAGS += -DWITH_KILL=1
 endif
 
-ifeq ($(HAVE_LMDB),yes)
-	CFLAGS += -DHAVE_LMDB=1 -Imdb/
+ifeq ($(WITH_LMDB),yes)
+	CFLAGS += -DWITH_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
 	LIBS += mdb/liblmdb.a -lpthread
 	TARGETS += mdb/liblmdb.a
 endif
 
-ifeq ($(HAVE_HTTP),yes)
-	CFLAGS += -DHAVE_HTTP=1
+ifeq ($(WITH_HTTP),yes)
+	CFLAGS += -DWITH_HTTP=1
 	OTR_OBJS += mongoose.o http.o
 endif
 

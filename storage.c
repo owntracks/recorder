@@ -856,7 +856,7 @@ char *gpx_string(JsonNode *location_array)
 	return (UB(xml));
 }
 
-#if HAVE_KILL
+#if WITH_KILL
 
 /*
  * Remove all data for a user's device. Return a JSON object with a status
@@ -1018,7 +1018,7 @@ JsonNode *kill_datastore(char *user, char *device)
 	json_append_member(obj, "killed", killed);
 	return (obj);
 }
-#endif /* HAVE_KILL */
+#endif /* WITH_KILL */
 
 /*
  * Print the value in a single JSON node as XML by invoking func(). If string,

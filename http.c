@@ -31,11 +31,11 @@
 #include "storage.h"
 #include "geohash.h"
 #include "udata.h"
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 # include "http.h"
 #endif
 
-#ifdef HAVE_HTTP
+#ifdef WITH_HTTP
 
 /*
  * Return a lowercased copy of a GET/POST parameter or NULL. The parameter
@@ -291,7 +291,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	time_from = field(conn, "from");
 	time_to	  = field(conn, "to");
 
-#if HAVE_KILL
+#if WITH_KILL
 	if (nparts == 1 && !strcmp(uparts[0], "kill")) {
 		JsonNode *deleted;
 
@@ -311,7 +311,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		CLEANUP;
 		return (json_response(conn, deleted));
 	}
-#endif /* HAVE_KILL */
+#endif /* WITH_KILL */
 
 	if (nparts == 1 && !strcmp(uparts[0], "last")) {
                 JsonNode *user_array;
@@ -520,5 +520,5 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 	}
 }
 
-#endif /* HAVE_HTTP */
+#endif /* WITH_HTTP */
 
