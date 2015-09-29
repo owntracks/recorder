@@ -865,7 +865,6 @@ int main(int argc, char **argv)
 				break;
 #ifdef WITH_LUA
 			case 7:
-				/* FIXME: check existence of script file */
 				luascript = strdup(optarg);
 				break;
 #endif
@@ -1146,7 +1145,7 @@ int main(int argc, char **argv)
 		}
 #ifdef WITH_HTTP
 		if (udata.mgserver) {
-			mg_poll_server(udata.mgserver, 200);
+			mg_poll_server(udata.mgserver, 100);
 		}
 #endif
 	}
