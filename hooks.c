@@ -115,7 +115,7 @@ void hooks_exit(struct luadata *ld, char *reason)
 {
 	if (ld) {
 		l_function(ld->L, "otr_exit");
-		olog(LOG_NOTICE, "unloading Lua: %s", reason);
+		olog(LOG_DEBUG, "unloading Lua: %s", reason);
 		free(ld->script);
 		lua_close(ld->L);
 		free(ld);
