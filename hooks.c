@@ -87,7 +87,7 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 	LuaDB = ud->luadb;
 #endif
 
-	olog(LOG_DEBUG, "initializing Lua hooks at %s", script);
+	olog(LOG_DEBUG, "initializing Lua hooks from `%s'", script);
 
 	/* Load the Lua script */
 	if (luaL_dofile(ld->L, ld->script)) {

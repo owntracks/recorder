@@ -1,3 +1,13 @@
+
+- FIX: index.html uses UTC to go back in time
+- NEW: recorder can use Lua otr_putrec() to prohibit REC file writing (#27)
+- FIX: storage removes waypoints on kill (#34)
+- FIX: storage removes photo on kill (#30)
+- FIX: exit if HTTP port cannot be opened
+- FIX: lowercase T in date formats allowed (#44)
+- FIX: websockets switch to WSS when content served over HTTPS (#43)
+- FIX: live map now shows user/device (#42)
+
 2015-09-26 version 0.4.1
 - FIX: recorder correctly handles topics with leading slash
 - NEW: Lua functions (putdb, getdb) have access to a `luadb'-named LMDB database
