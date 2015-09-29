@@ -60,15 +60,15 @@ TARGETS += ot-recorder ocat
 
 all: $(TARGETS)
 
-ot-recorder: ot-recorder.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) -o ot-recorder ot-recorder.o $(OTR_OBJS) $(LIBS)
+ot-recorder: recorder.o $(OTR_OBJS)
+	$(CC) $(CFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(LIBS)
 
 ocat: ocat.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
 
 $(OTR_OBJS): config.mk
 
-ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h
+recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h
 geo.o: geo.h geo.c udata.h Makefile config.mk
 geohash.o: geohash.h geohash.c udata.h Makefile config.mk
 base64.o: base64.h base64.c
