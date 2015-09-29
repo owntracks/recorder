@@ -383,11 +383,20 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 {
 	struct dirent **namelist;
 	int i, n;
-	JsonNode *jarr = json_mkarray();
+	JsonNode *jarr;
 	static UT_string *path = NULL;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
 		return;
+
+	/* If our obj contains the "results" array, use that
+	 * and remove from obj; we'll add it back later.
+	 */
+	if ((jarr = json_find_member(obj, "results")) == NULL) {
+		jarr = json_mkarray();
+	} else {
+		json_remove_from_parent(jarr);
+	}
 
 	utstring_renew(path);
 
@@ -455,6 +464,42 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi, int reverse
 		utstring_printf(path, "%s/rec/%s/%s",
 			STORAGEDIR, user, device);
 		lsscan(UB(path), s_lo, s_hi, json, reverse);
+	}
+
+	return (json);
+}
+
+/*
+ * List multiple user/device combinations. udpairs is a JSON
+ * array of strings, each of which is a user/device pair
+ * separated by a slash.
+ */
+
+JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
+{
+	JsonNode *json = json_mkobject(), *ud;
+	UT_string *path = NULL;
+	char *pairs[2];
+	int np, n;
+
+	if (udpairs == NULL || udpairs->tag != JSON_ARRAY) {
+		return (json);
+	}
+
+	json_foreach(ud, udpairs) {
+		if ((np = splitter(ud->string_, "/", pairs)) != 2) {
+			continue;
+		}
+		utstring_renew(path);
+		utstring_printf(path, "%s/rec/%s/%s",
+			STORAGEDIR,
+			pairs[0],		/* user */
+			pairs[1]);		/* device */
+		lsscan(UB(path), s_lo, s_hi, json, reverse);
+
+		for (n = 0; n < np; n++) {
+			free(pairs[n]);
+		}
 	}
 
 	return (json);
