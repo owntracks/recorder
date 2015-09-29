@@ -66,6 +66,7 @@ ot-recorder: ot-recorder.o $(OTR_OBJS)
 ocat: ocat.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
 
+$(OTR_OBJS): config.mk
 
 ot-recorder.o: ot-recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h
 geo.o: geo.h geo.c udata.h Makefile config.mk
