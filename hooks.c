@@ -199,7 +199,7 @@ int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
 		return (0);
 
 	lua_settop(ld->L, 0);
-	lua_getglobal(ld->L, "putrec");
+	lua_getglobal(ld->L, "otr_putrec");
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
 		return (0);
 	}
@@ -208,14 +208,13 @@ int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
 	lua_pushstring(ld->L, device);
 	lua_pushstring(ld->L, payload);
 
-	/* Invoke `hook' function in Lua with our args */
+	/* Invoke Lua function with our args */
 	if (lua_pcall(ld->L, 3, 1, 0)) {
 		olog(LOG_ERR, "Failed to run putrec in Lua: %s", lua_tostring(ld->L, -1));
 		exit(1);
 	}
 
 	rc = (int)lua_tonumber(ld->L, -1);
-	printf("C: hooks_norec returns %d\n", rc);
 	return (rc);
 }
 

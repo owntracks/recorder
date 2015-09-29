@@ -268,8 +268,13 @@ JsonNode *csv_to_json(char *payload)
 static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
 {
 	FILE *fp;
+	int rc = 0;
 
-	if (hooks_norec(ud, UB(username), UB(device), string) == 0) {
+#ifdef WITH_LUA
+	rc = hooks_norec(ud, UB(username), UB(device), string);
+#endif
+
+	if (rc == 0) {
 		if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
 			olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
 				UB(username), UB(device));
