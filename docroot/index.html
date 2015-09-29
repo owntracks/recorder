@@ -49,9 +49,9 @@
 
 	var now = moment();
 
-	var f12 = now.subtract(12, 'hours').utc().format('YYYY-MM-DDTHH:MM');
-	var f7 = now.subtract(7, 'days').utc().format('YYYY-MM-DDTHH:MM');
-	var f30 = now.subtract(30, 'days').utc().format('YYYY-MM-DDTHH:MM');
+	var f12 = now.subtract(12, 'hours').utc().format('YYYY-MM-DDTHH:mm');
+	var f7 = now.subtract(7, 'days').utc().format('YYYY-MM-DDTHH:mm');
+	var f30 = now.subtract(30, 'days').utc().format('YYYY-MM-DDTHH:mm');
 
 	$.ajax({
 		url: dataURI,
