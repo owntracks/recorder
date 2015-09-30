@@ -11,6 +11,7 @@ function initialize() {
 	mapOptions = {
 		center: center,
 		zoom: 3, // 9,
+                maxZoom: 18, // don't overzoom (should this be configurable?)
 		mapTypeId: google.maps.MapTypeId.ROADMAP,
 		scrollwheel: false,
 		disableDefaultUI: false,
