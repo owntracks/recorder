@@ -1,12 +1,16 @@
 var map;
+var do_fit = false;
 var markers = {};
 var livemarkers = true;
 
 function initialize() {
 	var lat = 50.098280;
 	var lon = 10.187189;
+	var params = getSearchParameters();
 
 	var center = new google.maps.LatLng(lat,lon);
+
+	do_fit = (params.fit) ? true : false;
 
 	mapOptions = {
 		center: center,
@@ -29,6 +33,23 @@ function clog(upd, id, s) {
 
 	console.log(upd + ": " + ident + " " + s);
 }
+
+/* http://stackoverflow.com/questions/5448545/ */
+function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+}
+
+function transformToAssocArray( prmstr ) {
+    var params = {};
+    var prmarr = prmstr.split("&");
+    for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+    }
+    return params;
+}
+
 
 /*
  * Close all the infowindows in the `markers' object, and then open the
@@ -123,7 +144,9 @@ function map_marker(loc)
 		markers[id] = m;
 	}
 
-	fitbounds();
+	if (do_fit) {
+		fitbounds();
+	}
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
