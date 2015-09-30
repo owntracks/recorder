@@ -41,6 +41,15 @@ function refreshmarkers(m) {
 	m['infowindow'].open(map, m);
 }
 
+function fitbounds() {
+	var bounds = new google.maps.LatLngBounds();
+	for (var k in markers) {
+		bounds.extend(markers[k].getPosition());
+	}
+	map.setCenter(bounds.getCenter());	/* Center to geometric center of all markers */
+	map.fitBounds(bounds);
+}
+
 /*
  * `loc' is a location object obtained via Websockets from the recorder
  */
@@ -112,6 +121,8 @@ function map_marker(loc)
 
 		markers[id] = m;
 	}
+
+	fitbounds();
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
