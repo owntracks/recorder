@@ -462,7 +462,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 
 	if (isnan(lat = number(json, "lat")) || isnan(lon = number(json, "lon"))) {
-		olog(LOG_ERR, "lat or lon are NaN");
+		olog(LOG_ERR, "lat or lon for %s are NaN: %s", m->topic, bindump(m->payload, m->payloadlen));
 		goto cleanup;
 	}
 
