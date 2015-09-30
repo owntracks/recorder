@@ -230,6 +230,12 @@ Obtain and download the software, either [as a package, if available](https://pa
 
 Type `make` and watch the fun. When that finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the _recorder_ options.
 
+Ensure the LMDB databases are initialized by running the following command which is safe to do, also after an upgrade. (This initialization is non-destructive -- it will not delete any data.)
+
+```
+ot-recorder --initialize
+```
+
 Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
 
 * that each instance uses a distinct `--storage`

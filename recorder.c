@@ -741,6 +741,7 @@ void usage(char *prog)
 	printf("  --port		-p     MQTT port (1883)\n");
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
+	printf("  --initialize		       initialize storage\n");
 #ifdef WITH_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
@@ -777,7 +778,7 @@ int main(int argc, char **argv)
 	char *luascript = NULL;
 #endif
 	int port = 1883;
-	int rc, i, ch, hosted = FALSE;
+	int rc, i, ch, hosted = FALSE, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
 	struct utsname uts;
 	UT_string *clientid;
@@ -843,6 +844,7 @@ int main(int argc, char **argv)
 			{ "precision",	required_argument,	0, 	5},
 			{ "hosted",	no_argument,		0, 	6},
 			{ "quiet",	no_argument,		0, 	8},
+			{ "initialize",	no_argument,		0, 	9},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
@@ -860,6 +862,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 9:
+				initialize = TRUE;
+				break;
 			case 8:
 				ud->verbose = FALSE;
 				break;
@@ -927,6 +932,51 @@ int main(int argc, char **argv)
 				exit(1);
 		}
 
+	}
+
+	/*
+	 * If requested to, attempt to create ghash storage and
+	 * initialize (non-destructively -- just open for write)
+	 * the LMDB databases.
+	 */
+
+	if (initialize == TRUE) {
+		struct gcache *gt;
+
+		char path[BUFSIZ], *pp;
+		snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
+
+		if (!is_directory(path)) {
+			pp = strdup(path);
+			if (mkpath(pp) < 0) {
+				fprintf(stderr, "Cannot mkdir %s: %s", path, strerror(errno));
+				exit(2);
+			}
+			free(pp);
+
+		}
+
+#ifdef WITH_LMDB
+		if ((gt = gcache_open(path, NULL, FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open MainDB\n");
+			exit(2);
+		}
+		gcache_close(gt);
+
+		if ((gt = gcache_open(path, "topic2tid", FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open `topic2tid'\n");
+			exit(2);
+		}
+		gcache_close(gt);
+#ifdef WITH_LUA
+		if ((gt = gcache_open(path, "luadb", FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open `luadb'\n");
+			exit(2);
+		}
+		gcache_close(gt);
+#endif /* !LUA */
+#endif
+		exit(0);
 	}
 
 	argc -= (optind);

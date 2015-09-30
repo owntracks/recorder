@@ -66,19 +66,19 @@ ot-recorder: recorder.o $(OTR_OBJS)
 ocat: ocat.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
 
-$(OTR_OBJS): config.mk
+$(OTR_OBJS): config.mk Makefile
 
 recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h
-geo.o: geo.h geo.c udata.h Makefile config.mk
-geohash.o: geohash.h geohash.c udata.h Makefile config.mk
+geo.o: geo.h geo.c udata.h
+geohash.o: geohash.h geohash.c udata.h
 base64.o: base64.h base64.c
-gcache.o: gcache.c gcache.h json.h config.mk
-misc.o: misc.c misc.h udata.h Makefile config.mk
-http.o: http.c mongoose.h util.h http.h storage.h config.mk
-util.o: util.c util.h Makefile config.mk
+gcache.o: gcache.c gcache.h json.h
+misc.o: misc.c misc.h udata.h
+http.o: http.c mongoose.h util.h http.h storage.h
+util.o: util.c util.h
 mongoose.o: mongoose.c mongoose.h
-ocat.o: ocat.c storage.h util.h config.mk version.h
-storage.o: storage.c storage.h util.h gcache.h config.mk
+ocat.o: ocat.c storage.h util.h version.h
+storage.o: storage.c storage.h util.h gcache.h
 hooks.o: hooks.c udata.h hooks.h util.h version.h gcache.h
 
 
@@ -93,12 +93,10 @@ mdb/liblmdb.a:
 install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
-	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)/ghash
 	mkdir -p $(DESTDIR)$(DOCROOT)
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
-	$(DESTDIR)$(INSTALLDIR)/bin/ocat --load=topic2tid < /dev/null
-	$(DESTDIR)$(INSTALLDIR)/bin/ocat --load=luadb < /dev/null
+	$(DESTDIR)$(INSTALLDIR)/sbin/ot-recorder --initialize
 	# mkdir -p $(DESTDIR)/etc/systemd/system/
 	# install --mode 0644 etc/ot-recorder.service $(DESTDIR)/etc/systemd/system/ot-recorder.service
