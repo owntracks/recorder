@@ -742,6 +742,7 @@ void usage(char *prog)
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
 	printf("  --initialize		       initialize storage\n");
+	printf("  --label <label>	       server label (dflt: Recorder)\n");
 #ifdef WITH_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
@@ -807,6 +808,7 @@ int main(int argc, char **argv)
 # ifdef WITH_LMDB
 	udata.luadb		= NULL;
 # endif
+	udata.label		= strdup("Recorder");
 #endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
@@ -845,6 +847,7 @@ int main(int argc, char **argv)
 			{ "hosted",	no_argument,		0, 	6},
 			{ "quiet",	no_argument,		0, 	8},
 			{ "initialize",	no_argument,		0, 	9},
+			{ "label",	required_argument,	0, 	10},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
@@ -862,6 +865,10 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 10:
+				free(udata.label);
+				udata.label = strdup(optarg);
+				break;
 			case 9:
 				initialize = TRUE;
 				break;
@@ -1210,6 +1217,8 @@ int main(int argc, char **argv)
 		gcache_close(ud->luadb);
 # endif
 #endif
+
+	free(ud->label);
 
 #ifdef WITH_HTTP
 	mg_destroy_server(&udata.mgserver);

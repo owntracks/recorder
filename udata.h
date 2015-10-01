@@ -32,6 +32,7 @@ struct udata {
 	struct gcache *luadb;		/* lmdb named database 'luadb' */
 # endif
 #endif
+	char *label;			/* Server label */
 };
 
 #endif

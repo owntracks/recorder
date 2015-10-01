@@ -40,6 +40,10 @@ function ws_connect() {
 			try {
 				var loc = JSON.parse(ev.data);
 
+				if (loc['_label']) {
+					document.getElementById('maplabel').textContent = loc['_label'];
+				}
+
 				if (loc['_type'] == 'location') {
 					map_marker(loc);
 				}

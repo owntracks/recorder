@@ -75,7 +75,7 @@ static char *field(struct mg_connection *conn, char *fieldname)
 void http_ws_push_json(struct mg_server *server, JsonNode *obj)
 {
 	struct mg_connection *c;
-	JsonNode *j;
+	JsonNode *j, *tmpo;
 	int len;
 	char *js, *u = NULL, *d = NULL;
 
@@ -88,6 +88,7 @@ void http_ws_push_json(struct mg_server *server, JsonNode *obj)
 
 	for (c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) {
 		if (c->is_websocket) {
+			struct udata *ud = (struct udata *)c->server_param;
 #if 0
 			{
 				int n;
@@ -131,11 +132,16 @@ void http_ws_push_json(struct mg_server *server, JsonNode *obj)
 			}
 
 
-			if ((js = json_stringify(obj, NULL)) != NULL) {
+			tmpo = json_mkobject();
+			json_copy_to_object(tmpo, obj, TRUE);
+			json_append_member(tmpo, "_label", json_mkstring(ud->label));
+
+			if ((js = json_stringify(tmpo, NULL)) != NULL) {
 				len = strlen(js);
 				mg_websocket_write(c, 1, js, len);
 				free(js);
 			}
+			json_delete(tmpo);
 		}
 	}
 }
