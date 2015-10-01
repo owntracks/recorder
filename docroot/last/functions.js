@@ -51,7 +51,7 @@ function ButtonControl(controlDiv, map) {
 
 	// Set CSS for the control interior.
 	var controlText = document.createElement('div');
-	controlText.style.color = 'rgb(25,25,25)';
+	controlText.style.color = (do_fit) ? 'rgb(0,153,0)' : 'rgb(25,25,25)';
 	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
 	controlText.style.fontSize = '16px';
 	controlText.style.lineHeight = '38px';
