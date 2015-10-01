@@ -3,7 +3,7 @@ var ws_url;
 var ws;
 
 function setColor(element, color) {
-	element.style.backgroundColor = color;
+	element.style.border = '2px solid ' + color;
 }
 
 var out = function(message) {
@@ -19,16 +19,14 @@ function ws_connect() {
 	ws = new WebSocket(ws_url);
 
 	ws.onopen = function(ev) {
-		setColor(mapover, 'green');
-		document.getElementById('mapover').textContent = 'Connected';
+		setColor(maplabel, 'green');
 		var msg = 'LAST';
 		// out('SENT: ' + msg);
 		ws.send(msg);
 	};
 
 	ws.onclose = function(ev) {
-		setColor(mapover, 'red');
-		document.getElementById('mapover').textContent = 'Disconnected';
+		setColor(maplabel, 'red');
 		setTimeout(ws_connect, reconnectTimeout);
 	};
 
