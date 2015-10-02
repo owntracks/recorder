@@ -32,6 +32,8 @@
 #include "misc.h"
 #include "version.h"
 
+#define STRINGCOLUMN(x)	(!strcmp(x, "addr") || !strcmp(x, "locality"))
+
 /*
  * Print the value in a single JSON node. If string, easy. If number account for
  * what we call 'integer' types which shouldn't be printed as floats.
@@ -47,7 +49,12 @@ static void print_one(JsonNode *j, JsonNode *inttypes)
 			printf("%lf", j->number_);
 		}
 	} else if (j->tag == JSON_STRING) {
-		printf("%s", j->string_);
+		char *quote = "";
+
+		if (STRINGCOLUMN(j->key)) {
+			quote = "\"";
+		}
+		printf("%s%s%s", quote, j->string_, quote);
 	} else if (j->tag == JSON_BOOL) {
 		printf("%s", (j->bool_) ? "true" : "false");
 	} else if (j->tag == JSON_NULL) {
@@ -60,6 +67,16 @@ static void print_xml_line(char *line, void *param)
 	FILE *fp = (FILE *)param;
 
 	fprintf(fp, "%s\n", line);
+}
+
+static void csv_title(JsonNode *node, char *column)
+{
+	char *quote = "";
+
+	if (STRINGCOLUMN(column)) {
+		quote = "\"";
+	}
+	printf("%s%s%s%c", quote, column, quote,  (node->next) ? ',' : '\n');
 }
 
 /*
@@ -88,16 +105,17 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields)
 	json_foreach(one, arr) {
 		/* Headings */
 		if (virgin) {
+
 			virgin = !virgin;
 
 			if (fields) {
 				json_foreach(node, fields) {
-					printf("%s%c", node->string_, (node->next) ? ',' : '\n');
+					csv_title(node, node->string_);
 				}
 			} else {
-				json_foreach(j, one) {
-					if (j->key)
-						printf("%s%c", j->key, (j->next) ? ',' : '\n');
+				json_foreach(node, one) {
+					if (node->key)
+						csv_title(node, node->key);
 				}
 			}
 		}
