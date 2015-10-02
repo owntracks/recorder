@@ -512,9 +512,9 @@ struct jparam {
 	time_t s_hi;
 	output_type otype;
 	int limit;		/* if non-zero, we're searching backwards */
-	JsonNode *fields;
-	char *username;
-	char *device;
+	JsonNode *fields;	/* If non-NULL array of fields names to return */
+	char *username;		/* If non-NULL, add username to location  */
+	char *device;		/* If non-NULL, add device name to location */
 };
 
 /*
