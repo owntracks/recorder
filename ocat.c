@@ -208,6 +208,7 @@ void print_versioninfo()
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
 	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
+	printf("\tMDB VERSION = %s\n", MDB_VERSION_STRING);
 
 	exit(0);
 }
