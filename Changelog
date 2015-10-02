@@ -1,5 +1,12 @@
 
-- FIX: index.html uses UTC to go back in time
+2015-10-02 version 0.4.2
+- FIX: ocat --format csv outputs addr and locality as quoted strings
+- NEW: live map has a label (set with ot-recorder --label) to indentify instance; connection status is border
+- NEW: live map has toggle button to auto-fit (zoom)
+- NEW: live map fits to show all devices (#46, #47) with &fit=1 (#48)
+- NEW: recorder --initialize non-destructively creates databases (#45)
+- INT: added multilister (not yet surfaced to API) (#36)
+- FIX: index.html uses UTC to go back in time (reported by Ben)
 - NEW: recorder can use Lua otr_putrec() to prohibit REC file writing (#27)
 - FIX: storage removes waypoints on kill (#34)
 - FIX: storage removes photo on kill (#30)
