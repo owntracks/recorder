@@ -37,7 +37,7 @@ typedef enum {
 
 JsonNode *lister(char *username, char *device, time_t s_lo, time_t s_hi, int reverse);
 JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse);
-void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit, JsonNode *fields);
+void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit, JsonNode *fields, char *username, char *device);
 int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_to);
 JsonNode *geo_json(JsonNode *json);
 JsonNode *geo_linestring(JsonNode *location_array);

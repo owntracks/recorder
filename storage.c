@@ -513,6 +513,8 @@ struct jparam {
 	output_type otype;
 	int limit;		/* if non-zero, we're searching backwards */
 	JsonNode *fields;
+	char *username;
+	char *device;
 };
 
 /*
@@ -600,6 +602,8 @@ static int candidate_line(char *line, void *param)
 	time_t s_hi	= jarg->s_hi;
 	JsonNode *fields = jarg->fields;
 	output_type otype = jarg->otype;
+	char *username	= jarg->username;
+	char *device	= jarg->device;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
 		return (-1);
@@ -658,6 +662,16 @@ static int candidate_line(char *line, void *param)
 	// fprintf(stderr, "-->[%s]\n", line);
 
 	if ((o = line_to_location(line)) != NULL) {
+
+		/*
+		 * Username/device are added typically for multilister() only.
+		 */
+
+		if (username)
+			json_append_member(o, "username", json_mkstring(username));
+		if (device)
+			json_append_member(o, "device", json_mkstring(device));
+
 		if (fields) {
 			/* Create a new object, copying members we're interested in into it */
 			JsonNode *f, *node;
@@ -672,6 +686,7 @@ static int candidate_line(char *line, void *param)
 			}
 			json_delete(o);
 			o = newo;
+
 		}
 		json_append_element(locs, o);
 		++counter;
@@ -689,9 +704,12 @@ static int candidate_line(char *line, void *param)
  * contains `arr'.
  * If limit is zero, we're going forward, else backwards.
  * Fields, if not NULL, is a JSON array of desired element names.
+ *
+ * If username & device are not NULL, populate the JSON locations
+ * with them for multilister().
  */
 
-void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit, JsonNode *fields)
+void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t s_hi, output_type otype, int limit, JsonNode *fields, char *username, char *device)
 {
 	struct jparam jarg;
 
@@ -705,6 +723,8 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 	jarg.otype	= otype;
 	jarg.limit	= limit;
 	jarg.fields	= fields;
+	jarg.username	= username;
+	jarg.device	= device;
 
 	if (limit == 0) {
 		cat(filename, candidate_line, &jarg);

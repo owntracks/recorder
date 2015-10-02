@@ -386,7 +386,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
                         if ((arr = json_find_member(json, "results")) != NULL) {
 				JsonNode *f;
                                 json_foreach(f, arr) {
-                                        locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, NULL);
+                                        locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, NULL, NULL, NULL);
                                         // printf("%s\n", f->string_);
                                 }
                         }
