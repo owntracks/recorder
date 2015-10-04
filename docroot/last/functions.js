@@ -60,10 +60,13 @@ function ButtonControl(controlDiv, map) {
 	controlText.innerHTML = 'Autozoom';
 	controlUI.appendChild(controlText);
 
-	// Setup the click event listeners: simply set the map to Chicago.
+	// Setup the click event listener.
 	controlUI.addEventListener('click', function() {
 		do_fit = !do_fit;
 		controlText.style.color = (do_fit) ? 'rgb(0,153,0)' : 'rgb(25,25,25)';
+		if (do_fit) {
+			fitbounds();
+		}
 	});
 }
 
