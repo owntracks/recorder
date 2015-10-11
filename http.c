@@ -134,7 +134,10 @@ void http_ws_push_json(struct mg_server *server, JsonNode *obj)
 
 			tmpo = json_mkobject();
 			json_copy_to_object(tmpo, obj, TRUE);
-			json_append_member(tmpo, "_label", json_mkstring(ud->label));
+
+			if (ud->label != NULL) {
+				json_append_member(tmpo, "_label", json_mkstring(ud->label));
+			}
 
 			if ((js = json_stringify(tmpo, NULL)) != NULL) {
 				len = strlen(js);
@@ -178,9 +181,6 @@ static void send_last(struct mg_connection *conn)
 
 	if ((user_array = last_users(u, d)) != NULL) {
 
-		if (u) free(u);
-		if (d) free(d);
-
 		json_foreach(one, user_array) {
 			JsonNode *f;
 
@@ -206,6 +206,8 @@ static void send_last(struct mg_connection *conn)
 		}
 		json_delete(user_array);
 	}
+	if (u) free(u);
+	if (d) free(d);
 }
 
 static int monitor(struct mg_connection *conn)
