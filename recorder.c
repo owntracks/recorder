@@ -807,9 +807,9 @@ int main(int argc, char **argv)
 	udata.luadata		= NULL;
 # ifdef WITH_LMDB
 	udata.luadb		= NULL;
-# endif
+# endif /* WITH_LMDB */
+#endif /* WITH_LUA */
 	udata.label		= strdup("Recorder");
-#endif
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
 		hostname = strdup(p);
