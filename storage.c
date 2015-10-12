@@ -37,6 +37,7 @@
 #include "geohash.h"
 #include "util.h"
 #include "udata.h"
+#include "listsort.h"
 
 char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
@@ -852,12 +853,19 @@ JsonNode *geo_json(JsonNode *location_array)
  */
 JsonNode *geo_linestring(JsonNode *location_array)
 {
-	JsonNode *top = json_mkobject();
+	JsonNode *top = json_mkobject(), *sorted;
 
 	json_append_member(top, "type", json_mkstring("Feature"));
 
 	JsonNode *c, *coords = json_mkarray();
-	json_foreach(c, location_array) {
+
+	sorted = listsort(json_first_child(location_array), 0, 0);
+	if (sorted && sorted->parent)
+		sorted = sorted->parent;
+	else
+		sorted = location_array;
+
+	json_foreach(c, sorted) {
 		JsonNode *lat, *lon;
 
 		if (((lat = json_find_member(c, "lat")) != NULL) &&

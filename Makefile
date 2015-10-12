@@ -12,7 +12,8 @@ OTR_OBJS = json.o \
 	   base64.o \
 	   misc.o \
 	   util.o \
-	   storage.o
+	   storage.o \
+	   listsort.o
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
@@ -78,8 +79,9 @@ http.o: http.c mongoose.h util.h http.h storage.h
 util.o: util.c util.h
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h version.h
-storage.o: storage.c storage.h util.h gcache.h
+storage.o: storage.c storage.h util.h gcache.h listsort.h
 hooks.o: hooks.c udata.h hooks.h util.h version.h gcache.h
+listsort.o: listsort.c listsort.h
 
 
 clean:
