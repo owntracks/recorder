@@ -8,7 +8,7 @@ before_install:
 install:
  - cp config.mk.in config.mk
  - make
- - make install
+ - ./ocat -v
 
 notifications:
   slack:
