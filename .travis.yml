@@ -6,13 +6,10 @@ before_install:
  - apt-cache search mosquitto
  - sudo apt-get install -qq libmosquitto-dev
 install:
+ - cp config.mk.in config.mk
+ - make
  - make install
 
-script:
-- git clone git@github.com:owntracks/recorder.git
-- cd recorder
-- cp config.mk.in config.mk
-- make
 notifications:
   slack:
     secure: Dh/vTZOnZt2XagniygSWq1hmKoj8pDQu6gVS5o9drHmlbITP+tPw/cww7t+2S92/z7A2ImCYobp4Nd2a54iCGdntt3zgNepqqMhY17rM5IKUHoG8XbYTHdSI2CxV6oCdX9i050IBu9H6ivwDk2LU6wjgMg3c08bYtqIwElELNKFD7JQtJiD8snsOuL/3Ze8nOYhhTgSeBnw7J7NW/FHeAuuQnvurJ70hSjzRv1JNA9m14GFyic/QtnVIHBYe3s1uTiv1Nv6BIrH80BhIo0CkHooG3IgziBTtfwfWbpDjJp0bOQ3+GzyeFjugmg4K04PqRNxJ40QuiTpY837RwtjjzJEKbqnW0ReUwMrdD/du+aCDcCijpSO16Vu5KbE88FOYkldaCQhfaCelOwgqLgRkvCFKIihT/tfUV3x2ZlhtYWInqMgo/TIUUrOFC3tvfS+2qqH/S/9g1PeBumPPue6ixdY2DcxDP0hXhDHjy2jST8Gjs7Jmn3E8HsQ2ON39BTg3H0kIAlJciPnv2ADSMyiVwXyb28FYnkD7pvBvU7jHkCNF2CDY1799zsswtnxmA+cd3QL6CEB0b+pn4vCnl/vSmWp2b0UnUn+i8b2S/LbdFbfcwI1ZA7749fcACPQxLS50AVtNXfyxWXHBzwPZXt4R1OpgZb03DfCF06W/VgD2/mg=
