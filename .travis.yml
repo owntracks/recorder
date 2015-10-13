@@ -1,6 +1,7 @@
 language: c
 compiler: gcc
 before_install:
+ - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa
  - sudo apt-get update -qq
  - apt-cache search mosquitto
  - sudo apt-get install -qq libmosquitto-dev
