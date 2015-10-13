@@ -1,15 +1,14 @@
 language: c
 compiler: gcc
 before_install:
- - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
- - sudo apt-get update -qq
- - apt-cache search mosquitto
- - sudo apt-get install -qq libmosquitto-dev
+- sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
+- sudo apt-get update -qq
+- apt-cache search mosquitto
+- sudo apt-get install -qq libmosquitto-dev
 install:
- - cp config.mk.in config.mk
- - make
- - ./ocat -v
-
+- cp config.mk.in config.mk
+- make
+- ./ocat -v
 notifications:
   slack:
-    secure: Dh/vTZOnZt2XagniygSWq1hmKoj8pDQu6gVS5o9drHmlbITP+tPw/cww7t+2S92/z7A2ImCYobp4Nd2a54iCGdntt3zgNepqqMhY17rM5IKUHoG8XbYTHdSI2CxV6oCdX9i050IBu9H6ivwDk2LU6wjgMg3c08bYtqIwElELNKFD7JQtJiD8snsOuL/3Ze8nOYhhTgSeBnw7J7NW/FHeAuuQnvurJ70hSjzRv1JNA9m14GFyic/QtnVIHBYe3s1uTiv1Nv6BIrH80BhIo0CkHooG3IgziBTtfwfWbpDjJp0bOQ3+GzyeFjugmg4K04PqRNxJ40QuiTpY837RwtjjzJEKbqnW0ReUwMrdD/du+aCDcCijpSO16Vu5KbE88FOYkldaCQhfaCelOwgqLgRkvCFKIihT/tfUV3x2ZlhtYWInqMgo/TIUUrOFC3tvfS+2qqH/S/9g1PeBumPPue6ixdY2DcxDP0hXhDHjy2jST8Gjs7Jmn3E8HsQ2ON39BTg3H0kIAlJciPnv2ADSMyiVwXyb28FYnkD7pvBvU7jHkCNF2CDY1799zsswtnxmA+cd3QL6CEB0b+pn4vCnl/vSmWp2b0UnUn+i8b2S/LbdFbfcwI1ZA7749fcACPQxLS50AVtNXfyxWXHBzwPZXt4R1OpgZb03DfCF06W/VgD2/mg=
+    secure: AWI43ztcN3D/TW3U2CQwuVKLrHqQk7xShuMm8d2JUfTuHtamRvhQ3jAYs3NdfA2brlJKiOHl6HLbbGRaT6ITdcel1UuAmKzNbuKw+jM9ug2ziGddmAeyoQ3DrjECCnydZ3YAEKtAvRFAl3Q+AmXDUkiFOV988lLQ3PkG2ODcwI/4KS3IM/H0SrDy6/ejAG8unICZfXs49XJRGI0kEj3Xzy8OUE1cdB9BGzTaQi/kOsHVgu/CUMwY/ofeRBRaYPqnj3ewgGJmRyLh2A1z6OSPRMkoSgS1u8a5OsiWgAL1j0rZZDws9MwkI3Lkkvw3rO2Gn3uRzMvzXx3/h+B9qBEH3L7NulDQNu8MY5iH6Bx/3m9eom79JJgN31+RDjjCrtNVlBj7bXjtrJJqNtL4EOXFMvjq3MgnMwREtBtIqj+xufRdJGQGfyvF4YA2MT96CTGtr1udTnD3E6S0n2XjTI9cBVty9FYG5juDGh5BwNk9HDttLusjQQ+8CbNnQjh3ILAiNRNhQNRL1M6MK8GJbtMfiWRYG5HZgfY4ZmKWAuYS67fJw4TSkNPtUMTiwRSdDckNaqfdLU9XNzBnHnswcr8ZRAdsWkWr4XmysLL3/XnRN3awLDGoibs65Yd7fg1TqV/9HWjpDmcwUOs5o06MIfFPakhYj1D+ebm+DwS9KoxawvE=
