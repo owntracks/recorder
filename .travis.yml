@@ -5,6 +5,7 @@ before_install:
  - sudo apt-get install -qq libmosquitto-dev
 install:
  - make install
+
 script:
 - git clone git@github.com:owntracks/recorder.git
 - cd recorder
