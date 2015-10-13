@@ -2,6 +2,7 @@ language: c
 compiler: gcc
 before_install:
  - sudo apt-get update -qq
+ - apt-cache search mosquitto
  - sudo apt-get install -qq libmosquitto-dev
 install:
  - make install
