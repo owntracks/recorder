@@ -588,3 +588,4 @@ This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the
 apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev
 ```
 
+[![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
