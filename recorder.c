@@ -1193,6 +1193,8 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	olog(LOG_INFO, "Using storage at %s with precision %d", STORAGEDIR, geohash_prec());
+
 	while (run) {
 		rc = mosquitto_loop(mosq, /* timeout */ 200, /* max-packets */ 1);
 		if (run && rc) {
