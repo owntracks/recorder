@@ -228,7 +228,7 @@ static int csv_looks_sane(char *payload)
 {
 	static int virgin = 1;
 	static regex_t regex;
-	int reti, sane = FALSE;
+	int nomatch;
 	int cflags = REG_EXTENDED | REG_ICASE | REG_NOSUB;
 
 	if (virgin) {
@@ -240,13 +240,9 @@ static int csv_looks_sane(char *payload)
 		}
 	}
 
-	reti = regexec(&regex, payload, 0, NULL, 0);
-	if (!reti) {
-		sane = TRUE;
-	}
+	nomatch = regexec(&regex, payload, 0, NULL, 0);
 
-	// regfree(&regex);
-	return (sane);
+	return (nomatch ? FALSE : TRUE);
 }
 
 /*
