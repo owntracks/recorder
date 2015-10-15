@@ -563,6 +563,23 @@ server {
 }
 ```
 
+### Apache
+
+Assuming you want to use Apache as a reverse proxy to the recorder, the following
+may get you started. This will hand URIs which begin with `/otr/` to the _Recorder_.
+
+```
+
+# Websocket URL endpoint
+# a2enmod proxy_wstunnel
+ProxyPass        /otr/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
+ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
+
+# Static files
+ProxyPass /otr                  http://127.0.0.1:8083/
+ProxyPassReverse /otr           http://127.0.0.1:8083/
+```
+
 ## Advanced topics
 
 ### The LMDB database
