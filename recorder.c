@@ -33,6 +33,7 @@
 #include <math.h>
 #include "json.h"
 #include <sys/utsname.h>
+#include <regex.h>
 #include "utstring.h"
 #include "geo.h"
 #include "geohash.h"
@@ -214,8 +215,44 @@ void republish(struct mosquitto *mosq, struct udata *userdata, char *username, c
 }
 
 /*
+ * Quickly check wheterh the payload looks like
+ * Greenwich CSV with a regex. We could use this
+ * to split out the fields, instead of reverting
+ * to sscanf
+ */
+
+//                TID          , TST           , T         , LAT        , LON        , COG        , VEL        , ALT        , DIST       , TRIP
+#define CSV_RE "^([[:alnum:]]+),([[:xdigit:]]+),[[:alnum:]],[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+$"
+
+static int csv_looks_sane(char *payload)
+{
+	static int virgin = 1;
+	static regex_t regex;
+	int reti, sane = FALSE;
+	int cflags = REG_EXTENDED | REG_ICASE | REG_NOSUB;
+
+	if (virgin) {
+		virgin = !virgin;
+
+		if (regcomp(&regex, CSV_RE, cflags)) {
+			olog(LOG_ERR, "Cannot compile CSV RE");
+			return (FALSE);
+		}
+	}
+
+	reti = regexec(&regex, payload, 0, NULL, 0);
+	if (!reti) {
+		sane = TRUE;
+	}
+
+	// regfree(&regex);
+	return (sane);
+}
+
+/*
  * Decode OwnTracks CSV (Greenwich) and return a new JSON object
  * of _type = location.
+ * #define CSV "X0,542A46AA,k,30365854,7575769,26,4,7,5,872"
  */
 
 #define MILL 1000000.0
@@ -227,6 +264,9 @@ JsonNode *csv_to_json(char *payload)
         double dist = 0, lat, lon, vel, trip, alt, cog;
 	long tst;
 	char tmptst[40];
+
+	if (!csv_looks_sane(payload))
+		return (NULL);
 
         if (sscanf(payload, "%[^,],%[^,],%[^,],%lf,%lf,%lf,%lf,%lf,%lf,%lf", tid, tmptst, t, &lat, &lon, &cog, &vel, &alt, &dist, &trip) != 10) {
 		// fprintf(stderr, "**** payload not CSV: %s\n", payload);
