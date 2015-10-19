@@ -1113,8 +1113,8 @@ int main(int argc, char **argv)
 
 	if (luascript) {
 		if ((udata.luadata = hooks_init(ud, luascript)) == NULL)
-			olog(LOG_NOTICE, "proceeding sans Lua");
-		free(luascript);
+			olog(LOG_ERR, "Stopping because Lua load failed");
+		exit(1);
 	}
 #endif
 
