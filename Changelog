@@ -1,4 +1,14 @@
 
+2015-10-19 version 0.4.3
+- NEW: recorder exits if Lua script cannot be loaded (#54)
+- FIX: add fail-safe to CSV parser (#53)
+- FIX: GeoJSON LineString tracks are now sorted by tst and not by received date
+- FIX: recorder's default label correctly set if not compiling with WITH_LUA (#50)
+- FIX: Re-zoom map on autozoom enable (#51)
+- NEW: favicon/logo, thanks to @ckrey (#50)
+- NEW: contrib/faces/image2card.sh to publish a Recorder-compatible JSON CARD from photo
+- NEW: multilister adds username/device to JSON location data (#49)
+
 2015-10-02 version 0.4.2
 - FIX: ocat --format csv outputs addr and locality as quoted strings
 - NEW: live map has a label (set with ot-recorder --label) to indentify instance; connection status is border
