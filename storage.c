@@ -1077,6 +1077,13 @@ JsonNode *kill_datastore(char *user, char *device)
 	globfree(&results);
 
 	utstring_renew(path);
+	utstring_printf(path, "%s/waypoints/%s/%s/%s-%s.otrw", STORAGEDIR, user, device, user, device);
+	if (remove(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+		json_append_member(obj, "otrw", json_mkstring(UB(path)));
+	}
+
+	utstring_renew(path);
 	utstring_printf(path, "%s/waypoints/%s/%s", STORAGEDIR, user, device);
 	if (rmdir(UB(path)) == 0) {
 		olog(LOG_NOTICE, "removed %s", UB(path));
