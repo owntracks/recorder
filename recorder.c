@@ -322,6 +322,34 @@ static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string 
 	}
 }
 
+/*
+ * Payload contains JSON string with an array of waypoints. Dump
+ * these into a single file.
+ */
+
+void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
+{
+	static UT_string *ts = NULL;
+
+	utstring_renew(ts);
+
+	utstring_printf(ts, "%s/%s/%s/%s",
+				STORAGEDIR,
+				"waypoints",
+				UB(username),
+				UB(device));
+	if (mkpath(UB(ts)) < 0) {
+		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
+		return;
+	}
+
+	utstring_printf(ts, "/dump.json");
+	if (ud->verbose) {
+		printf("Received waypoints dump, storing at %s\n", UB(ts));
+	}
+	safewrite(UB(ts), payloadstring);
+}
+
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
 	JsonNode *json, *j, *geo = NULL;
@@ -467,8 +495,10 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		case T_CONFIG:
 		case T_LWT:
 		case T_STEPS:
-		case T_WAYPOINTS:
 			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			goto cleanup;
+		case T_WAYPOINTS:
+			waypoints_dump(ud, username, device, m->payload);
 			goto cleanup;
 		case T_WAYPOINT:
 		case T_TRANSITION:

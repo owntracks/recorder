@@ -306,7 +306,7 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 * `msg/` contains messages received by the Messaging system.
 * `photos/` optional; contains the binary photos from a _card_.
 * `rec/` the recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
-* `waypoints/` contains a directory per user and device. Therein are individual files named by a timestamp with the JSON payload of published (i.e. shared) waypoints. The file names are timestamps because the `tst` of a waypoint is its key.
+* `waypoints/` contains a directory per user and device. Therein are individual files named by a timestamp with the JSON payload of published (i.e. shared) waypoints. The file names are timestamps because the `tst` of a waypoint is its key. If a user publishes all waypoints from a device (Publish Waypoints), the payload is stored in this directory as `dump.json`.
 
 You should definitely **not** modify or touch these files: they remain under the control of the _recorder_. You can of course, remove old `.rec` files if they consume too much space.
 
