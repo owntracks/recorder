@@ -324,12 +324,21 @@ static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string 
 
 /*
  * Payload contains JSON string with a configuration obtained
- * via cmd `dump' to the device. Store it.
+ * via cmd `dump' to the device. Store it "pretty".
  */
 
 void config_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
 {
+	JsonNode *json;
 	static UT_string *ts = NULL;
+	char *pretty_js;
+
+	if ((json = json_decode(payloadstring)) == NULL) {
+		olog(LOG_ERR, "Cannot decode JSON from %s", payloadstring);
+		return;
+	}
+	pretty_js = json_stringify(json, "\t");
+	json_delete(json);
 
 	utstring_renew(ts);
 
@@ -347,7 +356,8 @@ void config_dump(struct udata *ud, UT_string *username, UT_string *device, char 
 	if (ud->verbose) {
 		printf("Received configuration dump, storing at %s\n", UB(ts));
 	}
-	safewrite(UB(ts), payloadstring);
+	safewrite(UB(ts), pretty_js);
+	free(pretty_js);
 }
 
 /*
