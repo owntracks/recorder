@@ -1059,6 +1059,15 @@ JsonNode *kill_datastore(char *user, char *device)
 		olog(LOG_NOTICE, "removed %s", UB(path));
 	}
 
+	/* Remove config (.otrc) */
+	utstring_renew(path);
+	utstring_printf(path, "%s/config/%s-%s.otrc", STORAGEDIR, user, device);
+	if (remove(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+		json_append_member(obj, "otrc", json_mkstring(UB(path)));
+	}
+
+
 	/* Remove waypoint files and containing directories */
 	utstring_renew(path);
 	utstring_printf(path, "%s/waypoints/%s/%s/*.json", STORAGEDIR, user, device);

@@ -323,6 +323,34 @@ static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string 
 }
 
 /*
+ * Payload contains JSON string with a configuration obtained
+ * via cmd `dump' to the device. Store it.
+ */
+
+void config_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
+{
+	static UT_string *ts = NULL;
+
+	utstring_renew(ts);
+
+	utstring_printf(ts, "%s/%s/%s/%s",
+				STORAGEDIR,
+				"config",
+				UB(username),
+				UB(device));
+	if (mkpath(UB(ts)) < 0) {
+		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
+		return;
+	}
+
+	utstring_printf(ts, "/%s-%s.otrc", UB(username), UB(device));
+	if (ud->verbose) {
+		printf("Received configuration dump, storing at %s\n", UB(ts));
+	}
+	safewrite(UB(ts), payloadstring);
+}
+
+/*
  * Payload contains JSON string with an array of waypoints. Dump
  * these into a single file.
  */
@@ -480,6 +508,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			else if (!strcmp(j->string_, "transition"))	_type = T_TRANSITION;
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
+			else if (!strcmp(j->string_, "dump"))		_type = T_DUMP;
 		}
 	}
 
@@ -499,6 +528,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			goto cleanup;
 		case T_WAYPOINTS:
 			waypoints_dump(ud, username, device, m->payload);
+			goto cleanup;
+		case T_DUMP:
+			config_dump(ud, username, device, m->payload);
 			goto cleanup;
 		case T_WAYPOINT:
 		case T_TRANSITION:
