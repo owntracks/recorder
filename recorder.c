@@ -343,7 +343,7 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 		return;
 	}
 
-	utstring_printf(ts, "/dump.json");
+	utstring_printf(ts, "/%s-%s.otrw", UB(username), UB(device));
 	if (ud->verbose) {
 		printf("Received waypoints dump, storing at %s\n", UB(ts));
 	}
