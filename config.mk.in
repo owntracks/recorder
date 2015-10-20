@@ -17,6 +17,9 @@ WITH_PING ?= yes
 # Do you want support for removing data via the API? (Dangerous)
 WITH_KILL ?= no
 
+# Do you want R_only support? (Probably not; this is for Hosted)
+WITH_RONLY ?= no
+
 # Where should the recorder store its data? This directory must
 # exist and be writeable by recorder (and readable by ocat)
 STORAGEDEFAULT = /var/spool/owntracks/recorder/store

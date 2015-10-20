@@ -503,6 +503,26 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
+#ifdef WITH_RONLY
+
+	/*
+	 * If we cannot find `r' in the JSON, or if `r' isn't true,
+	 * abort.
+	 */
+
+	if ((j = json_find_member(json, "r")) == NULL) {
+		// printf("Ignoring publish: no `r'\n");
+		json_delete(json);
+		return;
+	}
+
+	if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
+		// printf("Ignoring publish: `r' is false\n");
+		json_delete(json);
+		return;
+	}
+#endif
+
 	_type = T_UNKNOWN;
 	if ((j = json_find_member(json, "_type")) != NULL) {
 		if (j->tag == JSON_STRING) {

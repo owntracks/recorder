@@ -203,6 +203,9 @@ void print_versioninfo()
 #ifdef WITH_KILL
 	printf("\tWITH_KILL = yes\n");
 #endif
+#ifdef WITH_RONLY
+	printf("\tWITH_RONLY = yes\n");
+#endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
 	printf("\tGHASHPREC = %d\n", GHASHPREC);

@@ -53,6 +53,10 @@ ifneq ($(APIKEY),)
 	CFLAGS += -DAPIKEY="\"$(APIKEY)\""
 endif
 
+ifeq ($(WITH_RONLY),yes)
+	CFLAGS += -DWITH_RONLY=1
+endif
+
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 
 
@@ -78,7 +82,7 @@ misc.o: misc.c misc.h udata.h
 http.o: http.c mongoose.h util.h http.h storage.h
 util.o: util.c util.h
 mongoose.o: mongoose.c mongoose.h
-ocat.o: ocat.c storage.h util.h version.h
+ocat.o: ocat.c storage.h util.h version.h config.mk Makefile
 storage.o: storage.c storage.h util.h gcache.h listsort.h
 hooks.o: hooks.c udata.h hooks.h util.h version.h gcache.h
 listsort.o: listsort.c listsort.h
