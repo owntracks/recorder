@@ -351,8 +351,8 @@ As hinted to above, the address data obtained through a reverse-geo lookup is st
 
 ```
 $ ocat --dump
-u1 {"cc":"DE","addr":"A2, 59510 Lippetal, Germany","tst":1445412772,"locality":"Lippetal"}
-u2 {"cc":"AT","addr":"Paß-Thurn-Straße 28, 6371 Aurach bei Kitzbühel, Austria","tst":1445412830,"locality":"Aurach bei Kitzbühel"}
+u09whf7 {"cc":"FR","addr":"1 Rue de Saint-Pétersbourg, 75008 Paris, France","tst":1445435622,"locality":"Paris"}
+u09ey1r {"cc":"FR","addr":"D83, 91590 La Ferté-Alais, France","tst":1445435679,"locality":"La Ferté-Alais"}
 ```
 
 The key to this data is the geohash string (here with an example of precision 2).
@@ -444,7 +444,7 @@ Requires POST method and _user_. This is currently incomplete; it simply writes 
 
 #### `photo`
 
-Requires GET method and _user_, and will return the `image/png` 40x40px photograph of a user if available in `STORAGEDIR/photos/`.
+Requires GET method and _user_, and will return the `image/png` 40x40px photograph of a user if available in `STORAGEDIR/photos/` or a transparent 40x40png with a black border otherwise.
 
 #### `kill`
 
