@@ -503,26 +503,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
-#ifdef WITH_RONLY
-
-	/*
-	 * If we cannot find `r' in the JSON, or if `r' isn't true,
-	 * abort.
-	 */
-
-	if ((j = json_find_member(json, "r")) == NULL) {
-		// printf("Ignoring publish: no `r'\n");
-		json_delete(json);
-		return;
-	}
-
-	if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
-		// printf("Ignoring publish: `r' is false\n");
-		json_delete(json);
-		return;
-	}
-#endif
-
 	_type = T_UNKNOWN;
 	if ((j = json_find_member(json, "_type")) != NULL) {
 		if (j->tag == JSON_STRING) {
@@ -570,6 +550,25 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
 			goto cleanup;
 	}
+
+#ifdef WITH_RONLY
+
+	/*
+	 * If we cannot find `r' in the JSON, or if `r' isn't true,
+	 * abort. This happens here so that we can still capture
+	 * info and cards &c.
+	 */
+
+	if ((j = json_find_member(json, "r")) == NULL) {
+		// printf("Ignoring publish: no `r'\n");
+		goto cleanup;
+	}
+
+	if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
+		// printf("Ignoring publish: `r' is false\n");
+		goto cleanup;
+	}
+#endif
 
 	/*
 	 * We are now handling location-related JSON.  Normalize tst, lat, lon
