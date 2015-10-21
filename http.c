@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include "json.h"
@@ -445,6 +446,28 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	return (MG_TRUE);
 }
 
+/* /api/0/photo/?user=yyyy */
+static int photo(struct mg_connection *conn)
+{
+	char *u, *userphoto;
+
+	if ((u = field(conn, "user")) == NULL) {
+		mg_send_status(conn, 416);
+		mg_printf_data(conn, "missing username\n");
+		return (MG_TRUE);
+	}
+
+	if (((userphoto = storage_userphoto(u)) != NULL) && access(userphoto, R_OK) == 0) {
+		free(u);
+		mg_send_file(conn, userphoto, NULL);
+		return (MG_MORE);
+	}
+	free(u);
+	mg_send_status(conn, 404);
+	mg_printf_data(conn, "%s unreadable\n", userphoto);
+	return (MG_TRUE);
+}
+
 int ev_handler(struct mg_connection *conn, enum mg_event ev)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
@@ -494,9 +517,14 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				return monitor(conn);
 			}
 
+			if (strncmp(conn->uri, "/api/0/photo/", strlen("/api/0/photo/")) == 0) {
+				return photo(conn);
+			}
+
 			if (strncmp(conn->uri, API_PREFIX, strlen(API_PREFIX)) == 0) {
 				return dispatch(conn, conn->uri + strlen(API_PREFIX) - 1);
 			}
+
 
 
 			if (!strcmp(conn->request_method, "POST")) {

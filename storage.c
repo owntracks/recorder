@@ -1193,3 +1193,15 @@ void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func
 
 	json_delete(inttypes);
 }
+
+char *storage_userphoto(char *username)
+{
+	static char path[BUFSIZ];
+
+	if (!username || !*username)
+		return (NULL);
+
+	snprintf(path, sizeof(path), "%s/photos/%s/%s.png", STORAGEDIR, username, username);
+
+	return (path);
+}

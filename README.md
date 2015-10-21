@@ -442,6 +442,9 @@ The reported timestamp was the time at which this cache entry was made. Note tha
 
 Requires POST method and _user_. This is currently incomplete; it simply writes a key into LMDB consisting of "blockme user".
 
+#### `photo`
+
+Requires GET method and _user_, and will return the `image/png` 40x40px photograph of a user if available in `STORAGEDIR/photos/`.
 
 #### `kill`
 
@@ -499,7 +502,7 @@ This is invoked when the _recorder_ stops, which it doesn't really do unless you
 This function is invoked at every location publish processed by the _recorder_. Your function is passed three arguments:
 
 1. _topic_ is the topic published to (e.g. `owntracks/jane/phone`)
-2. _type_ is the type of MQTT message. This is the `_type` in our JSON messages (e.g. `location`) or `"unknown"`.
+2. _type_ is the type of MQTT message. This is the `_type` in our JSON messages (e.g. `location`, `cmd`, `transition`, ...) or `"unknown"`.
 3. _location_ is a [Lua table](http://www.lua.org/pil/2.5.html) (associative array) with all the elements obtained in the JSON message. In the case of _type_ being `location`, we also add country code (`cc`) and the location's address (`addr`) unless reverse-geo lookups have been disabled in _recorder_.
 
 Assume the following small example Lua script in `example.lua`:
