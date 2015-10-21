@@ -327,6 +327,35 @@ This can be used to subsequently obtain missed lookups.
 
 We recommend you keep reverse-geo lookups enabled, this data (country code `cc`, and the locations address `addr`) is used by the example Web apps provided by the _recorder_ to show where a particular device is. In addition, this cached data is used the the API (also _ocat_) when printing location data.
 
+### Precision
+
+The precision with which reverse-geo lookups are performed is controlled with the `--precison` option to _recorder_ (and with the `--precision` option to _ocat_ when you query for data). The default precision is compiled into the code (from `config.mk`). The higher the number, the more frequently lookups are performed; conversely, the lower the number, the fewer lookups are performed. For example, a precision of 1 means that points within an area of approximately 5000 km^2 would resolve to a single address, whereas a precision of 7 means that points within an area of approximately 150 m^2 resolve to one address. The _recorder_ obtains a location publish, extracts the latitude and longitude, and then calculates the [geohash](https://en.wikipedia.org/wiki/Geohash). If the calculated geohash width (i.e. precision or string length of the geohash) can be found in our local LMDB cache, we consider the point cached; otherwise an actual reverse geo lookup (via HTTP) is performed and the result is cached in LMDB at the key of the geohash.
+
+As an example, let's assume Jane's device is at position (lat, lon) `48.879840, 2.323522`, which resolves to a geohash string of length 7 `u09whf7`. We can [visualize this](http://www.movable-type.co.uk/scripts/geohash.html) and show what this looks like. (See also: [visualizing geohash](http://www.bigdatamodeling.org/2013/01/intuitive-geohash.html).)
+
+![geohash7](assets/geohash-7.png)
+
+Every location publish outside that very small blue square would mean another lookup. If, however, we lower the precision to, say, 5, a much larger area is covered
+
+![geohash5](assets/geohash-5.png)
+
+and a precision of 2 would mean that a very large part of France resolves to a single address:
+
+![geohash2](assets/geohash-2.png)
+
+The bottom line: if you run the _recorder_ with just a few devices and want to know quite exactly where you've been, use a high precision (7 is probably good). If you, on the other hand, run _recorder_ with many devices and are only interested in where a device was approximately, lower the precision; this also has the effect that fewer reverse-geo lookups will be performed in the Google infrastructure. (Also: respect their quotas!)
+
+### The geo cache
+
+As hinted to above, the address data obtained through a reverse-geo lookup is stored in an embedded LMDB database, the content of which we can look at with
+
+```
+$ ocat --dump
+u1 {"cc":"DE","addr":"A2, 59510 Lippetal, Germany","tst":1445412772,"locality":"Lippetal"}
+u2 {"cc":"AT","addr":"Paß-Thurn-Straße 28, 6371 Aurach bei Kitzbühel, Austria","tst":1445412830,"locality":"Aurach bei Kitzbühel"}
+```
+
+The key to this data is the geohash string (here with an example of precision 2).
 
 ## Monitoring
 
