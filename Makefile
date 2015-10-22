@@ -31,6 +31,11 @@ ifeq ($(WITH_KILL),yes)
 	CFLAGS += -DWITH_KILL=1
 endif
 
+ifeq ($(WITH_RONLY),yes)
+	CFLAGS += -DWITH_RONLY=1
+	WITH_LMDB = yes
+endif
+
 ifeq ($(WITH_LMDB),yes)
 	CFLAGS += -DWITH_LMDB=1 -Imdb/
 	OTR_OBJS += gcache.o
@@ -53,9 +58,6 @@ ifneq ($(APIKEY),)
 	CFLAGS += -DAPIKEY="\"$(APIKEY)\""
 endif
 
-ifeq ($(WITH_RONLY),yes)
-	CFLAGS += -DWITH_RONLY=1
-endif
 
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 

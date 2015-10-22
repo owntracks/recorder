@@ -18,6 +18,7 @@ WITH_PING ?= yes
 WITH_KILL ?= no
 
 # Do you want R_only support? (Probably not; this is for Hosted)
+# If you set this to `yes', WITH_LMDB will be set to yes
 WITH_RONLY ?= no
 
 # Where should the recorder store its data? This directory must
