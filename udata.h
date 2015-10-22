@@ -30,8 +30,8 @@ struct udata {
 	struct mg_server *mgserver;	/* Mongoose */
 #endif
 #ifdef WITH_LUA
-# ifdef WITH_LMDB
 	struct luadata *luadata;	/* Lua stuff */
+# ifdef WITH_LMDB
 	struct gcache *luadb;		/* lmdb named database 'luadb' */
 # endif
 #endif

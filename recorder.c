@@ -747,6 +747,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
+#ifdef WITH_LMDB
 		if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
 			/* Habemus cached data */
 			
@@ -775,6 +776,11 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 				}
 			}
 		}
+#else /* !LMDB */
+		if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
+			;
+		}
+#endif /* LMDB */
 	} else {
 		utstring_printf(cc, "??");
 		utstring_printf(addr, "n.a.");
@@ -860,9 +866,11 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 #endif
 
 #ifdef WITH_LUA
+# ifdef WITH_LMDB
 	if (ud->luadata && !pingping) {
 		hooks_hook(ud, m->topic, json);
 	}
+# endif /* LMDB */
 #endif
 
 	if (ud->verbose) {
@@ -1041,8 +1049,8 @@ int main(int argc, char **argv)
 	udata.mgserver		= NULL;
 #endif
 #ifdef WITH_LUA
-	udata.luadata		= NULL;
 # ifdef WITH_LMDB
+	udata.luadata		= NULL;
 	udata.luadb		= NULL;
 # endif /* WITH_LMDB */
 #endif /* WITH_LUA */
@@ -1185,7 +1193,9 @@ int main(int argc, char **argv)
 	 */
 
 	if (initialize == TRUE) {
+#ifdef WITH_LMDB
 		struct gcache *gt;
+#endif
 
 		char path[BUFSIZ], *pp;
 		snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
@@ -1317,7 +1327,7 @@ int main(int argc, char **argv)
 # endif
 #endif
 
-#ifdef WITH_LUA
+#if WITH_LUA && WITH_LMDB
 	/*
 	 * If option for lua-script has not been given, ignore all hooks.
 	 */
@@ -1474,7 +1484,7 @@ int main(int argc, char **argv)
 	mg_destroy_server(&udata.mgserver);
 #endif
 
-#ifdef WITH_LUA
+#if WITH_LUA && WITH_LMDB
 	hooks_exit(ud->luadata, "recorder stops");
 #endif
 	mosquitto_disconnect(mosq);

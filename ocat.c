@@ -173,7 +173,9 @@ void usage(char *prog)
 	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --version		-v	print version information\n");
+#if WITH_LMDB
 	printf("  --dump / --load [<db>]        dump/load content of db (default ghash)\n");
+#endif
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("   $OCAT_USERNAME\n");
@@ -211,16 +213,22 @@ void print_versioninfo()
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
 	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
+#ifdef WITH_LMDB
 	printf("\tMDB VERSION = %s\n", MDB_VERSION_STRING);
+#endif
 
 	exit(0);
 }
 
 int main(int argc, char **argv)
 {
-	char *progname = *argv, *p, *lmdbname = NULL;
+	char *progname = *argv, *p;
 	int c;
-	int list = 0, last = 0, limit = 0, dumpghash = FALSE, loadghash = FALSE;
+	int list = 0, last = 0, limit = 0;
+#if WITH_LMDB
+	char *lmdbname = NULL;
+	int dumpghash = FALSE, loadghash = FALSE;
+#endif
 #if WITH_KILL
 	int killdata = FALSE;
 #endif
@@ -271,8 +279,10 @@ int main(int argc, char **argv)
 			{ "last",	no_argument, 0, 	'L'},
 			{ "fields",	required_argument, 0, 	1},
 			{ "precision",	required_argument, 0, 	2},
+#if WITH_LMDB
 			{ "dump",	optional_argument, 0, 	3},
 			{ "load",	optional_argument, 0, 	4},
+#endif
 #if WITH_KILL
 			{ "killdata",	no_argument, 0, 	'K'},
 #endif
@@ -293,6 +303,7 @@ int main(int argc, char **argv)
 			case 2:
 				geohash_setprec(atoi(optarg));
 				break;
+#if WITH_LMDB
 			case 3:
 				dumpghash = TRUE;
 				if (optarg)
@@ -303,6 +314,7 @@ int main(int argc, char **argv)
 				if (optarg)
 					lmdbname = strdup(optarg);
 				break;
+#endif /* LMDB */
 			case 'v':
 				print_versioninfo();
 				break;
@@ -376,6 +388,7 @@ int main(int argc, char **argv)
 
 	// printf("lmdbname = %s\n", (lmdbname) ? lmdbname : "NULL");
 
+#ifdef WITH_LMDB
 	if (loadghash) {
 		storage_gcache_load(lmdbname);
 		exit(0);
@@ -385,6 +398,7 @@ int main(int argc, char **argv)
 		storage_gcache_dump(lmdbname);
 		exit(0);
 	}
+#endif
 
 	storage_init(revgeo);
 

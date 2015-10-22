@@ -301,7 +301,9 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	char *time_from = NULL, *time_to = NULL;
 	time_t s_lo, s_hi;
 	JsonNode *json, *obj, *locs;
+#ifdef WITH_LMDB
 	struct udata *ud = (struct udata *)conn->server_param;
+#endif
 
 
 	if ((nparts = splitter((char *)uri, "/", uparts)) == -1) {
@@ -441,6 +443,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		}
         }
 
+#ifdef WITH_LMDB
 	if (nparts == 1 && !strcmp(uparts[0], "q")) {
 		JsonNode *geo = NULL;
 		char *lat = field(conn, "lat");
@@ -460,6 +463,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 		return (json_response(conn, geo));
 	}
+#endif
 
 	CLEANUP;
 	// mg_printf_data(conn, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
@@ -492,7 +496,9 @@ static int photo(struct mg_connection *conn)
 
 int ev_handler(struct mg_connection *conn, enum mg_event ev)
 {
+#ifdef WITH_LMDB
 	struct udata *ud = (struct udata *)conn->server_param;
+#endif
 
 	switch (ev) {
 		case MG_AUTH:
@@ -551,6 +557,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 			if (!strcmp(conn->request_method, "POST")) {
 
+#ifdef WITH_LMDB
 				if (!strcmp(conn->uri, "/block")) {
 					int blocked = TRUE;
 					char buf[BUFSIZ], *u;
@@ -565,6 +572,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 					mg_printf_data(conn, "User %s %s", buf, (blocked) ? "BLOCKED" : "UNblocked");
 					return (MG_TRUE);
 				}
+#endif
 			}
 			/*
 			 * We can't handle this request ourselves. Return
