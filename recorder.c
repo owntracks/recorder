@@ -402,6 +402,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	char *jsonstring, *_typestr = NULL;
 	time_t now;
 	int pingping = FALSE, skipslash = 0;
+	int r_ok = TRUE;			/* True if recording enabled for a publish */
 	payload_type _type;
 
 	/*
@@ -503,6 +504,26 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		return;
 	}
 
+#ifdef WITH_RONLY
+
+	/*
+	 * This is a special mode in which location (and a few other)
+	 * publishes will be recorded only if r:true in the payload.
+	 * If we cannot find `r' in the JSON, or if `r' isn't true,
+	 * set r_ok to FALSE. We cannot just bail out here, because
+	 * we still want info, cards &c.
+	 */
+
+	if ((j = json_find_member(json, "r")) == NULL) {
+		r_ok = FALSE;
+	} else {
+		r_ok = TRUE;
+		if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
+			r_ok = FALSE;
+		}
+	}
+#endif
+
 	_type = T_UNKNOWN;
 	if ((j = json_find_member(json, "_type")) != NULL) {
 		if (j->tag == JSON_STRING) {
@@ -534,7 +555,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		case T_CONFIG:
 		case T_LWT:
 		case T_STEPS:
-			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			if (r_ok) {
+				putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			}
 			goto cleanup;
 		case T_WAYPOINTS:
 			waypoints_dump(ud, username, device, m->payload);
@@ -551,24 +574,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			goto cleanup;
 	}
 
-#ifdef WITH_RONLY
 
-	/*
-	 * If we cannot find `r' in the JSON, or if `r' isn't true,
-	 * abort. This happens here so that we can still capture
-	 * info and cards &c.
-	 */
-
-	if ((j = json_find_member(json, "r")) == NULL) {
-		// printf("Ignoring publish: no `r'\n");
+	if (r_ok == FALSE)
 		goto cleanup;
-	}
-
-	if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
-		// printf("Ignoring publish: `r' is false\n");
-		goto cleanup;
-	}
-#endif
 
 	/*
 	 * We are now handling location-related JSON.  Normalize tst, lat, lon
