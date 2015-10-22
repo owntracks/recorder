@@ -342,18 +342,15 @@ static char *prettyfy(char *payloadstring)
 	return (pretty_js);
 }
 
-void config_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
+static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, char *type)
 {
 	static UT_string *ts = NULL;
-	char *pretty_js;
-
-	pretty_js = prettyfy(payloadstring);
+	char *pretty_js = prettyfy(payloadstring);
 
 	utstring_renew(ts);
-
 	utstring_printf(ts, "%s/%s/%s/%s",
 				STORAGEDIR,
-				"config",
+				type,
 				UB(username),
 				UB(device));
 	if (mkpath(UB(ts)) < 0) {
@@ -364,43 +361,22 @@ void config_dump(struct udata *ud, UT_string *username, UT_string *device, char 
 
 	utstring_printf(ts, "/%s-%s.otrc", UB(username), UB(device));
 	if (ud->verbose) {
-		printf("Received configuration dump, storing at %s\n", UB(ts));
+		printf("Received %s dump, storing at %s\n", type, UB(ts));
 	}
 	safewrite(UB(ts), (pretty_js) ? pretty_js : payloadstring);
 	if (pretty_js) free(pretty_js);
 }
 
-/*
- * Payload contains JSON string with an array of waypoints. Dump
- * these into a single file.
- */
+/* Dump a config payload */
+void config_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
+{
+	xx_dump(ud, username, device, payloadstring, "config");
+}
 
+/* Dump a waypoints (plural) payload */
 void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
 {
-	static UT_string *ts = NULL;
-	char *pretty_js;
-
-	pretty_js = prettyfy(payloadstring);
-
-	utstring_renew(ts);
-
-	utstring_printf(ts, "%s/%s/%s/%s",
-				STORAGEDIR,
-				"waypoints",
-				UB(username),
-				UB(device));
-	if (mkpath(UB(ts)) < 0) {
-		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
-		if (pretty_js) free(pretty_js);
-		return;
-	}
-
-	utstring_printf(ts, "/%s-%s.otrw", UB(username), UB(device));
-	if (ud->verbose) {
-		printf("Received waypoints dump, storing at %s\n", UB(ts));
-	}
-	safewrite(UB(ts), (pretty_js) ? pretty_js : payloadstring);
-	if (pretty_js) free(pretty_js);
+	xx_dump(ud, username, device, payloadstring, "waypoints");
 }
 
 #ifdef WITH_RONLY
@@ -640,6 +616,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	/*
 	 * Record the RONLY basetopic in RONLYdb, and indicate active or not
 	 */
+
 	ronly_set(ud, basetopic, r_ok);
 
 #endif
