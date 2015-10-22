@@ -388,6 +388,17 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 	safewrite(UB(ts), payloadstring);
 }
 
+#ifdef WITH_RONLY
+static int is_ronly(struct udata *ud, UT_string *basetopic)
+{
+	long blen;
+	char buf[BUFSIZ];
+
+	blen = gcache_get(ud->ronlydb, UB(basetopic), buf, sizeof(buf));
+	return (blen > 0) ? TRUE : FALSE;
+}
+#endif
+
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
 	JsonNode *json, *j, *geo = NULL;
@@ -499,11 +510,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			 * the payload.
 			 */
 
-			char buf[BUFSIZ];
-			long blen;
-
-			blen = gcache_get(ud->ronlydb, UB(basetopic), buf, sizeof(buf));
-			if (blen > 0) {
+			if (is_ronly(ud, basetopic)) {
 				// puts("*** storing plain publis");
 				putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
 			}
@@ -532,9 +539,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	if ((j = json_find_member(json, "r")) == NULL) {
 
-		char buf[BUFSIZ];
-		long blen;
-
 		r_ok = FALSE;
 
 		/*
@@ -544,8 +548,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		 * accordingly.
 		 */
 
-		blen = gcache_get(ud->ronlydb, UB(basetopic), buf, sizeof(buf));
-		if (blen > 0) {
+		if (is_ronly(ud, basetopic)) {
 			r_ok = TRUE;
 			// printf("*** forcing TRUE b/c ronlydb (blen=%ld)\n", blen);
 		}
@@ -563,7 +566,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	if (r_ok == TRUE) {
 		int rc;
-		if ((rc =gcache_put(ud->ronlydb, UB(basetopic), m->payload)) != 0)
+		if ((rc = gcache_put(ud->ronlydb, UB(basetopic), m->payload)) != 0)
 			olog(LOG_ERR, "Cannot store %s in ronlydb: rc==%d", UB(basetopic), rc);
 	} else {
 		int rc;
