@@ -1119,7 +1119,6 @@ static void emit_one(JsonNode *j, JsonNode *inttypes, void (func)(char *line, vo
 {
 	static UT_string *line = NULL;
 
-
 	if (!strcmp(j->key, "_type"))
 		return;
 
@@ -1180,6 +1179,12 @@ void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func
 			json_foreach(node, fields) {
 				if ((j = json_find_member(one, node->string_)) != NULL) {
 					emit_one(j, inttypes, func, param);
+				} else {
+					/* empty element */
+					char label[128];
+
+					snprintf(label, sizeof(label), "  <%s />", node->string_);
+					func(label, param);
 				}
 			}
 		} else {
