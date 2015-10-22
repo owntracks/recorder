@@ -493,8 +493,24 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	if ((json = json_decode(m->payload)) == NULL) {
 		if ((json = csv_to_json(m->payload)) == NULL) {
+#ifdef WITH_RONLY
+			/*
+			 * If the base topic belongs to an RONLY user, store
+			 * the payload.
+			 */
+
+			char buf[BUFSIZ];
+			long blen;
+
+			blen = gcache_get(ud->ronlydb, UB(basetopic), buf, sizeof(buf));
+			if (blen > 0) {
+				// puts("*** storing plain publis");
+				putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			}
+#else
 			/* It's not JSON or it's not a location CSV; store it */
 			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+#endif
 			return;
 		}
 	}
@@ -515,12 +531,44 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	 */
 
 	if ((j = json_find_member(json, "r")) == NULL) {
+
+		char buf[BUFSIZ];
+		long blen;
+
 		r_ok = FALSE;
+
+		/*
+		 * This JSON payload might actually belong to an RONLY user
+		 * but it doesn't have an `r:true' in it. Determine whether
+		 * the basetopic belongs to such a user, and force r_ok
+		 * accordingly.
+		 */
+
+		blen = gcache_get(ud->ronlydb, UB(basetopic), buf, sizeof(buf));
+		if (blen > 0) {
+			r_ok = TRUE;
+			// printf("*** forcing TRUE b/c ronlydb (blen=%ld)\n", blen);
+		}
 	} else {
 		r_ok = TRUE;
 		if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
 			r_ok = FALSE;
 		}
+	}
+
+	/*
+	 * The payload contains an `r:true' so we can make a note of this
+	 * base topic in RONLYdb.
+	 */
+
+	if (r_ok == TRUE) {
+		int rc;
+		if ((rc =gcache_put(ud->ronlydb, UB(basetopic), m->payload)) != 0)
+			olog(LOG_ERR, "Cannot store %s in ronlydb: rc==%d", UB(basetopic), rc);
+	} else {
+		int rc;
+		if ((rc = gcache_del(ud->ronlydb, UB(basetopic))) != 0)
+			olog(LOG_ERR, "Cannot delete %s from ronlydb: rc==%d", UB(basetopic), rc);
 	}
 #endif
 
@@ -570,7 +618,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		case T_LOCATION:
 			break;
 		default:
-			putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			if (r_ok) {
+				putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			}
 			goto cleanup;
 	}
 
@@ -934,6 +984,9 @@ int main(int argc, char **argv)
 #ifdef WITH_LMDB
 	udata.gc		= NULL;
 	udata.t2t		= NULL;		/* Topic to TID */
+# ifdef WITH_RONLY
+	udata.ronlydb		= NULL;		/* RONLY db */
+# endif
 #endif
 #ifdef WITH_HTTP
 	udata.mgserver		= NULL;
@@ -1117,6 +1170,13 @@ int main(int argc, char **argv)
 		}
 		gcache_close(gt);
 #endif /* !LUA */
+#ifdef WITH_RONLY
+		if ((gt = gcache_open(path, "ronlydb", FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open `ronly'\n");
+			exit(2);
+		}
+		gcache_close(gt);
+#endif /* !RONLY */
 #endif
 		exit(0);
 	}
@@ -1202,6 +1262,9 @@ int main(int argc, char **argv)
 	ud->t2t = gcache_open(err, "topic2tid", TRUE);
 # ifdef WITH_LUA
 	ud->luadb = gcache_open(err, "luadb", FALSE);
+# endif
+# ifdef WITH_RONLY
+	ud->ronlydb = gcache_open(err, "ronlydb", FALSE);
 # endif
 #endif
 

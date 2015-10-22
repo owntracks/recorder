@@ -22,6 +22,9 @@ struct udata {
 #ifdef WITH_LMDB
 	struct gcache *gc;
 	struct gcache *t2t;		/* topic to tid */
+# ifdef WITH_RONLY
+	struct gcache *ronlydb;		/* RONLY db */
+# endif
 #endif
 #ifdef WITH_HTTP
 	struct mg_server *mgserver;	/* Mongoose */
