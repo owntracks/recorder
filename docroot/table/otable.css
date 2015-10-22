@@ -11,6 +11,7 @@ td.cc { width: 30px; }
 td.topic, td.tid { font-size: 80%; font-family: courier; }
 td.addr { font-size: 90%; }
 td.user { font-size: 80%; }
+td.batt { font-size: 90%; }
 
 #togglers ul {
   list-style-type: none;
