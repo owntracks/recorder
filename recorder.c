@@ -391,11 +391,74 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 #ifdef WITH_RONLY
 static int is_ronly(struct udata *ud, UT_string *basetopic)
 {
-	long blen;
-	char buf[BUFSIZ];
+	JsonNode *json, *j;
+	char *key = UB(basetopic);
+	int active = FALSE;
 
-	blen = gcache_get(ud->ronlydb, UB(basetopic), buf, sizeof(buf));
-	return (blen > 0) ? TRUE : FALSE;
+	if ((json = gcache_json_get(ud->ronlydb, key)) == NULL)
+		return (FALSE);
+
+	if ((j = json_find_member(json, "active")) != NULL) {
+		active = j->bool_;
+	}
+
+	printf("**--- %s: return active = %d\n", key, active);
+	return (active);
+}
+
+/*
+ * Make an RONLYdb entry for basetopic, updating timestamp in the JSON
+ * active is TRUE if the user is an RONLY user, else FALSE.
+ */
+
+static void ronly_set(struct udata *ud, UT_string *basetopic, int active)
+{
+	JsonNode *json, *j;
+	char *key = UB(basetopic);
+	int rc, touch = FALSE;
+
+	json = gcache_json_get(ud->ronlydb, key);
+	if (json == NULL) {
+
+		if (active == FALSE)		/* Has never been r:true b/c not in RONLYdb */
+			return;
+
+		json = json_mkobject();
+	}
+
+	if ((j = json_find_member(json, "first")) == NULL) {
+		json_append_member(json, "first", json_mknumber(time(0)));
+		touch = TRUE;
+	}
+
+	if ((j = json_find_member(json, "last")) != NULL)
+		json_remove_from_parent(j);
+
+	if ((j = json_find_member(json, "active")) != NULL) {
+		if (active != j->bool_) {
+			json_remove_from_parent(j);
+			json_append_member(json, "active", json_mkbool(active));
+			json_append_member(json, "last", json_mknumber(time(0)));
+			touch = TRUE;
+		} else if (active == TRUE) {
+			json_append_member(json, "last", json_mknumber(time(0)));
+			touch = TRUE;
+		}
+	} else {
+		json_append_member(json, "active", json_mkbool(active));
+		touch = TRUE;
+	}
+
+
+	if (touch) {
+
+		if ((rc = gcache_json_put(ud->ronlydb, key, json)) != 0)
+			olog(LOG_ERR, "Cannot store %s in ronlydb: rc==%d", key, rc);
+
+		printf("+++++++++ TOUCH db for %s\n", key);
+	}
+
+	json_delete(json);
 }
 #endif
 
@@ -560,19 +623,10 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 
 	/*
-	 * The payload contains an `r:true' so we can make a note of this
-	 * base topic in RONLYdb.
+	 * Record the RONLY basetopic in RONLYdb, and indicate active or not
 	 */
+	ronly_set(ud, basetopic, r_ok);
 
-	if (r_ok == TRUE) {
-		int rc;
-		if ((rc = gcache_put(ud->ronlydb, UB(basetopic), m->payload)) != 0)
-			olog(LOG_ERR, "Cannot store %s in ronlydb: rc==%d", UB(basetopic), rc);
-	} else {
-		int rc;
-		if ((rc = gcache_del(ud->ronlydb, UB(basetopic))) != 0)
-			olog(LOG_ERR, "Cannot delete %s from ronlydb: rc==%d", UB(basetopic), rc);
-	}
 #endif
 
 	_type = T_UNKNOWN;
