@@ -7,6 +7,7 @@ config = {
 	fulldate:	"Date/Time",
 	name:		"Name",
 	user:		"User",
+	batt:		"Battery",
 	tid:		"TID",
 	cc:		"CC",
 	addr:		"Address"

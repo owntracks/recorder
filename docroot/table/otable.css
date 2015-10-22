@@ -18,3 +18,7 @@ td.user { font-size: 80%; }
   padding-left: 0;
     }
 #togglers li { float: left; padding-right: 4px; }
+
+.warning {
+  color: red;
+}

@@ -184,6 +184,25 @@
                             "targets" : [5],
                     },
                     {
+                            className: 'batt',
+                            name: 'batt',
+                            title: config.column_titles.batt,
+                            visible: true,
+							data: null,
+							render: function(data, type, row) {
+								if (typeof data.batt === 'undefined' || data.batt === null) {
+									return '-';
+								}
+
+								var t = "{{batt}}%";
+								if (data.batt < 25) {
+									t = '<span class="warning">' + t + '</span>';
+								}
+								return Mustache.render(t, data);
+							},
+							"targets" : [6],
+                    },
+                    {
                             className: 'cc',
                             name: 'cc',
                             title: config.column_titles.cc,
@@ -193,7 +212,7 @@
 			    	var t = "<img src='flags/{{cc}}.png' title='{{cc}}'/>";
 				return Mustache.render(t, data);
 			    },
-                            "targets" : [6],
+                            "targets" : [7],
                     },
                     {
                             className: 'addr',
@@ -205,7 +224,7 @@
 			    	var t = "<a target='_new' href='http://maps.google.com/?q={{lat}},{{lon}}'>{{addr}}</a>";
 				return Mustache.render(t, data);
 			    },
-                            "targets" : [7],
+                            "targets" : [8],
                     },
             ],
     
@@ -262,6 +281,7 @@
         <li>Toggle</li>
     	<li><button class='toggle-vis' data-column='0'>topic</button></li>
     	<li><button class='toggle-vis' data-column='4'>user</button></li>
+    	<li><button class='toggle-vis' data-column='6'>battery</button></li>
     </ul>
 
   </body>
