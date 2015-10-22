@@ -118,7 +118,7 @@ void gcache_close(struct gcache *gc)
 	free(gc);
 }
 
-static int gcache_del(struct gcache *gc, char *keystr)
+int gcache_del(struct gcache *gc, char *keystr)
 {
 	int rc;
 	MDB_val key;

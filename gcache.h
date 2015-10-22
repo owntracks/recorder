@@ -21,6 +21,7 @@ long gcache_get(struct gcache *, char *key, char *buf, long buflen);
 JsonNode *gcache_json_get(struct gcache *, char *key);
 void gcache_dump(char *path, char *lmdbname);
 void gcache_load(char *path, char *lmdbname);
+int gcache_del(struct gcache *gc, char *keystr);
 
 #endif
 #endif
