@@ -599,12 +599,19 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		 * This JSON payload might actually belong to an RONLY user
 		 * but it doesn't have an `r:true' in it. Determine whether
 		 * the basetopic belongs to such a user, and force r_ok
-		 * accordingly.
+		 * accordingly. If this is _type:location it holds the definitive
+		 * truth.
 		 */
 
 		if (is_ronly(ud, basetopic)) {
 			r_ok = TRUE;
 			// printf("*** forcing TRUE b/c ronlydb (blen=%ld)\n", blen);
+		}
+
+		if ((j = json_find_member(json, "_type")) != NULL) {
+			if ((j->tag == JSON_STRING) && (strcmp(j->string_, "location") == 0)) {
+				r_ok = FALSE;
+			}
 		}
 	} else {
 		r_ok = TRUE;
