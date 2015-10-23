@@ -398,10 +398,14 @@ curl 'http://127.0.0.1:8083/api/0/monitor'
 
 #### `last`
 
-Returns a list of last users' positions. (Can be limited by _user_ and _device_.)
+Returns a list of last users' positions. (Can be limited by _user_, _device_, and _fields_, a comma-separated list of fields which should be returned instead of the default of all fields.)
 
 ```
 curl http://127.0.0.1:8083/api/0/last [-d user=jjolie [-d device=phone]]
+```
+
+```
+curl 'http://127.0.0.1:8083/api/0/last?fields=tst,tid,addr,topic,isotst'
 ```
 
 #### `list`

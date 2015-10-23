@@ -38,6 +38,8 @@
 
 #ifdef WITH_HTTP
 
+#define MAXPARTS 40
+
 /* A transparent 40x40 PNG image with a black border */
 static unsigned char border40x40png[] = {
 	0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00,
@@ -202,7 +204,7 @@ static void send_last(struct mg_connection *conn)
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
 
-	if ((user_array = last_users(u, d)) != NULL) {
+	if ((user_array = last_users(u, d, NULL)) != NULL) {
 
 		json_foreach(one, user_array) {
 			JsonNode *f;
@@ -282,7 +284,6 @@ static int xml_response(struct mg_connection *conn, JsonNode *obj)
  * /users/ or /list
  */
 
-#define MAXPARTS 40
 
 #define CLEANUP do {\
 		int k; \
@@ -347,12 +348,21 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 #endif /* WITH_KILL */
 
 	if (nparts == 1 && !strcmp(uparts[0], "last")) {
-                JsonNode *user_array;
+		JsonNode *user_array, *fields = NULL;
+		char *flds = field(conn, "fields");
 
-                if ((user_array = last_users(u, d)) != NULL) {
+		if (flds != NULL) {
+			fields = json_splitter(flds, ",");
+			free(flds);
+		}
+
+		if ((user_array = last_users(u, d, fields)) != NULL) {
 			CLEANUP;
+			json_delete(fields);
+
 			return (json_response(conn, user_array));
-                }
+		}
+		json_delete(fields);
 	}
 
 	if ((ret = mg_get_var(conn, "limit", buf, sizeof(buf))) > 0) {
@@ -396,11 +406,11 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	/* /locations			[<username>[<device>]] */
 
 	if (nparts == 1 && !strcmp(uparts[0], "locations")) {
-                /*
+		/*
 		 * Obtain a list of .rec files from lister(), possibly limited
 		 * by s_lo/s_hi times, process each and build the JSON `obj'
 		 * with an array of locations.
-                 */
+		 */
 
 		obj = json_mkobject();
 		locs = json_mkarray();

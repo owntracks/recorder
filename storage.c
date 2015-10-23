@@ -181,10 +181,11 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 /*
  * Return an array of users gleaned from LAST with merged details.
  * If user and device are specified, limit to those; either may be
- * NULL.
+ * NULL. If `fields' is not NULL, it's a JSON array of fields to
+ * be returned.
  */
 
-JsonNode *last_users(char *in_user, char *in_device)
+JsonNode *last_users(char *in_user, char *in_device, JsonNode *fields)
 {
 	JsonNode *obj = json_mkobject();
 	JsonNode *un, *dn, *userlist = json_mkarray();
@@ -224,6 +225,35 @@ JsonNode *last_users(char *in_user, char *in_device)
 		}
 	}
 	json_delete(obj);
+
+	/*
+	 * userlist now is an array of user objects. If fields were
+	 * specified, re-create that array with object which have
+	 * only the requested fields. It's a shame we have to re-do
+	 * this here, but I can't think of an alternative way at
+	 * the moment.
+	 */
+
+	if (fields) {
+		JsonNode *new_userlist = json_mkarray(), *user;
+
+		json_foreach(user, userlist) {
+			JsonNode *o = json_mkobject(), *f, *j;
+
+			json_foreach(f, fields) {
+				char *field_name = f->string_;
+
+				if ((j = json_find_member(user, field_name)) != NULL) {
+					json_copy_element_to_object(o, field_name, j);
+				}
+			}
+			json_append_element(new_userlist, o);
+		}
+
+
+		json_delete(userlist);
+		return (new_userlist);
+	}
 
 	return (userlist);
 }

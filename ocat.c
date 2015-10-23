@@ -433,7 +433,7 @@ int main(int argc, char **argv)
 	if (last) {
 		JsonNode *user_array;
 
-		if ((user_array = last_users(username, device)) != NULL) {
+		if ((user_array = last_users(username, device, fields)) != NULL) {
 
 			if (otype == JSON) {
 				char *js;

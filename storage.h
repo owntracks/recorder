@@ -43,7 +43,7 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_to);
 JsonNode *geo_json(JsonNode *json);
 JsonNode *geo_linestring(JsonNode *location_array);
 JsonNode *kill_datastore(char *username, char *device);
-JsonNode *last_users(char *user, char *device);
+JsonNode *last_users(char *user, char *device, JsonNode *fields);
 char *gpx_string(JsonNode *json);
 void storage_init(int revgeo);
 void storage_gcache_dump(char *lmdbname);
