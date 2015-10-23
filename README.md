@@ -284,7 +284,7 @@ Note in particular the `--hosted` option: you specify neither a host name or a p
 
 When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083`.
 
-### Recorder options and variables
+### `ot-recorder` options and variables
 
 This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
 
