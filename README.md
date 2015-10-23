@@ -86,6 +86,9 @@ _ocat_ is a CLI query program for data stored by _recorder_: it prints data from
 * GeoJSON (line string)
 * CSV
 * GPX
+* XML
+* raw (the lines contained in the REC file with ISO timestamp)
+* payload (basically just the payload part from RAW)
 
 The _ocat_ utility accesses _storage_ directly — it doesn’t use the _recorder_’s REST interface. _ocat_ has a daunting number of options, some combinations of which make no sense at all.
 
@@ -130,7 +133,7 @@ Some example uses we consider useful:
 * `ocat ... --limit 10`
    prints data  for the current month, starting now and going backwards; only 10 locations will be printed. Generally, the `--limit` option reads the storage back to front which makes no sense in some combinations.
 
-Specifying `--fields lat,tid,lon` will request just those JSON elements from _storage_. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat	 is missing in the list of fields.)
+Specifying `--fields lat,tid,lon` will request just those JSON elements from _storage_. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat` is missing in the list of fields.)
 
 The `--from` and `--to` options allow you to specify a UTC date and/or timestamp from which respectively until which data will be read. By default, the last 6 hours of data are produced. If `--from` is not specified, it therefore defaults to _now minus 6 hours_. If `--to` is not specified it defaults to _now_. Dates and times must be specified as strings, and the following formats are recognized:
 
@@ -142,7 +145,7 @@ The `--from` and `--to` options allow you to specify a UTC date and/or timestamp
 %Y-%m
 ```
 
-The `--limit` option restricts the output to the last specified number of records. This is a bit of an "expensive" operation because we search the `.rec` files backwards (i.e. from end to beginning).
+The `--limit` option limits the output to the last specified number of records. This is a bit of an "expensive" operation because we search the `.rec` files backwards (i.e. from end to beginning). When using `--limit` the 6 hours mentioned earlier do not apply.
 
 ## `ocat` examples
 
@@ -174,7 +177,7 @@ $ ocat --list --user demo
 
 #### Show the last position reported by a user
 
-Where was _demo_'s _iphone_ last seen?
+Where was _demo_'s _iphone_ last seen? (Omit `--user` and `--device` to get LAST for all users and devices.)
 
 ```
 $ ocat --last --user demo --device iphone
@@ -213,10 +216,10 @@ We can limit the number of returned elements: Let's do this as CSV, and limit th
 ```
 $ ocat --user demo --device iphone --limit 4 --format csv --fields isotst,vel,addr
 isotst,vel,addr
-2015-08-24T08:40:01Z,18,E40, 01156 Dresden, Germany
-2015-08-24T08:35:01Z,40,E40, 01723 Wilsdruff, Germany
-2015-08-24T08:30:00Z,50,A14, 01683 Nossen, Germany
-2015-08-24T08:24:59Z,40,A14, 04741 Roßwein, Germany
+2015-08-24T08:40:01Z,18,"E40, 01156 Dresden, Germany"
+2015-08-24T08:35:01Z,40,"E40, 01723 Wilsdruff, Germany"
+2015-08-24T08:30:00Z,50,"A14, 01683 Nossen, Germany"
+2015-08-24T08:24:59Z,40,"A14, 04741 Roßwein, Germany"
 ```
 
 ## Getting started
@@ -225,12 +228,14 @@ You will require:
 
 * [libmosquitto](http://mosquitto.org)
 * [libCurl](http://curl.haxx.se/libcurl/)
-* [lmdb](http://symas.com/mdb) included
+* [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
 * Optionally [Lua](http://lua.org)
 
-Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
+1. Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
+2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
+3. Type `make` and watch the fun.
 
-Type `make` and watch the fun. When that finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the _recorder_ options.
+When _make_ finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the _recorder_ options.
 
 Ensure the LMDB databases are initialized by running the following command which is safe to do, also after an upgrade. (This initialization is non-destructive -- it will not delete any data.)
 
@@ -257,7 +262,11 @@ $ ./ot-recorder 'owntracks/#'
 
 Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
 
-The location message received by the _recorder_ will be written to storage.
+The location message received by the _recorder_ will be written to storage. In particular you should verify that your _storage_ directory contains:
+
+1. a directory called `ghash/`
+2. a directory called `rec/` with several subdirectories and a `.rec` file therein.
+3. a directory called `last/` which contains subdirectories and a `.json` file therein.
 
 ### Launching `ot-recorder` for _Hosted mode_
 
@@ -290,9 +299,9 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. This option cannot be used with `--hosted`.
 
-`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost".
+`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost". For `--hosted` mode you do not have to specify this.
 
-`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883.
+`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. For `--hosted` mode you do not have to specify this.
 
 `--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection. This option is also required in `--hosted` mode.
 
@@ -312,7 +321,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--norec` disables writing of REC files, so no location history or other similar publishes are stored, and the Lua `otr_putrec()` function is not invoked even if it exists. What is stored are CARDS and PHOTOS, as well as the LAST location of a device. As such, the API's `/locations` endpoint becomes useless.
 
-`--norevgeo` suppresses reverse geo lookups, but this means that historic data will not show addresses (e.g. with the API or with _ocat_).
+`--norevgeo` suppresses reverse geo lookups, but this means that historic data will not show addresses (e.g. with the API or with _ocat_). See below for information on Reverse Geo lookups.
 
 `--logfacility` is the syslog facility to use (default is `LOCAL0`).
 
@@ -336,7 +345,7 @@ This section lists the most important options of the _recorder_ with their long 
 We took a number of decisions for the design of the recorder and its utilities:
 
 * Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the _recorder_ send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
-* We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below.
+* We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below. (In the particular case of the OwnTracks firmware for Greenwich devices which can publish in CSV mode, we convert the CSV into OwnTracks JSON for storage.)
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
 * The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the `recorder` to control access to it.
@@ -347,14 +356,14 @@ We took a number of decisions for the design of the recorder and its utilities:
 As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
 
 * `cards/`, optional, contains user cards which are published when either you or one of your trackers on Hosted adds a new device. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar.
-* `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data.
+* `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data. You can use this `.otrc` file to restore the OwnTracks configuration on your device by copying to the device and opening it in OwnTracks.
 * `ghash/`, unless disabled, reverse Geo data is collected into an LMDB database located in this directory.
 * `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`.
 * `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
 * `msg/` contains messages received by the Messaging system.
 * `photos/` optional; contains the binary photos from a _card_.
 * `rec/` the recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
-* `waypoints/` contains a directory per user and device. Therein are individual files named by a timestamp with the JSON payload of published (i.e. shared) waypoints. The file names are timestamps because the `tst` of a waypoint is its key. If a user publishes all waypoints from a device (Publish Waypoints), the payload is stored in this directory as `username-device.otrw`. (Note, that this is the JSON [waypoints import format](http://owntracks.org/booklet/tech/json/#_typewaypoints).)
+* `waypoints/` contains a directory per user and device. Therein are individual files named by a timestamp with the JSON payload of published (i.e. shared) waypoints. The file names are timestamps because the `tst` of a waypoint is its key. If a user publishes all waypoints from a device (Publish Waypoints), the payload is stored in this directory as `username-device.otrw`. (Note, that this is the JSON [waypoints import format](http://owntracks.org/booklet/tech/json/#_typewaypoints).) You can use this `.otrw` file to restore the waypoints on your device by copying to the device and opening it in OwnTracks.
 
 You should definitely **not** modify or touch these files: they remain under the control of the _recorder_. You can of course, remove old `.rec` files if they consume too much space.
 
@@ -472,6 +481,7 @@ curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s
 curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d limit=1
 curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d format=geojson
 curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d from=2014-08-03
+curl 'http://127.0.0.1:8083/api/0/locations?from=2015-09-01&user=jpm&device=5s&fields=tst,tid,addr,isotst'
 ```
 
 #### `q`
@@ -488,10 +498,6 @@ curl 'http://127.0.0.1:8083/api/0/q?lat=48.85833&lon=2.295'
 ```
 
 The reported timestamp was the time at which this cache entry was made. Note that this interface queries only -- it does not populate the cache.
-
-#### `block`
-
-Requires POST method and _user_. This is currently incomplete; it simply writes a key into LMDB consisting of "blockme user".
 
 #### `photo`
 
