@@ -403,7 +403,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		}
 	}
 
-	/* /locations			[<username>[<device>]] */
+	/* /locations			[<username>[<device>]][[fields=a,b,c] */
 
 	if (nparts == 1 && !strcmp(uparts[0], "locations")) {
 		/*
@@ -416,17 +416,24 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		locs = json_mkarray();
 
                 if ((json = lister(u, d, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
-			JsonNode *arr;
+			JsonNode *arr, *fields = NULL;
+			char *flds = field(conn, "fields");
+
+			if (flds != NULL) {
+				fields = json_splitter(flds, ",");
+				free(flds);
+			}
 
 			CLEANUP;
 
                         if ((arr = json_find_member(json, "results")) != NULL) {
 				JsonNode *f;
                                 json_foreach(f, arr) {
-                                        locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, NULL, NULL, NULL);
+                                        locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, fields, NULL, NULL);
                                         // printf("%s\n", f->string_);
                                 }
                         }
+			json_delete(fields);
                         json_delete(json);
                 }
 		json_append_member(obj, "locations", locs);
