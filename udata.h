@@ -19,6 +19,7 @@ struct udata {
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
 	int qos;			/* Subscribe QoS */
 	int verbose;			/* TRUE if print verbose messages to stdout */
+	int norec;			/* If TRUE, no .REC files are written to */
 #ifdef WITH_LMDB
 	struct gcache *gc;
 	struct gcache *t2t;		/* topic to tid */

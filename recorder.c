@@ -306,6 +306,9 @@ static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string 
 	FILE *fp;
 	int rc = 0;
 
+	if (ud->norec)
+		return;
+
 #ifdef WITH_LUA
 	rc = hooks_norec(ud, UB(username), UB(device), string);
 #endif
@@ -1002,6 +1005,7 @@ void usage(char *prog)
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --hosted		       use OwnTracks Hosted\n");
+	printf("  --norec		       don't maintain REC files\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_HOST		MQTT hostname\n");
@@ -1045,6 +1049,7 @@ int main(int argc, char **argv)
 	udata.skipdemo		= TRUE;
 	udata.revgeo		= TRUE;
 	udata.verbose		= TRUE;
+	udata.norec		= FALSE;
 #ifdef WITH_LMDB
 	udata.gc		= NULL;
 	udata.t2t		= NULL;		/* Topic to TID */
@@ -1100,6 +1105,7 @@ int main(int argc, char **argv)
 			{ "quiet",	no_argument,		0, 	8},
 			{ "initialize",	no_argument,		0, 	9},
 			{ "label",	required_argument,	0, 	10},
+			{ "norec",	no_argument,		0, 	11},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
@@ -1117,6 +1123,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 11:
+				udata.norec = TRUE;
+				break;
 			case 10:
 				free(udata.label);
 				udata.label = strdup(optarg);
