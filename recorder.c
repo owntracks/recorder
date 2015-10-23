@@ -1032,6 +1032,7 @@ int main(int argc, char **argv)
 	char *luascript = NULL;
 #endif
 	int port = 1883;
+	int loop_timeout = 0;
 	int rc, i, ch, hosted = FALSE, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
 	struct utsname uts;
@@ -1469,8 +1470,15 @@ int main(int argc, char **argv)
 
 	olog(LOG_INFO, "Using storage at %s with precision %d", STORAGEDIR, geohash_prec());
 
+#ifdef WITH_HTTP
+	if (udata.mgserver == NULL)
+		loop_timeout = 1000;
+#else
+	loop_timeout = 1000;
+#endif
+
 	while (run) {
-		rc = mosquitto_loop(mosq, /* timeout */ 0, /* max-packets */ 1);
+		rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
 		if (run && rc) {
 			olog(LOG_INFO, "MQTT connection: rc=%d [%s]. Sleeping...", rc, mosquitto_strerror(rc));
 			sleep(10);
