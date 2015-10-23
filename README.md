@@ -284,9 +284,51 @@ Note in particular the `--hosted` option: you specify neither a host name or a p
 
 When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083`.
 
-### Recorder options
+### Recorder options and variables
+
+This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
+
+`--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. This option cannot be used with `--hosted`.
+
+`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost".
+
+`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883.
+
+`--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection. This option is also required in `--hosted` mode.
+
+`$OTR_PASS` is the password for the MQTT connection. (This is ignored in `--hosted` mode.)
+
+`$OTR_DEVICE` is required for `--hosted` and specifies the name of the device associated with `$OTR_USER`.
+
+`$OTR_TOKEN` is required for `--hosted` mode.
+
+`$OTR_CAFILE` specifies the path to a readable PEM-formatted file containing the CA certificate chain to be used for the MQTT TLS connection. This is required for `--hosted`. If this environment variable is set, a TLS connection is assumed (and the port number should probably be adjusted accordingly).
+
+`--qos` specifies the MQTT QoS to use; it defaults to 2.
+
+`--storagedir` is configured at build time and overrides `$OTR_STORAGEDIR`.
+
+`--useretained` overrides the default of not consuming retained MQTT messages.
 
 `--norec` disables writing of REC files, so no location history or other similar publishes are stored, and the Lua `otr_putrec()` function is not invoked even if it exists. What is stored are CARDS and PHOTOS, as well as the LAST location of a device. As such, the API's `/locations` endpoint becomes useless.
+
+`--norevgeo` suppresses reverse geo lookups, but this means that historic data will not show addresses (e.g. with the API or with _ocat_).
+
+`--logfacility` is the syslog facility to use (default is `LOCAL0`).
+
+`--quiet` disables printing of messages to _stdout_.
+
+`--initialize` creates the a structure within the storage directory and initializes the LMDB database. It is safe to use this even if such a database exists -- the database is not wiped. After initialization, _recorder_ exits.
+
+`--label` specifies a label (default: "Recorder") to be shown in the websocket live map.
+
+`--http-host` and `--http-port` define the listen address and port number for the API. If `--http-port` is 0, the Web server is disabled.
+
+`--docroot` overrides the compile-time setting of the HTTP document root.
+
+`--lua-script` specifies the path to the Lua script. If not given, Lua support is disabled.
+
+`--precision` overrides the compiled-in default. (See "Precision" later.)
 
 
 ## Design decisions
