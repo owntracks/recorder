@@ -1,4 +1,13 @@
 
+2015-10-23 version 0.4.4
+- FIX: now actually builds without LMDB (not recommended!)
+- NEW: Add a battery level column to the Table. (#56)
+- FIX: waypoints and config dumps are prettyfied
+- FIX: XML output prints empty tags when fields are requested
+- NEW: API photo/ endpoint (returns default png on user 404)
+- NEW: configuration dump (cmd dump) is stored in store/config/$user-$device.otrc
+- NEW: waypoints dump (Publish Waypoints from device) written to store/waypoints/$user/$device/user-device.otrw
+
 2015-10-19 version 0.4.3
 - NEW: recorder exits if Lua script cannot be loaded (#54)
 - FIX: add fail-safe to CSV parser (#53)
