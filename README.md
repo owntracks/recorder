@@ -350,6 +350,7 @@ We took a number of decisions for the design of the recorder and its utilities:
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
 * The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the `recorder` to control access to it.
 * `ocat`, the _cat_ program for the _recorder_ uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
+* The _recorder_ supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".)
 
 ## Storage
 
@@ -357,7 +358,7 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 * `cards/`, optional, contains user cards which are published when either you or one of your trackers on Hosted adds a new device. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar.
 * `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data. You can use this `.otrc` file to restore the OwnTracks configuration on your device by copying to the device and opening it in OwnTracks.
-* `ghash/`, unless disabled, reverse Geo data is collected into an LMDB database located in this directory.
+* `ghash/`, unless disabled, reverse Geo data is collected into an LMDB database located in this directory. This LMDB database also contains named databases which are used by your optional Lua hooks, as well as a `topic2tid` database which can be used for TID re-mapping.
 * `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`.
 * `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
 * `msg/` contains messages received by the Messaging system.
@@ -685,7 +686,7 @@ ocat --dump |
 
 #### `topic2tid`
 
-This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the topic of an incoming message is found in the database, the `tid` member in the JSON payload is replaced by the value of this key.
+This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the topic of an incoming message is found in the database, the `tid` member in the JSON payload is replaced by the string value of this key.
 
 ## Prerequisites for building
 
