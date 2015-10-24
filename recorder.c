@@ -639,14 +639,13 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			else if (!strcmp(j->string_, "beacon"))		_type = T_BEACON;
 			else if (!strcmp(j->string_, "card"))		_type = T_CARD;
 			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
-			else if (!strcmp(j->string_, "configuration"))	_type = T_CONFIG;
 			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
 			else if (!strcmp(j->string_, "msg"))		_type = T_MSG;
 			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
 			else if (!strcmp(j->string_, "transition"))	_type = T_TRANSITION;
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
-			else if (!strcmp(j->string_, "dump"))		_type = T_DUMP;
+			else if (!strcmp(j->string_, "dump"))		_type = T_CONFIG;
 		}
 	}
 
@@ -659,7 +658,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			goto cleanup;
 		case T_BEACON:
 		case T_CMD:
-		case T_CONFIG:
 		case T_LWT:
 		case T_STEPS:
 			if (r_ok) {
@@ -669,7 +667,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		case T_WAYPOINTS:
 			waypoints_dump(ud, username, device, m->payload);
 			goto cleanup;
-		case T_DUMP:
+		case T_CONFIG:
 			config_dump(ud, username, device, m->payload);
 			goto cleanup;
 		case T_WAYPOINT:
