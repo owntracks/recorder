@@ -247,7 +247,7 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 {
 	char *js;
 
-	mg_send_header(conn, "Content-Type", "application/json");
+	mg_send_header(conn, "Content-Type", "application/json; charset=utf-8");
 	mg_send_header(conn, "Access-Control-Allow-Origin", "*");
 
 	if (json == NULL) {
