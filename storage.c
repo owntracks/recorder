@@ -82,6 +82,7 @@ void storage_gcache_load(char *lmdbname)
 }
 #endif /* !LMDB */
 
+
 void get_geo(JsonNode *o, char *ghash)
 {
 #ifdef WITH_LMDB
@@ -176,6 +177,11 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 			get_geo(last, node->string_);
 		}
 	}
+
+	/* Extra data */
+	snprintf(path, BUFSIZ, "%s/last/%s/%s/extra.json",
+		STORAGEDIR, user, device);
+	json_copy_from_file(last, path);
 }
 
 /*
