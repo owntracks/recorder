@@ -69,7 +69,7 @@ all: $(TARGETS)
 
 ot-recorder: recorder.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(LIBS)
-	[ -x codesign.sh ] && ./codesign.sh
+	if test -r codesign.sh; then /bin/sh codesign.sh; fi
 
 ocat: ocat.o $(OTR_OBJS)
 	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
