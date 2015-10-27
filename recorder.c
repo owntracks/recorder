@@ -345,7 +345,7 @@ static char *prettyfy(char *payloadstring)
 	return (pretty_js);
 }
 
-static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, char *type)
+static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, char *type, char *extension)
 {
 	static UT_string *ts = NULL;
 	char *pretty_js = prettyfy(payloadstring);
@@ -362,7 +362,7 @@ static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 		return;
 	}
 
-	utstring_printf(ts, "/%s-%s.otrc", UB(username), UB(device));
+	utstring_printf(ts, "/%s-%s.%s", UB(username), UB(device), extension);
 	if (ud->verbose) {
 		printf("Received %s dump, storing at %s\n", type, UB(ts));
 	}
@@ -373,13 +373,13 @@ static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 /* Dump a config payload */
 void config_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
 {
-	xx_dump(ud, username, device, payloadstring, "config");
+	xx_dump(ud, username, device, payloadstring, "config", "otrc");
 }
 
 /* Dump a waypoints (plural) payload */
 void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
 {
-	xx_dump(ud, username, device, payloadstring, "waypoints");
+	xx_dump(ud, username, device, payloadstring, "waypoints", "otrw");
 }
 
 #ifdef WITH_RONLY
