@@ -370,10 +370,23 @@ static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 	if (pretty_js) free(pretty_js);
 }
 
-/* Dump a config payload */
+/* Dump a config payload; get the 'configuration' element out of the dumped payloadstring */
 void config_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
 {
-	xx_dump(ud, username, device, payloadstring, "config", "otrc");
+	JsonNode *json = json_decode(payloadstring), *config;
+
+	if (json == NULL)
+		return;
+
+	if ((config = json_find_member(json, "configuration")) != NULL) {
+		char *js_string = json_stringify(config, NULL);
+
+		if (js_string) {
+			xx_dump(ud, username, device, js_string, "config", "otrc");
+			json_delete(json);
+			free(js_string);
+		}
+	}
 }
 
 /* Dump a waypoints (plural) payload */
