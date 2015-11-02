@@ -16,6 +16,7 @@
 int mkpath(char *path);
 int is_directory(char *path);
 const char *isotime(time_t t);
+const char *disptime(time_t t);
 char *slurp_file(char *filename, int fold_newlines);
 int json_copy_to_object(JsonNode *obj, JsonNode * object_or_array, int clobber);
 int json_copy_element_to_object(JsonNode *obj, char *key, JsonNode *node);

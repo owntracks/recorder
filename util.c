@@ -55,6 +55,13 @@ const char *isotime(time_t t) {
         return(buf);
 }
 
+const char *disptime(time_t t) {
+        static char buf[] = "YYYY-MM-DD HH:MM:SS";
+
+        strftime(buf, sizeof(buf), "%F %T", gmtime(&t));
+        return(buf);
+}
+
 char *slurp_file(char *filename, int fold_newlines)
 {
 	FILE *fp;

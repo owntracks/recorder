@@ -156,6 +156,7 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 		if ((tst = json_find_member(last, "tst")) != NULL) {
 			json_append_member(last, "isotst", json_mkstring(isotime(tst->number_)));
+			json_append_member(last, "disptst", json_mkstring(disptime(tst->number_)));
 		}
 
 		json_append_element(userlist, last);
@@ -623,6 +624,7 @@ static JsonNode *line_to_location(char *line)
 		tst = j->number_;
 	}
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
+	json_append_member(o, "disptst", json_mkstring(disptime(tst)));
 
 	return (o);
 }
