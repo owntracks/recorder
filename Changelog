@@ -1,4 +1,14 @@
 
+2015-11-04 version 0.4.5
+- NEW: LAST and LOCATIONS return additional human-formatted ISO timestamp for display, disptst
+- FIX: otrc dump now contains correct configuration settings which can be restored to phone
+- FIX: waypoints/config filename extention fixed (otrw/otrc)
+- NEW: extra.json (in last/username/device/) is merged in and returned in API (#60)
+- FIX: http server sets utf-8 on JSON responses (API)
+- NEW: recorder's --norec disables writing REC files
+- FIX: removed Mosquitto loop timeout; great improvement in HTTP performance
+- NEW: API supports /last ?fields=a,b,c
+
 2015-10-23 version 0.4.4
 - FIX: now actually builds without LMDB (not recommended!)
 - NEW: Add a battery level column to the Table. (#56)
