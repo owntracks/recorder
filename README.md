@@ -19,7 +19,16 @@ Some examples of what the _recorder_'s built-in HTTP server is capable of:
 
 #### Last position of a particular user
 
-Retrieve the last position of a particular user. Note that we get the same data as reported by _ocat_.
+Retrieve the last position of a particular user. In addition to the values obtained in the [`location` publish](http://owntracks.org/booklet/tech/json/) from the OwnTracks device, there are a few which we return as convenience:
+
+* `username` contains the name of the user obtained from the publish topic
+* `device` contains the user's device name as obtained from the publish topic
+* `topic` is the full topic to which the payload was published
+* `ghash` is the geohash string which corresponds to `lat` and `lon`
+* `isotst` is the ISO timestamp of the publish time (`tst`)
+* `disptst` is the same but designed for displaying
+* `cc` is the country code of the location point if available in the cache (see below)
+* `addr` is the address of the location point if available in the cache
 
 ```
 $ curl http://127.0.0.2:8083/api/0/last -d user=demo -d device=iphone
@@ -40,6 +49,8 @@ $ curl http://127.0.0.2:8083/api/0/last -d user=demo -d device=iphone
   "device": "iphone",
   "topic": "owntracks/demo/iphone",
   "ghash": "u31dmx9",
+  "isotst": "2015-08-24T08:40:01Z",
+  "disptst": "2015-08-24 08:40:01",
   "cc": "DE",
   "addr": "E40, 01156 Dresden, Germany"
  }
@@ -106,28 +117,31 @@ Some example uses we consider useful:
    produces CSV. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
 * `ocat ... --format xml`
    produces XML. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
-```
+```xml
 <?xml version='1.0' encoding='UTF-8'?>
-        <?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>
+	<?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>
 <owntracks>
  <point>
-  <tst>1440395361</tst>
-  <acc>3000.000000</acc>
-  <alt>51</alt>
-  <lon>10.027857</lon>
-  <vac>29.000000</vac>
-  <vel>-1</vel>
-  <lat>52.378886</lat>
-  <cog>-1</cog>
+  <tst>1440405601</tst>
+  <acc>10.000000</acc>
+  <alt>262</alt>
+  <lon>13.602798</lon>
+  <vac>6.000000</vac>
+  <vel>18</vel>
+  <lat>51.062634</lat>
+  <cog>82</cog>
   <tid>NE</tid>
-  <batt>96</batt>
-  <ghash>u1r1upq</ghash>
+  <batt>99</batt>
+  <username>demo</username>
+  <device>iphone</device>
+  <topic>owntracks/demo/iphone</topic>
+  <ghash>u31dmx9</ghash>
+  <isotst>2015-08-24T08:40:01Z</isotst>
+  <disptst>2015-08-24 08:40:01</disptst>
   <cc>DE</cc>
-  <addr>Heidecker Weg 86, 31275 Lehrte, Germany</addr>
-  <isorcv>2015-08-24T05:55:07Z</isorcv>
-  <isotst>2015-08-24T05:49:21Z</isotst>
+  <addr>E40, 01156 Dresden, Germany</addr>
  </point>
- ...
+
 </owntracks>
 ```
 * `ocat ... --limit 10`
@@ -198,6 +212,8 @@ $ ocat --last --user demo --device iphone
   "device": "iphone",
   "topic": "owntracks/demo/iphone",
   "ghash": "u31dmx9",
+  "isotst": "2015-08-24T08:40:01Z",
+  "disptst": "2015-08-24 08:40:01",
   "cc": "DE",
   "addr": "E40, 01156 Dresden, Germany"
  }
