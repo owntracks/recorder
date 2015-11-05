@@ -103,6 +103,7 @@ install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
 	mkdir -p $(DESTDIR)$(DOCROOT)
+	mkdir -p $(STORAGEDEFAULT)/last
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
