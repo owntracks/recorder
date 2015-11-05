@@ -242,7 +242,7 @@ isotst,vel,addr
 
 You will require:
 
-* [libmosquitto](http://mosquitto.org)
+* [libmosquitto](http://mosquitto.org), but see below for platform instructions
 * [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
 * Optionally [Lua](http://lua.org)
@@ -706,10 +706,21 @@ This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the
 
 ## Prerequisites for building
 
+You need a current version of the Mosquitto library (and you probably require the Mosquitto broker as well for OwnTracks). We strongly recommend installing Mosquitto either from [source](http://mosquitto.org/download/) or from a [binary package](http://mosquitto.org/download/), both of which are provided by the [Mosquitto project](http://mosquitto.org/). In particular, older or LTS OS versions profit from this.
+
 ### Debian
 
 ```
 apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev
+```
+
+### Ubuntu
+
+```
+sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+sudo apt-get update
+sudo apt-get install libmosquitto-dev
+sudo apt-get install libcurl3 libcurl4-openssl-dev
 ```
 
 [![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
