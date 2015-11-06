@@ -59,5 +59,10 @@ MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
 MORELIBS = # -lssl
 
+# If WITH_LUA is configured, specify compilation and linkage flags
+# for Lua either manually or using pkg-config. This may require tweaking,
+# and in particular could require you to add the lua+version (e.g lua-5.2)
+# to both pkg-config invocations
+
 LUA_CFLAGS = `pkg-config --cflags lua`
 LUA_LIBS   = `pkg-config --libs lua`
