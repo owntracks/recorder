@@ -167,6 +167,8 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	curl_easy_setopt(curl, CURLOPT_URL, UB(url));
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 2000L);
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writemem);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)cbuf);
