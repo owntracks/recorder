@@ -48,6 +48,10 @@ ifeq ($(WITH_HTTP),yes)
 	OTR_OBJS += mongoose.o http.o
 endif
 
+ifeq ($(WITH_GREENWICH),yes)
+	CFLAGS += -DWITH_GREENWICH=1
+endif
+
 ifeq ($(JSON_INDENT),yes)
 	CFLAGS += -DJSON_INDENT="\" \""
 else

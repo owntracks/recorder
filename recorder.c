@@ -58,6 +58,7 @@
 #define TOPIC_PARTS     (4)             /* owntracks/user/device/info */
 #define DEFAULT_QOS	(2)
 #define CLEAN_SESSION	false
+#define GWNUMBERSMAX	50		/* number of batt,ext,status in array */
 
 static int run = 1;
 
@@ -469,6 +470,71 @@ static void ronly_set(struct udata *ud, UT_string *basetopic, int active)
 }
 #endif
 
+#ifdef WITH_GREENWICH
+
+/*
+ * key is "batt", "ext", or "status"
+ * value is a string which contains a number
+ *
+ * Open/create a file at gw/user/device/user-device.json. Append to the existing array,
+ * limiting the number of array entries.
+ */
+
+void store_gwvalue(char *username, char *device, time_t tst, char *key, char *value)
+{
+	static UT_string *ts = NULL;
+	JsonNode *array, *o, *j;
+	int count = 0;
+	char *js;
+
+	utstring_renew(ts);
+	utstring_printf(ts, "%s/last/%s/%s",
+				STORAGEDIR,
+				username,
+				device);
+	if (mkpath(UB(ts)) < 0) {
+		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
+		return;
+	}
+
+	utstring_printf(ts, "/%s.json", key);
+
+	/* Read file into array or create array on error */
+	if ((js = slurp_file(UB(ts), TRUE)) != NULL) {
+		if ((array = json_decode(js)) == NULL) {
+			array = json_mkarray();
+		}
+		free(js);
+	} else {
+		array = json_mkarray();
+	}
+
+
+	/* Count elements in array and pop first if too long */
+	json_foreach(j, array) {
+		++count;
+	}
+	if (count >= GWNUMBERSMAX) {
+		j = json_first_child(array);
+		json_delete(j);
+	}
+
+	o = json_mkobject();
+
+	json_append_member(o, "tst", json_mknumber(tst));
+	json_append_member(o, key, json_mknumber(atof(value)));
+
+	json_append_element(array, o);
+
+	if ((js = json_stringify(array, NULL)) != NULL) {
+		safewrite(UB(ts), js);
+		free(js);
+	}
+
+	json_delete(array);
+}
+#endif /* GREENWICH */
+
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
 	JsonNode *json, *j, *geo = NULL;
@@ -558,7 +624,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	utstring_printf(username, "%s", topics[1 + skipslash]);
 	utstring_printf(device, "%s", topics[2 + skipslash]);
 
-	mosquitto_sub_topic_tokens_free(&topics, count);
 
 #ifdef WITH_PING
 	if (!strcmp(UB(username), "ping") && !strcmp(UB(device), "ping")) {
@@ -566,8 +631,27 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	}
 #endif
 
+#ifdef WITH_GREENWICH
 	/*
-	 * First things first: let's see if this contains some sort of valid JSON
+	 * For Greenwich: handle owntracks/user/device/voltage/batt, voltage/ext, and
+	 * status all of which have a numeric payload.
+	 */
+
+	if ((count == 5+skipslash && !strcmp(topics[3+skipslash], "voltage")) &&
+		(!strcmp(topics[4+skipslash], "batt") || !strcmp(topics[4+skipslash], "ext"))) {
+		store_gwvalue(UB(username), UB(device), now, topics[4+skipslash], m->payload);
+	}
+
+	if (count == 4+skipslash && !strcmp(topics[3+skipslash], "status")) {
+		store_gwvalue(UB(username), UB(device), now, "status", m->payload);
+	}
+
+#endif
+
+	mosquitto_sub_topic_tokens_free(&topics, count);
+
+	/*
+	 * Now let's see if this contains some sort of valid JSON
 	 * or an OwnTracks CSV. If it doesn't, just store this payload because
 	 * there's nothing left for us to do with it.
 	 */

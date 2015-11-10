@@ -21,6 +21,9 @@ WITH_KILL ?= no
 # If you set this to `yes', WITH_LMDB will be set to yes
 WITH_RONLY ?= no
 
+# Do you require support for OwnTracks Greenwich firmware?
+WITH_GREENWICH ?= no
+
 # Where should the recorder store its data? This directory must
 # exist and be writeable by recorder (and readable by ocat)
 STORAGEDEFAULT = /var/spool/owntracks/recorder/store
