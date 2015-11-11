@@ -646,6 +646,8 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		store_gwvalue(UB(username), UB(device), now, "status", m->payload);
 	}
 
+	/* Fall through to store this payload in the REC file as well. */
+
 #endif
 
 	mosquitto_sub_topic_tokens_free(&topics, count);
