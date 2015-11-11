@@ -155,6 +155,9 @@ static void get_gw_data(char *username, char *device, JsonNode *last)
 	char **t, *js;
 	static UT_string *ts = NULL;
 
+	if (last == NULL || last->tag != JSON_OBJECT)
+		return;
+
 	for (t = types; t && *t; t++) {
 		utstring_renew(ts);
 		utstring_printf(ts, "%s/last/%s/%s/%s.json",
@@ -193,8 +196,6 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 		}
 
 		json_append_element(userlist, last);
-	} else {
-		json_delete(last);
 	}
 
 	snprintf(path, BUFSIZ, "%s/cards/%s/%s.json",
