@@ -393,7 +393,21 @@ void config_dump(struct udata *ud, UT_string *username, UT_string *device, char 
 /* Dump a waypoints (plural) payload */
 void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring)
 {
-	xx_dump(ud, username, device, payloadstring, "waypoints", "otrw");
+	JsonNode *json = json_decode(payloadstring), *j;
+	char *js = NULL;
+
+	if (json == NULL)
+		return;
+
+	if ((j = json_find_member(json, "r")) != NULL) {
+		json_remove_from_parent(j);
+		js = json_stringify(json, NULL);
+		json_delete(json);
+	}
+
+	xx_dump(ud, username, device, (js) ? js : payloadstring, "waypoints", "otrw");
+	if (js)
+		free(js);
 }
 
 #ifdef WITH_RONLY
