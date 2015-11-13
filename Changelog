@@ -1,4 +1,10 @@
 
+2015-11-13 version 0.4.6
+- NEW: support batt,ext,status in LAST API for Greenwich device firmware
+- FIX: reverse geo lookup limited to 2000ms
+- FIX: make install now creates STORAGEDEFAULT/last (#67)
+- FIX: documentation update to include instructions for building on Ubuntu 14.04
+
 2015-11-04 version 0.4.5
 - NEW: LAST and LOCATIONS return additional human-formatted ISO timestamp for display, disptst
 - FIX: otrc dump now contains correct configuration settings which can be restored to phone
