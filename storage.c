@@ -1282,6 +1282,117 @@ void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func
 	json_delete(inttypes);
 }
 
+#define STRINGCOLUMN(x)	(!strcmp(x, "addr") || !strcmp(x, "locality"))
+
+/*
+ * Print the value in a single JSON node. If string, easy. If number account for
+ * what we call 'integer' types which shouldn't be printed as floats.
+ */
+
+static void print_one(UT_string *line, JsonNode *j, JsonNode *inttypes, void (func)(char *line, void *param), void *param)
+{
+	/* Check if the value should be an "integer" (ie not float) */
+	if (j->tag == JSON_NUMBER) {
+		if (json_find_member(inttypes, j->key)) {
+			utstring_printf(line, "%.lf", j->number_);
+		} else {
+			utstring_printf(line, "%lf", j->number_);
+		}
+	} else if (j->tag == JSON_STRING) {
+		char *quote = "";
+
+		if (STRINGCOLUMN(j->key)) {
+			quote = "\"";
+		}
+		utstring_printf(line, "%s%s%s", quote, j->string_, quote);
+	} else if (j->tag == JSON_BOOL) {
+		utstring_printf(line, "%s", (j->bool_) ? "true" : "false");
+	} else if (j->tag == JSON_NULL) {
+		utstring_printf(line, "null");
+	}
+}
+
+static void csv_title(UT_string *line, JsonNode *node, char *column)
+{
+	char *quote = "";
+
+	if (STRINGCOLUMN(column)) {
+		quote = "\"";
+	}
+	utstring_printf(line, "%s%s%s%c", quote, column, quote,  (node->next) ? ',' : '\n');
+}
+
+/*
+ * Output location data as CSV. If `fields' is not NULL, it's a JSON
+ * array of JSON elment names which should be printed instead of the
+ * default ALL.
+ */
+
+void csv_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)
+{
+	JsonNode *node, *inttypes;
+	JsonNode *arr, *one, *j;
+	short virgin = 1;
+	static UT_string *line = NULL;
+
+	utstring_renew(line);
+
+	/* Prime the inttypes object with types we consider "integer" */
+	inttypes = json_mkobject();
+	json_append_member(inttypes, "batt", json_mkbool(1));
+	json_append_member(inttypes, "vel", json_mkbool(1));
+	json_append_member(inttypes, "cog", json_mkbool(1));
+	json_append_member(inttypes, "tst", json_mkbool(1));
+	json_append_member(inttypes, "alt", json_mkbool(1));
+	json_append_member(inttypes, "dist", json_mkbool(1));
+	json_append_member(inttypes, "trip", json_mkbool(1));
+
+	arr = json_find_member(json, "locations");
+	json_foreach(one, arr) {
+		/* Headings */
+		if (virgin) {
+
+			virgin = !virgin;
+
+			if (fields) {
+				json_foreach(node, fields) {
+					csv_title(line, node, node->string_);
+				}
+			} else {
+				json_foreach(node, one) {
+					if (node->key)
+						csv_title(line, node, node->key);
+				}
+			}
+			func(UB(line), param);
+			utstring_renew(line);
+		}
+
+		/* Now the values */
+		if (fields) {
+			json_foreach(node, fields) {
+				if ((j = json_find_member(one, node->string_)) != NULL) {
+					print_one(line, j, inttypes, func, param);
+					utstring_printf(line, "%c", node->next ? ',' : '\n');
+				} else {
+					/* specified field not in JSON for this row */
+					utstring_printf(line, "%c", node->next ? ',' : '\n');
+				}
+			}
+			func(UB(line), param);
+			utstring_renew(line);
+		} else {
+			json_foreach(j, one) {
+				print_one(line, j, inttypes, func, param);
+				utstring_printf(line, "%c", j->next ? ',' : '\n');
+			}
+			func(UB(line), param);
+			utstring_renew(line);
+		}
+	}
+	json_delete(inttypes);
+}
+
 char *storage_userphoto(char *username)
 {
 	static char path[BUFSIZ];

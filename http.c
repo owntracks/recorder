@@ -270,10 +270,24 @@ static void emit_xml_line(char *line, void *param)
 	mg_printf_data(conn, "\n");
 }
 
+static void emit_csv_line(char *line, void *param)
+{
+	struct mg_connection *conn = (struct mg_connection *)param;
+
+	mg_printf_data(conn, line);
+}
+
 static int xml_response(struct mg_connection *conn, JsonNode *obj)
 {
-	/* TODO: support fields? */
-	xml_output(obj, CSV, NULL, emit_xml_line, conn);
+	xml_output(obj, XML, NULL, emit_xml_line, conn);
+
+	json_delete(obj);
+	return (MG_TRUE);
+}
+
+static int csv_response(struct mg_connection *conn, JsonNode *obj)
+{
+	csv_output(obj, CSV, NULL, emit_csv_line, conn);
 
 	json_delete(obj);
 	return (MG_TRUE);
@@ -376,6 +390,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			otype = JSON;
 		else if (!strcmp(buf, "linestring"))
 			otype = LINESTRING;
+		else if (!strcmp(buf, "csv"))
+			otype = CSV;
 		else if (!strcmp(buf, "xml"))
 			otype = XML;
 		else {
@@ -440,6 +456,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 		if (otype == JSON) {
 			return (json_response(conn, obj));
+		} else if (otype == CSV) {
+			return (csv_response(conn, obj));
 		} else if (otype == XML) {
 			return (xml_response(conn, obj));
 		} else if (otype == LINESTRING) {
