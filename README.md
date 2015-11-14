@@ -2,18 +2,142 @@
 
 ![Recorder logo](assets/recorder-logo-192.png)
 
-The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily installed and operated even on low-end hardware, and it doesn't require external an external database. It is also suited for you to record and store the data you publish via our [Hosted mode](http://owntracks.org/booklet/features/hosted/).
+The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require external an external database. It is also suited for you to record and store the data you publish via our [Hosted mode](http://owntracks.org/booklet/features/hosted/).
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
 
-There are two main components: the _recorder_ obtains, stores, and serves data, and the _ocat_ command-line utility reads stored data in a variety of formats.
+There are two main components: the _recorder_ obtains data via MQTT subscribes, stores the data in plain files and serve it via its built-in REST API, and the _ocat_ command-line utility reads stored data in a variety of formats.
+
+We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. As an aside, we use this in heavy production on our Hosted offering.
 
 ## `recorder`
 
 The _recorder_ serves two purposes:
 
-1. It subscribes to an MQTT broker and awaits messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of files on the file system.
+1. It subscribes to an MQTT broker and reads messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of plain files on the file system.
 2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a Websocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
+
+
+## Installing
+
+You will require:
+
+* [libmosquitto](http://mosquitto.org), but see below for platform instructions
+* [libCurl](http://curl.haxx.se/libcurl/)
+* [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
+* Optionally [Lua](http://lua.org)
+
+1. Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
+2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
+3. Type `make` and watch the fun.
+
+When _make_ finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the _recorder_ options.
+
+Ensure the LMDB databases are initialized by running the following command which is safe to do, also after an upgrade. (This initialization is non-destructive -- it will not delete any data.)
+
+```
+ot-recorder --initialize
+```
+
+Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
+
+* that each instance uses a distinct `--storage`
+* that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
+
+## Getting started
+
+The _recorder_ has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
+
+If you require authentication or TLS to connect to your MQTT broker, pay attention to the `$OTR_` environment variables listed in the help.
+
+Launch the recorder:
+
+```
+$ ./ot-recorder 'owntracks/#'
+```
+
+Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
+
+The location message received by the _recorder_ will be written to storage. In particular you should verify that your _storage_ directory contains:
+
+1. a directory called `ghash/`
+2. a directory called `rec/` with several subdirectories and a `.rec` file therein.
+3. a directory called `last/` which contains subdirectories and a `.json` file therein.
+
+### Launching `ot-recorder` for _Hosted mode_
+
+You have an account with our Hosted platform and you want to store the data published by your device and the devices you track. Proceed as follows:
+
+1. Download the [StartCom ca-bundle.pem](https://www.startssl.com/certs/ca-bundle.pem) file to a directory of choice, and make a note of the path to that file.
+2. Create a small shell script modelled after the one hereafter (you can copy it from [etc/hosted.sh](etc/hosted.sh)) with which to launch the _recorder_.
+3. Launch that shell script to have the _recorder_ connect to _Hosted_ and subscribe to messages your OwnTracks apps publish via _Hosted_.
+
+```bash
+#!/bin/sh
+
+export OTR_USER="username"          # your OwnTracks Hosted username
+export OTR_DEVICE="device"          # one of your OwnTracks Hosted device names
+export OTR_TOKEN="xab0x993z8tdw"    # the Token corresponding to above pair
+export OTR_CAFILE="/path/to/startcom-ca-bundle.pem"
+
+
+ot-recorder --hosted "owntracks/#"
+```
+
+Note in particular the `--hosted` option: you specify neither a host name or a port number; the _recorder_ has those built-in, and it uses a specific _clientID_ for the MQTT connection. Other than that, there is no difference between the _recorder_ connecting to Hosted or to your private MQTT broker.
+
+
+When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083`.
+
+### `ot-recorder` options and variables
+
+This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
+
+`--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. This option cannot be used with `--hosted`.
+
+`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost". For `--hosted` mode you do not have to specify this.
+
+`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. For `--hosted` mode you do not have to specify this.
+
+`--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection. This option is also required in `--hosted` mode.
+
+`$OTR_PASS` is the password for the MQTT connection. (This is ignored in `--hosted` mode.)
+
+`$OTR_DEVICE` is required for `--hosted` and specifies the name of the device associated with `$OTR_USER`.
+
+`$OTR_TOKEN` is required for `--hosted` mode.
+
+`$OTR_CAFILE` specifies the path to a readable PEM-formatted file containing the CA certificate chain to be used for the MQTT TLS connection. This is required for `--hosted`. If this environment variable is set, a TLS connection is assumed (and the port number should probably be adjusted accordingly).
+
+`--qos` specifies the MQTT QoS to use; it defaults to 2.
+
+`--storagedir` is configured at build time and overrides `$OTR_STORAGEDIR`.
+
+`--useretained` overrides the default of not consuming retained MQTT messages.
+
+`--norec` disables writing of REC files, so no location history or other similar publishes are stored, and the Lua `otr_putrec()` function is not invoked even if it exists. What is stored are CARDS and PHOTOS, as well as the LAST location of a device. As such, the API's `/locations` endpoint becomes useless.
+
+`--norevgeo` suppresses reverse geo lookups, but this means that historic data will not show addresses (e.g. with the API or with _ocat_). See below for information on Reverse Geo lookups.
+
+`--logfacility` is the syslog facility to use (default is `LOCAL0`).
+
+`--quiet` disables printing of messages to _stdout_.
+
+`--initialize` creates the a structure within the storage directory and initializes the LMDB database. It is safe to use this even if such a database exists -- the database is not wiped. After initialization, _recorder_ exits.
+
+`--label` specifies a label (default: "Recorder") to be shown in the websocket live map.
+
+`--http-host` and `--http-port` define the listen address and port number for the API. If `--http-port` is 0, the Web server is disabled.
+
+`--docroot` overrides the compile-time setting of the HTTP document root.
+
+`--lua-script` specifies the path to the Lua script. If not given, Lua support is disabled.
+
+`--precision` overrides the compiled-in default. (See "Precision" later.)
+
+
+
+## The HTTP server
 
 Some examples of what the _recorder_'s built-in HTTP server is capable of:
 
@@ -238,129 +362,12 @@ isotst,vel,addr
 2015-08-24T08:24:59Z,40,"A14, 04741 Roßwein, Germany"
 ```
 
-## Getting started
-
-You will require:
-
-* [libmosquitto](http://mosquitto.org), but see below for platform instructions
-* [libCurl](http://curl.haxx.se/libcurl/)
-* [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
-* Optionally [Lua](http://lua.org)
-
-1. Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
-2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
-3. Type `make` and watch the fun.
-
-When _make_ finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the _recorder_ options.
-
-Ensure the LMDB databases are initialized by running the following command which is safe to do, also after an upgrade. (This initialization is non-destructive -- it will not delete any data.)
-
-```
-ot-recorder --initialize
-```
-
-Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
-
-* that each instance uses a distinct `--storage`
-* that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
-
-### Launching `ot-recorder`
-
-The _recorder_ has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
-
-If you require authentication or TLS to connect to your MQTT broker, pay attention to the `$OTR_` environment variables listed in the help.
-
-Launch the recorder:
-
-```
-$ ./ot-recorder 'owntracks/#'
-```
-
-Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
-
-The location message received by the _recorder_ will be written to storage. In particular you should verify that your _storage_ directory contains:
-
-1. a directory called `ghash/`
-2. a directory called `rec/` with several subdirectories and a `.rec` file therein.
-3. a directory called `last/` which contains subdirectories and a `.json` file therein.
-
-### Launching `ot-recorder` for _Hosted mode_
-
-You have an account with our Hosted platform and you want to store the data published by your device and the devices you track. Proceed as follows:
-
-1. Download the [StartCom ca-bundle.pem](https://www.startssl.com/certs/ca-bundle.pem) file to a directory of choice, and make a note of the path to that file.
-2. Create a small shell script modelled after the one hereafter (you can copy it from [etc/hosted.sh](etc/hosted.sh)) with which to launch the _recorder_.
-3. Launch that shell script to have the _recorder_ connect to _Hosted_ and subscribe to messages your OwnTracks apps publish via _Hosted_.
-
-```bash
-#!/bin/sh
-
-export OTR_USER="username"          # your OwnTracks Hosted username
-export OTR_DEVICE="device"          # one of your OwnTracks Hosted device names
-export OTR_TOKEN="xab0x993z8tdw"    # the Token corresponding to above pair
-export OTR_CAFILE="/path/to/startcom-ca-bundle.pem"
-
-
-ot-recorder --hosted "owntracks/#"
-```
-
-Note in particular the `--hosted` option: you specify neither a host name or a port number; the _recorder_ has those built-in, and it uses a specific _clientID_ for the MQTT connection. Other than that, there is no difference between the _recorder_ connecting to Hosted or to your private MQTT broker.
-
-
-When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083`.
-
-### `ot-recorder` options and variables
-
-This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
-
-`--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. This option cannot be used with `--hosted`.
-
-`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost". For `--hosted` mode you do not have to specify this.
-
-`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. For `--hosted` mode you do not have to specify this.
-
-`--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection. This option is also required in `--hosted` mode.
-
-`$OTR_PASS` is the password for the MQTT connection. (This is ignored in `--hosted` mode.)
-
-`$OTR_DEVICE` is required for `--hosted` and specifies the name of the device associated with `$OTR_USER`.
-
-`$OTR_TOKEN` is required for `--hosted` mode.
-
-`$OTR_CAFILE` specifies the path to a readable PEM-formatted file containing the CA certificate chain to be used for the MQTT TLS connection. This is required for `--hosted`. If this environment variable is set, a TLS connection is assumed (and the port number should probably be adjusted accordingly).
-
-`--qos` specifies the MQTT QoS to use; it defaults to 2.
-
-`--storagedir` is configured at build time and overrides `$OTR_STORAGEDIR`.
-
-`--useretained` overrides the default of not consuming retained MQTT messages.
-
-`--norec` disables writing of REC files, so no location history or other similar publishes are stored, and the Lua `otr_putrec()` function is not invoked even if it exists. What is stored are CARDS and PHOTOS, as well as the LAST location of a device. As such, the API's `/locations` endpoint becomes useless.
-
-`--norevgeo` suppresses reverse geo lookups, but this means that historic data will not show addresses (e.g. with the API or with _ocat_). See below for information on Reverse Geo lookups.
-
-`--logfacility` is the syslog facility to use (default is `LOCAL0`).
-
-`--quiet` disables printing of messages to _stdout_.
-
-`--initialize` creates the a structure within the storage directory and initializes the LMDB database. It is safe to use this even if such a database exists -- the database is not wiped. After initialization, _recorder_ exits.
-
-`--label` specifies a label (default: "Recorder") to be shown in the websocket live map.
-
-`--http-host` and `--http-port` define the listen address and port number for the API. If `--http-port` is 0, the Web server is disabled.
-
-`--docroot` overrides the compile-time setting of the HTTP document root.
-
-`--lua-script` specifies the path to the Lua script. If not given, Lua support is disabled.
-
-`--precision` overrides the compiled-in default. (See "Precision" later.)
-
 
 ## Design decisions
 
-We took a number of decisions for the design of the recorder and its utilities:
+We took a number of decisions when designing the _recorder_ and its utilities:
 
-* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the _recorder_ send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
+* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast geo-lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the _recorder_ send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
 * We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below. (In the particular case of the OwnTracks firmware for Greenwich devices which can publish in CSV mode, we convert the CSV into OwnTracks JSON for storage.)
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
@@ -453,7 +460,7 @@ The _recorder_ has a built-in HTTP server with which it servers static files fro
 
 The API basically serves the same data as _ocat_ is able to produce.
 
-## API
+### API
 
 The _recorder_'s API provides most of the functions that are surfaced by _ocat_. GET and POST requests are supported, and if a username and device are needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters. (From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
 respectively.)
