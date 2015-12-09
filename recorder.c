@@ -553,7 +553,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 {
 	JsonNode *json, *j, *geo = NULL;
 	char *tid = NULL, *t = NULL, *p;
-	double lat, lon;
+	double lat, lon, acc;
 	long tst;
 	struct udata *ud = (struct udata *)userdata;
         char **topics;
@@ -807,7 +807,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 
 	tst = time(NULL);
 	if ((j = json_find_member(json, "tst")) != NULL) {
-		if (j && j->tag == JSON_STRING) {
+		if (j->tag == JSON_STRING) {
 			tst = strtoul(j->string_, NULL, 10);
 			json_remove_from_parent(j);
 			json_append_member(json, "tst", json_mknumber(tst));
@@ -819,6 +819,14 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	if (isnan(lat = number(json, "lat")) || isnan(lon = number(json, "lon"))) {
 		olog(LOG_ERR, "lat or lon for %s are NaN: %s", m->topic, bindump(m->payload, m->payloadlen));
 		goto cleanup;
+	}
+
+	if ((j = json_find_member(json, "acc")) != NULL) {
+		if (j->tag == JSON_STRING) {
+			acc = atof(j->string_);
+			json_remove_from_parent(j);
+			json_append_member(json, "acc", json_mknumber(acc));
+		}
 	}
 
 	if ((j = json_find_member(json, "tid")) != NULL) {
