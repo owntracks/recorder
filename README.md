@@ -27,7 +27,7 @@ You will require:
 * [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
 * Optionally [Lua](http://lua.org)
 
-1. Obtain and download the software, either [as a package, if available](https://packagecloud.io/owntracks/ot-recorder), via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
+1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
 2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
 3. Type `make` and watch the fun.
 
