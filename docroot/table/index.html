@@ -188,19 +188,23 @@
                             name: 'batt',
                             title: config.column_titles.batt,
                             visible: true,
-							data: null,
-							render: function(data, type, row) {
-								if (typeof data.batt === 'undefined' || data.batt === null) {
-									return '-';
-								}
+			    data: null,
+			    render: function(data, type, row) {
+				if (typeof data.batt === 'undefined' || data.batt === null) {
+					return '-';
+				}
+				if (typeof data.batt === 'object') {
+					// console.log(JSON.stringify(data.batt));
+					return data.batt[data.batt.length - 1]['batt'] + "v";
+				}
 
-								var t = "{{batt}}%";
-								if (data.batt < 25) {
-									t = '<span class="warning">' + t + '</span>';
-								}
-								return Mustache.render(t, data);
-							},
-							"targets" : [6],
+				var t = "{{batt}}%";
+				if (data.batt < 25) {
+					t = '<span class="warning">' + t + '</span>';
+				}
+				return Mustache.render(t, data);
+			    },
+			   "targets" : [6],
                     },
                     {
                             className: 'cc',
