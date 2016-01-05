@@ -51,12 +51,6 @@ GHASHPREC = 7
 # yes or no
 JSON_INDENT ?= no
 
-# If you do more than 2500 (currently) reverse-geo requests per day,
-# you'll need an API key for Google's geocoding service. Specify
-# that here
-#   APIKEY ?= YYYYYYYYYY
-APIKEY ?=
-
 # Optionally specify the path to the Mosquitto libs, include here
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib

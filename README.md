@@ -135,6 +135,8 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--precision` overrides the compiled-in default. (See "Precision" later.)
 
+`--geokey` sets the Google API key for reverse geo lookups.  If you do more than 2500 (currently) reverse-geo requests per day, you'll need an API key for Google's geocoding service. Specify that here.
+
 
 
 ## The HTTP server

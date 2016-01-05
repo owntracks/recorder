@@ -134,7 +134,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_st
 	return (1);
 }
 
-JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
+JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_string *cc)
 {
 	static UT_string *url;
 	static UT_string *cbuf;		/* Buffer for curl GET */
@@ -157,12 +157,15 @@ JsonNode *revgeo(double lat, double lon, UT_string *addr, UT_string *cc)
 	utstring_renew(url);
 	utstring_renew(cbuf);
 	utstring_renew(locality);
-#ifdef APIKEY
-	utstring_printf(url, GURL, "https", lat, lon);
-	utstring_printf(url, "&key=%s", APIKEY);
-#else
-	utstring_printf(url, GURL, "http", lat, lon);
-#endif
+
+	if (ud && ud->geokey) {
+		utstring_printf(url, GURL, "https", lat, lon);
+		utstring_printf(url, "&key=%s", ud->geokey);
+	} else {
+		utstring_printf(url, GURL, "http", lat, lon);
+	}
+
+	printf("URL=%s\n", UB(url));
 
 	curl_easy_setopt(curl, CURLOPT_URL, UB(url));
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
@@ -221,7 +224,7 @@ int main()
 	utstring_renew(location);
 	utstring_renew(cc);
 
-	if ((json = revgeo(lat, lon, location, cc)) != NULL) {
+	if ((json = revgeo(NULL, lat, lon, location, cc)) != NULL) {
 		js = json_stringify(json, " ");
 		printf("%s\n", js);
 		free(js);
@@ -229,7 +232,7 @@ int main()
 		printf("Cannot get revgeo\n");
 	}
 
-	if ((json = revgeo(clat, clon, location, cc)) != NULL) {
+	if ((json = revgeo(NULL, clat, clon, location, cc)) != NULL) {
 		js = json_stringify(json, " ");
 		printf("%s\n", js);
 		free(js);

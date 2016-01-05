@@ -841,6 +841,15 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		}
 	}
 
+#if 0
+	/* Haversine */
+
+	{
+		double d = haversine_dist(lat, lon, 52.03431, 8.47654);
+		printf("*** d=%lf meters\n", d);
+	}
+#endif
+
 #ifdef WITH_LMDB
 	/*
 	 * If the topic we are handling is in topic2tid, replace the TID
@@ -889,7 +898,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 				utstring_printf(addr, "%s", j->string_);
 			}
 		} else {
-			if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
+			if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
 				gcache_json_put(ud->gc, UB(ghash), geo);
 			} else {
 				/* We didn't obtain reverse Geo, maybe because of over
@@ -906,7 +915,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			}
 		}
 #else /* !LMDB */
-		if ((geo = revgeo(lat, lon, addr, cc)) != NULL) {
+		if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
 			;
 		}
 #endif /* LMDB */
@@ -1187,6 +1196,7 @@ int main(int argc, char **argv)
 # endif /* WITH_LMDB */
 #endif /* WITH_LUA */
 	udata.label		= strdup("Recorder");
+	udata.geokey		= NULL;		/* default: no API key */
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
 		hostname = strdup(p);
@@ -1226,6 +1236,7 @@ int main(int argc, char **argv)
 			{ "initialize",	no_argument,		0, 	9},
 			{ "label",	required_argument,	0, 	10},
 			{ "norec",	no_argument,		0, 	11},
+			{ "geokey",	required_argument,	0, 	12},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
@@ -1243,6 +1254,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 12:
+				udata.geokey = strdup(optarg);
+				break;
 			case 11:
 				udata.norec = TRUE;
 				break;

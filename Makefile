@@ -58,11 +58,6 @@ else
 	CFLAGS += -DJSON_INDENT=NULL
 endif
 
-ifneq ($(APIKEY),)
-	CFLAGS += -DAPIKEY="\"$(APIKEY)\""
-endif
-
-
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 
 

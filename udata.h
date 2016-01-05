@@ -37,6 +37,7 @@ struct udata {
 # endif
 #endif
 	char *label;			/* Server label */
+	char *geokey;			/* Google reverse-geo API key */
 };
 
 #endif
