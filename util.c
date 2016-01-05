@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <math.h>
 
 #ifndef LINESIZE
 # define LINESIZE 8192
@@ -556,4 +557,23 @@ void lowercase(char *s)
                 if (isupper(*bp))
                         *bp = tolower(*bp);
         }
+}
+
+/* http://rosettacode.org/wiki/Haversine_formula#C */
+/* Changed to return meters instead of KM (* 1000) */
+
+#define R 6371
+#define TO_RAD (3.1415926536 / 180.0)
+
+double haversine_dist(double th1, double ph1, double th2, double ph2)
+{
+	double dx, dy, dz;
+	ph1 -= ph2;
+	ph1 *= TO_RAD, th1 *= TO_RAD, th2 *= TO_RAD;
+
+	dz = sin(th1) - sin(th2);
+	dx = cos(ph1) * cos(th1) - cos(th2);
+	dy = sin(ph1) * cos(th1);
+
+	return asin(sqrt(dx * dx + dy * dy + dz * dz) / 2) * 2 * R * 1000;
 }

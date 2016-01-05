@@ -33,5 +33,6 @@ void olog(int level, char *fmt, ...);
 void geohash_setprec(int precision);
 int geohash_prec(void);
 void lowercase(char *s);
+double haversine_dist(double th1, double ph1, double th2, double ph2);
 
 #endif
