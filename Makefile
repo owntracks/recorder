@@ -1,7 +1,7 @@
 include config.mk
 
 CFLAGS	=-Wall -Werror $(MOSQUITTO_INC)
-LIBS	= $(MORELIBS) $(MOSQUITTO_LIB) -lmosquitto
+LIBS	= $(MORELIBS) $(MOSQUITTO_LIB) -lmosquitto -lm
 LIBS 	+= -lcurl
 
 TARGETS=
