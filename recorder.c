@@ -1134,6 +1134,7 @@ void usage(char *prog)
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --hosted		       use OwnTracks Hosted\n");
 	printf("  --norec		       don't maintain REC files\n");
+	printf("  --geokey		       optional Google reverse-geo API key\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_HOST		MQTT hostname\n");
