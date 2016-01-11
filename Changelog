@@ -1,4 +1,12 @@
 
+2016-01-11 version 0.4.7
+- NEW: Beacon messages are now handed to the Websocket server
+- UPD: locations API returns data in `data` (no longer in `locations`)
+- NEW: google reverse-geo API key is now a run-time option in recorder (#18)
+- FIX: table view shows last voltage for Greenwich devices in battery column (#73)
+- FIX: normalize acc to double for older device versions
+- NEW: API locations/ now has support for CSV (#72)
+
 2015-11-13 version 0.4.6
 - NEW: support batt,ext,status in LAST API for Greenwich device firmware
 - FIX: reverse geo lookup limited to 2000ms
