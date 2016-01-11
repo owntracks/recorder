@@ -770,6 +770,18 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			do_msg(ud, username, device, json);
 			goto cleanup;
 		case T_BEACON:
+#ifdef WITH_HTTP
+			if (ud->mgserver && !pingping) {
+				json_append_member(json, "topic", json_mkstring(m->topic));
+				json_append_member(json, "username", json_mkstring(UB(username)));
+				json_append_member(json, "device", json_mkstring(UB(device)));
+				http_ws_push_json(ud->mgserver, json);
+			}
+#endif
+			if (r_ok) {
+				putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
+			}
+			goto cleanup;
 		case T_CMD:
 		case T_LWT:
 		case T_STEPS:
