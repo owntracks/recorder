@@ -547,6 +547,14 @@ curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
 ```
 The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
 
+#### `version`
+
+Returns a JSON object which contains the Recorder's version string, such as
+
+```json
+{ "version": "0.4.7" }
+```
+
 ## Lua hooks
 
 If _recorder_ is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:

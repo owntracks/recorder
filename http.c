@@ -32,6 +32,7 @@
 #include "storage.h"
 #include "geohash.h"
 #include "udata.h"
+#include "version.h"
 #ifdef WITH_HTTP
 # include "http.h"
 #endif
@@ -360,6 +361,14 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		return (json_response(conn, deleted));
 	}
 #endif /* WITH_KILL */
+
+	if (nparts == 1 && !strcmp(uparts[0], "version")) {
+		JsonNode *json = json_mkobject();
+
+		json_append_member(json, "version", json_mkstring(VERSION));
+		CLEANUP;
+		return (json_response(conn, json));
+	}
 
 	if (nparts == 1 && !strcmp(uparts[0], "last")) {
 		JsonNode *user_array, *fields = NULL;
