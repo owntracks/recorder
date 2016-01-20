@@ -1508,6 +1508,7 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, catcher);
 	signal(SIGTERM, catcher);
+	signal(SIGPIPE, SIG_IGN);
 
 	mosq = mosquitto_new(UB(clientid), CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
