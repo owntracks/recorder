@@ -33,6 +33,9 @@ typedef enum {
 	T_TRANSITION,
 	T_WAYPOINT,
 	T_WAYPOINTS,
+#if WITH_ENCRYPT
+	T_ENCRYPTED,
+#endif
 } payload_type;
 
 JsonNode *lister(char *username, char *device, time_t s_lo, time_t s_hi, int reverse);

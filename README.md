@@ -721,6 +721,24 @@ ocat --dump |
 
 This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the topic of an incoming message is found in the database, the `tid` member in the JSON payload is replaced by the string value of this key.
 
+#### `keys`
+
+If the _recorder_ was built with encryption support (see below), this named database contains the secret decryption keys for users/device pairs. The LMDB key is the username followed by a dash followed by the device name, all lower case. For example, if user Jjolie with device iPhone needs a secret entered, the database key will be `jjolie-iphone`. This can be entered into the database as follows:
+
+```bash
+echo "jjolie-iphone s3cr1t" | ocat --load=keys
+```
+
+Beware: these secret keys are stored in plain text so the database must be protected!
+
+## Encryption (*experimental!*)
+
+If compiled with `WITH_ENCRYPT` support, the recorder will handle messages from OwnTracks devices which support payload encryption. Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
+
+Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
+
+
+
 ## Prerequisites for building
 
 You need a current version of the Mosquitto library (and you probably require the Mosquitto broker as well for OwnTracks). We strongly recommend installing Mosquitto either from [source](http://mosquitto.org/download/) or from a [binary package](http://mosquitto.org/download/), both of which are provided by the [Mosquitto project](http://mosquitto.org/). In particular, older or LTS OS versions profit from this.

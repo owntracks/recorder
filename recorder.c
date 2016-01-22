@@ -50,6 +50,9 @@
 #ifdef WITH_LUA
 # include "hooks.h"
 #endif
+#if WITH_ENCRYPT
+# include <sodium.h>
+#endif
 
 
 #define SSL_VERIFY_PEER (1)
@@ -549,6 +552,81 @@ void store_gwvalue(char *username, char *device, time_t tst, char *key, char *va
 }
 #endif /* GREENWICH */
 
+#if WITH_ENCRYPT
+/*
+ * Create a new mosquitto message structure, decrypt and populate new.
+ * p64 contains the base64-encoded payload from the device. `username'
+ * and `device' are needed to obtain the decryption key for this object.
+ */
+
+struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_message *m, char *p64, char *username, char *device)
+{
+	struct mosquitto_message *msg;
+	unsigned char key[crypto_secretbox_KEYBYTES];
+	unsigned char *ciphertext, *cleartext;
+	unsigned long ciphertext_len;
+	int n, klen;
+	UT_string *userdev;
+
+
+	utstring_new(userdev);
+	utstring_printf(userdev, "%s-%s", username, device);
+
+	memset(key, 0, sizeof(key));
+	klen = gcache_get(ud->keydb, (char *)UB(userdev), (char *)key, sizeof(key));
+	if (klen < 1) {
+		olog(LOG_ERR, "no decryption key for %s in %s", UB(userdev), m->topic);
+		return (NULL);
+	}
+
+	if ((msg = malloc(sizeof(struct mosquitto_message))) == NULL) {
+		return (NULL);
+	}
+
+	n = strlen(p64);		/* This is more than enough */
+
+	msg->mid	= m->mid;
+	msg->topic	= m->topic;
+	msg->qos	= m->qos;
+	msg->retain	= m->retain;
+
+	if ((ciphertext = malloc(n)) == NULL) {
+		free(msg);
+		return (NULL);
+	}
+	ciphertext_len = base64_decode(p64, ciphertext);
+
+	fprintf(stderr, "START DECRYPT. clen==%lu\n", ciphertext_len);
+
+	if ((cleartext = calloc(n, sizeof(unsigned char))) == NULL) {
+		free(ciphertext);
+		free(msg);
+		return (NULL);
+	}
+
+	if (crypto_secretbox_open_easy(cleartext,			// message
+			ciphertext + crypto_secretbox_NONCEBYTES,	// authtag + encrypted
+			ciphertext_len - crypto_secretbox_NONCEBYTES,	// len (auth+encr)
+			ciphertext,					// nonce
+			key) != 0)
+	{
+		olog(LOG_ERR, "payload of %s cannot be decrypted; forged?", m->topic);
+		free(ciphertext);
+		free(cleartext);
+		free(msg);
+		return (NULL);
+	}
+
+	printf("DECRYPTED: %s\n", (char *)cleartext);
+	free(ciphertext);
+
+	msg->payload	= (void *)cleartext;
+	msg->payloadlen	= strlen((char *)cleartext);
+
+	return (msg);
+}
+#endif /* ENCRYPT */
+
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
 	JsonNode *json, *j, *geo = NULL;
@@ -565,6 +643,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	int pingping = FALSE, skipslash = 0;
 	int r_ok = TRUE;			/* True if recording enabled for a publish */
 	payload_type _type;
+#ifdef WITH_ENCRYPT
+	struct mosquitto_message *new_m;
+#endif
 
 	/*
 	 * mosquitto_message->
@@ -759,6 +840,9 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
 			else if (!strcmp(j->string_, "dump"))		_type = T_CONFIG;
+#if WITH_ENCRYPT
+			else if (!strcmp(j->string_, "encrypted"))	_type = T_ENCRYPTED;
+#endif /* WITH_ENCRYPT */
 		}
 	}
 
@@ -799,6 +883,30 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		case T_TRANSITION:
 		case T_LOCATION:
 			break;
+#if WITH_ENCRYPT
+		case T_ENCRYPTED:
+			/*
+			 * Obtain the `data' element from JSON, and try and decrypt
+			 * that. If successful, we get a new mosquitto_message with
+			 * the decrypted message as payload, and invoke this function
+			 * again to do the heavy lifting.
+			 */
+
+			if ((j = json_find_member(json, "data")) != NULL) {
+				if (j->tag == JSON_STRING) {
+					new_m = decrypt(ud, m, j->string_, UB(username), UB(device));
+					if (new_m != NULL) {
+						on_message(mosq, userdata, new_m);
+						free(new_m->payload);
+						free(new_m);
+					}
+					return;
+				}
+			}
+			olog(LOG_ERR, "no `data' in encrypted %s", m->topic);
+			return;
+			break;
+#endif /* WITH_ENCRYPT */
 		default:
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, bindump(m->payload, m->payloadlen));
@@ -1399,6 +1507,13 @@ int main(int argc, char **argv)
 		}
 		gcache_close(gt);
 #endif /* !RONLY */
+#ifdef WITH_ENCRYPT
+		if ((gt = gcache_open(path, "keys", FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open `keys'\n");
+			exit(2);
+		}
+		gcache_close(gt);
+#endif /* !ENCRYPT */
 #endif
 		exit(0);
 	}
@@ -1488,6 +1603,9 @@ int main(int argc, char **argv)
 # ifdef WITH_RONLY
 	ud->ronlydb = gcache_open(err, "ronlydb", FALSE);
 # endif
+# ifdef WITH_ENCRYPT
+	ud->keydb = gcache_open(err, "keys", TRUE);
+# endif
 #endif
 
 #if WITH_LUA && WITH_LMDB
@@ -1500,6 +1618,12 @@ int main(int argc, char **argv)
 			olog(LOG_ERR, "Stopping because Lua load failed");
 			exit(1);
 		}
+	}
+#endif
+
+#if WITH_ENCRYPT
+	if (sodium_init() == -1) {
+		olog(LOG_ERR, "cannot initialize libsodium");
 	}
 #endif
 

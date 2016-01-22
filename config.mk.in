@@ -17,12 +17,16 @@ WITH_PING ?= yes
 # Do you want support for removing data via the API? (Dangerous)
 WITH_KILL ?= no
 
+# Do you want support for payload encryption with libsodium?
+WITH_ENCRYPT ?= no
+
 # Do you want R_only support? (Probably not; this is for Hosted)
 # If you set this to `yes', WITH_LMDB will be set to yes
 WITH_RONLY ?= no
 
 # Do you require support for OwnTracks Greenwich firmware?
 WITH_GREENWICH ?= no
+
 
 # Where should the recorder store its data? This directory must
 # exist and be writeable by recorder (and readable by ocat)
@@ -63,3 +67,6 @@ MORELIBS = # -lssl
 
 LUA_CFLAGS = `pkg-config --cflags lua`
 LUA_LIBS   = `pkg-config --libs lua`
+
+SODIUM_CFLAGS = `pkg-config --cflags libsodium`
+SODIUM_LIBS   = `pkg-config --libs libsodium`

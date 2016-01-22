@@ -27,6 +27,11 @@ ifeq ($(WITH_LUA),yes)
 	OTR_OBJS += hooks.o
 endif
 
+ifeq ($(WITH_ENCRYPT),yes)
+	CFLAGS += -DWITH_ENCRYPT=1 $(SODIUM_CFLAGS)
+	LIBS   += $(SODIUM_LIBS)
+endif
+
 ifeq ($(WITH_KILL),yes)
 	CFLAGS += -DWITH_KILL=1
 endif

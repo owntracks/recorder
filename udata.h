@@ -35,6 +35,9 @@ struct udata {
 # ifdef WITH_LMDB
 	struct gcache *luadb;		/* lmdb named database 'luadb' */
 # endif
+# ifdef WITH_ENCRYPT
+	struct gcache *keydb;		/* encryption keys */
+# endif
 #endif
 	char *label;			/* Server label */
 	char *geokey;			/* Google reverse-geo API key */

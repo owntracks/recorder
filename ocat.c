@@ -97,6 +97,9 @@ void print_versioninfo()
 #ifdef WITH_HTTP
 	printf("\tWITH_HTTP = yes\n");
 #endif
+#ifdef WITH_ENCRYPT
+	printf("\tWITH_ENCRYPT = yes\n");
+#endif
 #ifdef WITH_PING
 	printf("\tWITH_PING = yes\n");
 #endif
