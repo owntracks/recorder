@@ -1751,7 +1751,7 @@ int main(int argc, char **argv)
 	while (run) {
 		rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
 		if (run && rc) {
-			olog(LOG_INFO, "MQTT connection: rc=%d [%s]. Sleeping...", rc, mosquitto_strerror(rc));
+			olog(LOG_INFO, "MQTT connection: rc=%d [%s] (errno=%d; %s). Sleeping...", rc, mosquitto_strerror(rc), errno, strerror(errno));
 			sleep(10);
 			mosquitto_reconnect(mosq);
 		}
