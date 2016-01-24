@@ -18,6 +18,7 @@ WITH_PING ?= yes
 WITH_KILL ?= no
 
 # Do you want support for payload encryption with libsodium?
+# This requires WITH_LMDB to be configured.
 WITH_ENCRYPT ?= no
 
 # Do you want R_only support? (Probably not; this is for Hosted)
