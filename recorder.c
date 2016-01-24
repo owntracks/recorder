@@ -578,6 +578,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		olog(LOG_ERR, "no decryption key for %s in %s", UB(userdev), m->topic);
 		return (NULL);
 	}
+	fprintf(stderr, "Key for %s is [%s]\n", UB(userdev), key);
 
 	if ((msg = malloc(sizeof(struct mosquitto_message))) == NULL) {
 		return (NULL);
@@ -605,8 +606,8 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 	}
 
 	if (crypto_secretbox_open_easy(cleartext,			// message
-			ciphertext + crypto_secretbox_NONCEBYTES,	// authtag + encrypted
-			ciphertext_len - crypto_secretbox_NONCEBYTES,	// len (auth+encr)
+			ciphertext + crypto_secretbox_NONCEBYTES,	// skip over nonce
+			ciphertext_len - crypto_secretbox_NONCEBYTES,	// len (- nonce)
 			ciphertext,					// nonce
 			key) != 0)
 	{
