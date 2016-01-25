@@ -33,18 +33,18 @@ RUN mkdir -p /usr/local/src /var/log/supervisor
 WORKDIR /usr/local/src
 RUN git clone https://github.com/owntracks/recorder.git
 WORKDIR /usr/local/src/recorder
-COPY docker/config.mk /usr/local/src/recorder/config.mk
+COPY /docker/config.mk /usr/local/src/recorder/config.mk
 RUN make && make install
 RUN chown owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder && \
     chgrp owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder && \
     chmod 7111 /usr/local/bin/ocat /usr/local/sbin/ot-recorder
 
 
-COPY docker/launcher.sh /usr/local/sbin/launcher.sh
-COPY docker/generate-CA.sh /usr/local/sbin/generate-CA.sh
+COPY /docker/launcher.sh /usr/local/sbin/launcher.sh
+COPY /docker/generate-CA.sh /usr/local/sbin/generate-CA.sh
 RUN chmod 755 /usr/local/sbin/launcher.sh /usr/local/sbin/generate-CA.sh
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/mosquitto.conf docker/mosquitto.acl /etc/mosquitto/
+COPY /docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY /docker/mosquitto.conf /docker/mosquitto.acl /etc/mosquitto/
 
 EXPOSE 1883 8883 8083
 CMD ["/usr/local/sbin/launcher.sh"]
