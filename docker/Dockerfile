@@ -1,6 +1,7 @@
 FROM ubuntu:latest
 LABEL version="0.4" description="Mosquitto and OwnTracks Recorder"
 MAINTAINER Jan-Piet Mens <jpmens@gmail.com>
+ENV SRC /usr/local/src/recorder
 
 RUN apt-get install -y software-properties-common && \
 	apt-add-repository ppa:mosquitto-dev/mosquitto-ppa && \
@@ -33,19 +34,18 @@ RUN mkdir -p /usr/local/src /var/log/supervisor
 WORKDIR /usr/local/src
 RUN git clone https://github.com/owntracks/recorder.git
 WORKDIR /usr/local/src/recorder
-RUN pwd; ls -l
-COPY ./docker/config.mk /usr/local/src/recorder/config.mk
+COPY $SRC/docker/config.mk /usr/local/src/recorder/config.mk
 RUN make && make install
 RUN chown owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder && \
     chgrp owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder && \
     chmod 7111 /usr/local/bin/ocat /usr/local/sbin/ot-recorder
 
 
-COPY ./docker/launcher.sh /usr/local/sbin/launcher.sh
-COPY ./docker/generate-CA.sh /usr/local/sbin/generate-CA.sh
+COPY $SRC/docker/launcher.sh /usr/local/sbin/launcher.sh
+COPY $SRC/docker/generate-CA.sh /usr/local/sbin/generate-CA.sh
 RUN chmod 755 /usr/local/sbin/launcher.sh /usr/local/sbin/generate-CA.sh
-COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/mosquitto.conf ./docker/mosquitto.acl /etc/mosquitto/
+COPY $SRC/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY $SRC/docker/mosquitto.conf $SRC/docker/mosquitto.acl /etc/mosquitto/
 
 EXPOSE 1883 8883 8083
 CMD ["/usr/local/sbin/launcher.sh"]
