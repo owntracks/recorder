@@ -104,6 +104,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	FILE *fp;
 	char *img;
 	int rc = FALSE;
+	size_t imglen;
 
 	utstring_renew(name);
 	utstring_renew(face);
@@ -141,18 +142,13 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 
 
 	/* We have a base64-encoded "face". Decode it and store binary image */
-	if ((img = malloc(utstring_len(face))) != NULL) {
-		int imglen;
-
-		if ((imglen = base64_decode(UB(face), img)) > 0) {
-			if ((fp = pathn("wb", "photos", username, NULL, "png")) != NULL) {
-				fwrite(img, sizeof(char), imglen, fp);
-				fclose(fp);
-			}
+	if ((img = base64_decode(UB(face), &imglen)) != NULL) {
+		if ((fp = pathn("wb", "photos", username, NULL, "png")) != NULL) {
+			fwrite(img, sizeof(char), imglen, fp);
+			fclose(fp);
 		}
 		free(img);
 	}
-
 
 	return (rc);
 }
@@ -591,11 +587,11 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 	msg->qos	= m->qos;
 	msg->retain	= m->retain;
 
-	if ((ciphertext = malloc(n)) == NULL) {
+	if ((ciphertext = base64_decode(p64, &ciphertext_len)) == NULL) {
+		olog(LOG_ERR, "payload of %s cannot be base64-decoded", m->topic);
 		free(msg);
 		return (NULL);
 	}
-	ciphertext_len = base64_decode(p64, ciphertext);
 
 	fprintf(stderr, "START DECRYPT. clen==%lu\n", ciphertext_len);
 

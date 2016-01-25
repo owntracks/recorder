@@ -1,151 +1,119 @@
 /*
- * Copyright (c) 1995, 1996, 1997 Kungliga Tekniska Hgskolan
- * (Royal Institute of Technology, Stockholm, Sweden).
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by the Kungliga Tekniska
- *      Hgskolan and its contributors.
- * 
- * 4. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-/*RCSID("$Id: base64.c,v 1.1 2005/02/11 07:34:35 jpm Exp jpm $");*/
-#endif
-#include <stdlib.h>
-#include <string.h>
+	This code is public domain software.
+
+*/
+
 #include "base64.h"
 
-static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+#include <stdlib.h>
+#include <string.h>
 
-static int pos(char c)
+//  base64 encoding
+//
+//  buf:     binary input data
+//  size:    size of input (bytes)
+//  return:  base64-encoded string (null-terminated)
+//           memory for output will be allocated here, free it later
+//
+char* base64_encode(const void* buf, size_t size)
 {
-  char *p;
-  for(p = base64; *p; p++)
-    if(*p == c)
-      return p - base64;
-  return -1;
+	static const char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+	char* str = (char*) malloc((size+3)*4/3 + 1);
+
+	char* p = str;
+	const unsigned char* q = (const unsigned char*) buf;
+	size_t i = 0;
+
+	while (i < size) {
+		int c = q[i++];
+		c *= 256;
+		if (i < size)
+            c += q[i];
+		i++;
+
+		c *= 256;
+		if (i < size)
+            c += q[i];
+		i++;
+
+		*p++ = base64[(c & 0x00fc0000) >> 18];
+		*p++ = base64[(c & 0x0003f000) >> 12];
+
+		if (i > size + 1)
+			*p++ = '=';
+		else
+			*p++ = base64[(c & 0x00000fc0) >> 6];
+
+		if (i > size)
+			*p++ = '=';
+		else
+			*p++ = base64[c & 0x0000003f];
+	}
+
+	*p = 0;
+
+	return str;
 }
 
-int base64_encode(const void *data, int size, char **str)
-{
-  char *s, *p;
-  int i;
-  int c;
-  unsigned char *q;
 
-  p = s = (char*)malloc(size*4/3+4);
-  if (p == NULL)
-      return -1;
-  q = (unsigned char*)data;
-  i=0;
-  for(i = 0; i < size;){
-    c=q[i++];
-    c*=256;
-    if(i < size)
-      c+=q[i];
-    i++;
-    c*=256;
-    if(i < size)
-      c+=q[i];
-    i++;
-    p[0]=base64[(c&0x00fc0000) >> 18];
-    p[1]=base64[(c&0x0003f000) >> 12];
-    p[2]=base64[(c&0x00000fc0) >> 6];
-    p[3]=base64[(c&0x0000003f) >> 0];
-    if(i > size)
-      p[3]='=';
-    if(i > size+1)
-      p[2]='=';
-    p+=4;
-  }
-  *p=0;
-  *str = s;
-  return strlen(s);
+//  single base64 character conversion
+//
+static int POS(char c)
+{
+	if (c>='A' && c<='Z') return c - 'A';
+	if (c>='a' && c<='z') return c - 'a' + 26;
+	if (c>='0' && c<='9') return c - '0' + 52;
+	if (c == '+') return 62;
+	if (c == '/') return 63;
+	if (c == '=') return -1;
+    return -2;
 }
 
-int base64_decode(const char *str, void *data)
+//  base64 decoding
+//
+//  s:       base64 string, must be null-terminated
+//  data:    output buffer for decoded data
+//  data_len size of decoded data
+//  return:  allocated data buffer
+//
+void* base64_decode(const char* s, size_t *data_len)
 {
-  const char *p;
-  unsigned char *q;
-  int c;
-  int x;
-  int done = 0;
-  q=(unsigned char*)data;
-  for(p=str; *p && !done; p+=4){
-    x = pos(p[0]);
-    if(x >= 0)
-      c = x;
-    else{
-      done = 3;
-      break;
-    }
-    c*=64;
-    
-    x = pos(p[1]);
-    if(x >= 0)
-      c += x;
-    else
-      return -1;
-    c*=64;
-    
-    if(p[2] == '=')
-      done++;
-    else{
-      x = pos(p[2]);
-      if(x >= 0)
-	c += x;
-      else
-	return -1;
-    }
-    c*=64;
-    
-    if(p[3] == '=')
-      done++;
-    else{
-      if(done)
-	return -1;
-      x = pos(p[3]);
-      if(x >= 0)
-	c += x;
-      else
-	return -1;
-    }
-    if(done < 3)
-      *q++=(c&0x00ff0000)>>16;
-      
-    if(done < 2)
-      *q++=(c&0x0000ff00)>>8;
-    if(done < 1)
-      *q++=(c&0x000000ff)>>0;
-  }
-  return q - (unsigned char*)data;
+    const char *p;
+    unsigned char *q, *data;
+    int n[4];
+
+	size_t len = strlen(s);
+	if (len % 4)
+		return NULL;
+	data = (unsigned char*) malloc(len/4*3);
+	q = (unsigned char*) data;
+
+	for (p = s; *p; ) {
+	    n[0] = POS(*p++);
+	    n[1] = POS(*p++);
+	    n[2] = POS(*p++);
+	    n[3] = POS(*p++);
+
+            if (n[0] == -2 || n[1] == -2 || n[2] == -2 || n[3] == -2)
+                return NULL;
+
+	    if (n[0] == -1 || n[1] == -1)
+		return NULL;
+
+	    if (n[2] == -1 && n[3] != -1)
+		return NULL;
+
+            q[0] = (n[0] << 2) + (n[1] >> 4);
+	    if (n[2] != -1)
+                q[1] = ((n[1] & 15) << 4) + (n[2] >> 2);
+	    if (n[3] != -1)
+                q[2] = ((n[2] & 3) << 6) + n[3];
+	    q += 3;
+	}
+
+	*data_len = q-data - (n[2]==-1) - (n[3]==-1);
+
+	return data;
 }

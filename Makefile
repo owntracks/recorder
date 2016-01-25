@@ -80,7 +80,7 @@ ocat: ocat.o $(OTR_OBJS)
 
 $(OTR_OBJS): config.mk Makefile
 
-recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h
+recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h base64.h
 geo.o: geo.h geo.c udata.h
 geohash.o: geohash.h geohash.c udata.h
 base64.o: base64.h base64.c
