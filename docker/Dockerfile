@@ -33,6 +33,7 @@ RUN mkdir -p /usr/local/src /var/log/supervisor
 WORKDIR /usr/local/src
 RUN git clone https://github.com/owntracks/recorder.git
 WORKDIR /usr/local/src/recorder
+RUN pwd; ls -l
 COPY /docker/config.mk /usr/local/src/recorder/config.mk
 RUN make && make install
 RUN chown owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder && \
