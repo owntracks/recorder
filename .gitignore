@@ -8,3 +8,5 @@ jpm-test/
 config.mk
 obsolete/
 codesign.sh
+sundry/
+*.lua
