@@ -560,7 +560,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 	struct mosquitto_message *msg;
 	unsigned char key[crypto_secretbox_KEYBYTES];
 	unsigned char *ciphertext, *cleartext;
-	unsigned long ciphertext_len;
+	size_t ciphertext_len;
 	int n, klen;
 	UT_string *userdev;
 
