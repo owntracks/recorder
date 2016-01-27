@@ -1193,6 +1193,7 @@ static char *mosquitto_reason(int rc)
 		"Connection refused: incorrect protocol version",	/* 0x01 */
 		"Connection refused: invalid client identifier",	/* 0x02 */
 		"Connection refused: server unavailable",		/* 0x03 */
+		"Connection refused: code=0x04",			/* 0x04 */
 		"Connection refused: bad username or password",		/* 0x05 */
 		"Connection refused: not authorized",			/* 0x06 */
 		"Connection refused: TLS error",			/* 0x07 */
