@@ -111,6 +111,8 @@ install: ot-recorder ocat
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
-	$(DESTDIR)$(INSTALLDIR)/sbin/ot-recorder --initialize --storage $(DESTDIR)$(STORAGEDEFAULT)
+ifndef DESTDIR
+        $(INSTALLDIR)/sbin/ot-recorder --initialize
+endif
 	# mkdir -p $(DESTDIR)/etc/systemd/system/
 	# install --mode 0644 etc/ot-recorder.service $(DESTDIR)/etc/systemd/system/ot-recorder.service
