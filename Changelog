@@ -1,4 +1,12 @@
 
+2016-01-27 version 0.4.8
+- FIX: finish Debian8 packaging
+- FIX: add missing entry to reason table which could cause SIGSEGV
+- FIX: add public domain base64.[ch] (#18)
+- NEW: experimental support for payload decryption with per/user secret keys
+- FIX: ignore SIGPIPE
+- NEW: API endpoint /version returns Recorder version
+
 2016-01-11 version 0.4.7
 - NEW: Beacon messages are now handed to the Websocket server
 - UPD: locations API returns data in `data` (no longer in `locations`)
