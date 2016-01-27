@@ -574,7 +574,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		olog(LOG_ERR, "no decryption key for %s in %s", UB(userdev), m->topic);
 		return (NULL);
 	}
-	fprintf(stderr, "Key for %s is [%s]\n", UB(userdev), key);
+	// fprintf(stderr, "Key for %s is [%s]\n", UB(userdev), key);
 
 	if ((msg = malloc(sizeof(struct mosquitto_message))) == NULL) {
 		return (NULL);
@@ -593,7 +593,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		return (NULL);
 	}
 
-	fprintf(stderr, "START DECRYPT. clen==%lu\n", ciphertext_len);
+	// fprintf(stderr, "START DECRYPT. clen==%lu\n", ciphertext_len);
 
 	if ((cleartext = calloc(n, sizeof(unsigned char))) == NULL) {
 		free(ciphertext);
@@ -614,7 +614,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		return (NULL);
 	}
 
-	printf("DECRYPTED: %s\n", (char *)cleartext);
+	// printf("DECRYPTED: %s\n", (char *)cleartext);
 	free(ciphertext);
 
 	msg->payload	= (void *)cleartext;
