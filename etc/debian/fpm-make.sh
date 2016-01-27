@@ -2,34 +2,32 @@
 
 set -e
 
-if [ ! -f version.h ]; then
-	echo "$0 must be run from recorder source tree" >&2
-	exit 2
-fi
-
 tempdir=$(mktemp -d /tmp/ot-XXX)
 
 make install DESTDIR=$tempdir
 
 name="ot-recorder"
 version=$(awk '{print $NF;}' version.h | sed -e 's/"//g' )
-arch=x86_64
+arch=$(uname -m)
 debfile="/tmp/${name}_${version}_${arch}.deb"
 
 rm -f "${debfile}"
 
 fpm -s dir \
-	-t deb \
-	-n ${name} \
-	-v ${version} \
-	--vendor "OwnTracks.org" \
-	-a all \
-	--maintainer 'jpmens@gmail.com' \
-	-C $tempdir \
-	-p ${debfile} \
-	-d "libmosquitto1" \
-	-d "libcurl3" \
-	-d "liblua5.2" \
-	--post-install etc/debian/postinst \
-	usr var
-
+        -t deb \
+        -n ${name} \
+        -v ${version} \
+        --vendor "OwnTracks.org" \
+        -a native \
+        --maintainer 'jpmens@gmail.com' \
+        --description "A lightweight back-end for consuming OwnTracks data from an MQTT broker" \
+        --license "https://github.com/owntracks/recorder/blob/master/LICENSE" \
+        --url "http://owntracks.org" \
+        -C $tempdir \
+        -p ${debfile} \
+        -d "libcurl3" \
+        -d "libmosquitto1" \
+        -d "liblua5.2-0" \
+	-d "libsodium13" \
+        --post-install etc/debian/postinst \
+        usr var
