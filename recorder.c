@@ -317,6 +317,7 @@ static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string 
 		if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
 			olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
 				UB(username), UB(device));
+			return;
 		}
 
 		fprintf(fp, RECFORMAT, isotime(now),
@@ -574,7 +575,8 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		olog(LOG_ERR, "no decryption key for %s in %s", UB(userdev), m->topic);
 		return (NULL);
 	}
-	// fprintf(stderr, "Key for %s is [%s]\n", UB(userdev), key);
+
+	debug(ud, "Key for %s is [%s]", UB(userdev), key);
 
 	if ((msg = malloc(sizeof(struct mosquitto_message))) == NULL) {
 		return (NULL);
@@ -593,7 +595,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		return (NULL);
 	}
 
-	// fprintf(stderr, "START DECRYPT. clen==%lu\n", ciphertext_len);
+	debug(ud, "START DECRYPT. clen==%lu", ciphertext_len);
 
 	if ((cleartext = calloc(n, sizeof(unsigned char))) == NULL) {
 		free(ciphertext);
@@ -614,7 +616,7 @@ struct mosquitto_message *decrypt(struct udata *ud, const struct mosquitto_messa
 		return (NULL);
 	}
 
-	// printf("DECRYPTED: %s\n", (char *)cleartext);
+	debug(ud, "DECRYPTED: %s", (char *)cleartext);
 	free(ciphertext);
 
 	msg->payload	= (void *)cleartext;
@@ -1253,6 +1255,7 @@ void usage(char *prog)
 	printf("  --hosted		       use OwnTracks Hosted\n");
 	printf("  --norec		       don't maintain REC files\n");
 	printf("  --geokey		       optional Google reverse-geo API key\n");
+	printf("  --debug  		       additional debugging\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_HOST		MQTT hostname\n");
@@ -1316,6 +1319,7 @@ int main(int argc, char **argv)
 #endif /* WITH_LUA */
 	udata.label		= strdup("Recorder");
 	udata.geokey		= NULL;		/* default: no API key */
+	udata.debug		= FALSE;
 
 	if ((p = getenv("OTR_HOST")) != NULL) {
 		hostname = strdup(p);
@@ -1356,6 +1360,7 @@ int main(int argc, char **argv)
 			{ "label",	required_argument,	0, 	10},
 			{ "norec",	no_argument,		0, 	11},
 			{ "geokey",	required_argument,	0, 	12},
+			{ "debug",	required_argument,	0, 	13},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
@@ -1373,6 +1378,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (ch) {
+			case 13:
+				udata.debug = TRUE;
+				break;
 			case 12:
 				udata.geokey = strdup(optarg);
 				break;

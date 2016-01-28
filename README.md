@@ -137,7 +137,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--geokey` sets the Google API key for reverse geo lookups.  If you do more than 2500 (currently) reverse-geo requests per day, you'll need an API key for Google's geocoding service. Specify that here.
 
-
+`--debug` enables a bit of additional debugging on stderr.
 
 ## The HTTP server
 
@@ -746,8 +746,17 @@ You need a current version of the Mosquitto library (and you probably require th
 ### Debian
 
 ```
-apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev
+apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev
 ```
+
+### Centos 7
+
+```
+yum groupinstall 'Development Tools'
+yum install libmosquitto-devel libcurl-devel lua-devel
+```
+
+libsodium is in epel-stable
 
 ### Ubuntu
 

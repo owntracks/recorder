@@ -9,6 +9,7 @@
 #include <time.h>
 #include <syslog.h>
 #include "json.h"
+#include "udata.h"
 #include "utstring.h"
 
 #define UB(x)	utstring_body(x)
@@ -34,5 +35,6 @@ void geohash_setprec(int precision);
 int geohash_prec(void);
 void lowercase(char *s);
 double haversine_dist(double th1, double ph1, double th2, double ph2);
+void debug(struct udata *, char *fmt, ...);
 
 #endif

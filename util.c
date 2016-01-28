@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <math.h>
+#include "udata.h"
 
 #ifndef LINESIZE
 # define LINESIZE 8192
@@ -285,6 +286,24 @@ void olog(int level, char *fmt, ...)
 
 	// fprintf(stderr, "+++++ [%s]\n", UB(u));
 	syslog(level, "%s", UB(u));
+
+	va_end(ap);
+}
+
+void debug(struct udata *ud, char *fmt, ...)
+{
+	va_list ap;
+	static UT_string *u = NULL;
+
+	if (ud->debug == FALSE)
+		return;
+
+	va_start(ap, fmt);
+	utstring_renew(u);
+
+	utstring_printf_va(u, fmt, ap);
+
+	fprintf(stderr, "+++++ [%s]\n", UB(u));
 
 	va_end(ap);
 }
