@@ -2,6 +2,8 @@
 
 set -e
 
+# export PACKAGEDIR=/media/sf_proxmox/centos/repo
+
 PACKAGEDIR=${PACKAGEDIR:=/tmp}
 
 tempdir=$(mktemp -d /tmp/ot-XXX)
