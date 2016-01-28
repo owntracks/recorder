@@ -26,6 +26,7 @@
 #include <getopt.h>
 #include <ctype.h>
 #include <time.h>
+#include <mosquitto.h>
 #include "json.h"
 #include "storage.h"
 #include "util.h"
@@ -114,6 +115,10 @@ void print_versioninfo()
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
 	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
+	printf("\tLIBMOSQUITTO_VERSION = %d.%d.%d\n",
+		LIBMOSQUITTO_MAJOR,
+		LIBMOSQUITTO_MINOR,
+		LIBMOSQUITTO_REVISION);
 #ifdef WITH_LMDB
 	printf("\tMDB VERSION = %s\n", MDB_VERSION_STRING);
 #endif
