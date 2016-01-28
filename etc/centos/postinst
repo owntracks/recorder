@@ -1,0 +1,32 @@
+#!/bin/sh
+# postinstall for Centos7
+#
+# Create owntracks user & group
+# binaries are setuid to owntracks
+# storage belongs to owntracks:owntracks
+
+set -e
+
+case "$1" in
+    1)
+        getent group owntracks > /dev/null || /usr/sbin/groupadd --system owntracks
+        getent passwd owntracks > /dev/null || adduser --system -g owntracks --no-create-home owntracks
+        mkdir -p /var/spool/owntracks/recorder/store/last
+        mkdir -p /var/spool/owntracks/recorder/store/ghash
+        chown -R owntracks:owntracks /var/spool/owntracks/recorder/store
+        chgrp owntracks /var/spool/owntracks/recorder/store/ghash
+        chown owntracks:owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder
+        chmod 4111 /usr/local/bin/ocat /usr/local/sbin/ot-recorder
+        /usr/local/sbin/ot-recorder --initialize
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0
