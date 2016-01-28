@@ -1360,7 +1360,7 @@ int main(int argc, char **argv)
 			{ "label",	required_argument,	0, 	10},
 			{ "norec",	no_argument,		0, 	11},
 			{ "geokey",	required_argument,	0, 	12},
-			{ "debug",	required_argument,	0, 	13},
+			{ "debug",	no_argument,		0, 	13},
 #ifdef WITH_LUA
 			{ "lua-script",	required_argument,	0, 	7},
 #endif
