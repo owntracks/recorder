@@ -780,3 +780,23 @@ curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntrac
 
 yum install ot-recorder
 ```
+
+### Installing on Raspian (wheezy)
+
+```
+wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
+apt-key add repo.owntracks.org.gpg.key
+echo "deb  http://repo.owntracks.org/debian wheezy main" > /etc/apt/sources.list.d/owntracks.list
+apt-get update
+apt-get install ot-recorder
+```
+
+### Installing on Debian 8 (Jessie)
+
+```
+wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
+apt-key add repo.owntracks.org.gpg.key
+echo "deb  http://repo.owntracks.org/debian jessie main" > /etc/apt/sources.list.d/owntracks.list
+apt-get update
+apt-get install ot-recorder
+```
