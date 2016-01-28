@@ -9,6 +9,11 @@ make install DESTDIR=$tempdir
 name="ot-recorder"
 version=$(awk '{print $NF;}' version.h | sed -e 's/"//g' )
 arch=$(uname -m)
+
+case $arch in
+	armv7l) arch=armhf;;
+esac
+
 debfile="/tmp/${name}_${version}_${arch}.deb"
 
 rm -f "${debfile}"
@@ -18,7 +23,7 @@ fpm -s dir \
         -n ${name} \
         -v ${version} \
         --vendor "OwnTracks.org" \
-        -a native \
+        -a "${arch}" \
         --maintainer 'jpmens@gmail.com' \
         --description "A lightweight back-end for consuming OwnTracks data from an MQTT broker" \
         --license "https://github.com/owntracks/recorder/blob/master/LICENSE" \
@@ -28,6 +33,5 @@ fpm -s dir \
         -d "libcurl3" \
         -d "libmosquitto1" \
         -d "liblua5.2-0" \
-	-d "libsodium13" \
         --post-install etc/debian/postinst \
         usr var
