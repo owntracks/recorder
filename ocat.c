@@ -32,6 +32,9 @@
 #include "util.h"
 #include "misc.h"
 #include "version.h"
+#if WITH_ENCRYPT
+# include <sodium.h>
+#endif
 
 static void print_xml_line(char *line, void *param)
 {
@@ -121,6 +124,9 @@ void print_versioninfo()
 		LIBMOSQUITTO_REVISION);
 #ifdef WITH_LMDB
 	printf("\tMDB VERSION = %s\n", MDB_VERSION_STRING);
+#endif
+#ifdef WITH_ENCRYPT
+	printf("\tSODIUM VERSION = %s\n", SODIUM_VERSION_STRING);
 #endif
 
 	exit(0);
