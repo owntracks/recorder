@@ -768,3 +768,15 @@ sudo apt-get install libcurl3 libcurl4-openssl-dev
 ```
 
 [![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
+
+## Packages
+
+### Installing on Centos 7
+
+```
+curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
+
+curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntracks.repo
+
+yum install ot-recorder
+```
