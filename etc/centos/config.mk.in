@@ -1,0 +1,31 @@
+#(@)config.mk for Centos 7 (x86_64)
+
+INSTALLDIR = /usr/local
+
+WITH_HTTP ?= yes
+WITH_LMDB ?= yes
+WITH_LUA ?= yes
+WITH_PING ?= yes
+WITH_KILL ?= no
+WITH_ENCRYPT ?= yes
+
+STORAGEDEFAULT = /var/spool/owntracks/recorder/store
+DOCROOT = /var/spool/owntracks/recorder/htdocs
+GHASHPREC = 7
+JSON_INDENT ?= no
+MOSQUITTO_INC = -I/usr/include
+MOSQUITTO_LIB = -L/usr/lib
+MORELIBS = # -lssl
+LUA_CFLAGS = `pkg-config --cflags lua`
+LUA_LIBS   = `pkg-config --libs lua`
+
+# Requires statically built libsodium:
+# 
+#  wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz
+#  tar xvzf libsodium-1.0.8.tar.gz
+#  cd libsodium*
+#  ./configure --prefix=/usr/local --enable-minimal --enable-static --disable-shared
+#  make install
+
+SODIUM_CFLAGS = -I/usr/local/include
+SODIUM_LIBS   = -L /usr/local/lib -lsodium
