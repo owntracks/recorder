@@ -2,10 +2,6 @@
 
 set -e
 
-# export PACKAGEDIR=/media/sf_proxmox/centos/repo
-
-PACKAGEDIR=${PACKAGEDIR:=/tmp}
-
 tempdir=$(mktemp -d /tmp/ot-XXX)
 
 make install DESTDIR=$tempdir
@@ -13,7 +9,7 @@ make install DESTDIR=$tempdir
 name="ot-recorder"
 version=$(awk '{print $NF;}' version.h | sed -e 's/"//g' )
 arch=$(uname -m)
-rpmfile="${PACKAGEDIR}/${name}_${version}_${arch}.rpm"
+rpmfile="${name}_${version}_${arch}.rpm"
 
 rm -f "${rpmfile}"
 
@@ -34,3 +30,6 @@ fpm -s dir \
         -d "lua" \
         --post-install etc/centos/postinst \
         usr var
+
+echo "${rpmfile}" > package.name
+rm -rf "${tempdir}"

@@ -14,7 +14,7 @@ case $arch in
 	armv7l) arch=armhf;;
 esac
 
-debfile="/tmp/${name}_${version}_${arch}.deb"
+debfile="${name}_${version}_${arch}.deb"
 
 rm -f "${debfile}"
 
@@ -35,3 +35,6 @@ fpm -s dir \
         -d "liblua5.2-0" \
         --post-install etc/debian/postinst \
         usr var
+
+echo "${debfile}" > package.name
+rm -rf "${tempdir}"
