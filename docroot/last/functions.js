@@ -133,7 +133,7 @@ function map_marker(loc)
 
 	var ghash = loc.ghash ? loc.ghash : "unknown";
 	var extrainfo = ghash + " (" + loc.lat + "," + loc.lon + ") " + fulldate;
-	extrainfo = "<span class='extrainfo'>+extrainfo+"</span>";
+	extrainfo = "<span class='extrainfo'>" + extrainfo + "</span>";
 
 	if (loc.addr) {
 		htmldesc = "<b>" + userdev + "</b><br />" + loc.addr + "<br/>" + extrainfo;
