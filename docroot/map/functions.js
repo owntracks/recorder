@@ -69,6 +69,29 @@ function initialize() {
 		processPoints(e.feature.getGeometry(), bounds.extend, bounds);
 		map.fitBounds(bounds);
 	});
+
+	// click to show info
+	map.data.addListener('click', function(event) {
+		var tst = event.feature.getProperty('tst');
+		var data = {
+			lat:   event.latLng.lat(),
+			lon:   event.latLng.lng(),
+			tst:   tst,
+			addr:  event.feature.getProperty('address'),
+
+		};
+		var dt = moment.utc(tst * 1000).local();
+
+		data['fulldate'] = dt.format("DD MMM YYYY HH:mm:ss");
+
+		var t = "<img class='img-circle' src='data:image/png;base64,{{ face }}' height='20' width='20' />";
+
+		var t = "{{ addr }}<br/>{{ lat }},{{lon}} {{ fulldate }}";
+
+		infowindow.setContent(Mustache.render(t, data));
+		infowindow.setPosition(event.latLng);
+		infowindow.open(map);
+	});
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
