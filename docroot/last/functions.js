@@ -128,11 +128,18 @@ function map_marker(loc)
 	var device = (s[0]) ? s[2] : s[3];	/* cater for leading / in topic */
 	var userdev = username + "/" + device;
 
+	var dt = moment.utc(loc.tst * 1000).local();
+	var fulldate = dt.format("DD MMM YYYY HH:mm:ss");
+
+	var ghash = loc.ghash ? loc.ghash : "unknown";
+	var extrainfo = ghash + " (" + loc.lat + "," + loc.lon + ") " + fulldate;
+	extrainfo = "<span class='extrainfo'>+extrainfo+"</span>";
+
 	if (loc.addr) {
-		htmldesc = "<b>" + userdev + "</b><br />" + loc.addr;
+		htmldesc = "<b>" + userdev + "</b><br />" + loc.addr + "<br/>" + extrainfo;
 		shortdesc = userdev + " " + loc.addr;
 	} else {
-		htmldesc = "<b>" + userdev + "</b><br />" + loc.lat + ", " + loc.lon;
+		htmldesc = "<b>" + userdev + "</b><br />" + loc.lat + ", " + loc.lon + "<br/>" + extrainfo;
 		shortdesc = userdev + " " + loc.lat + ", " + loc.lon;
 	}
 
