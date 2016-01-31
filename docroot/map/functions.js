@@ -75,14 +75,14 @@ function initialize() {
 		var tst = event.feature.getProperty('tst');
 		var dt = moment.utc(tst * 1000).local();
 		var data = {
-			lat:   event.latLng.lat(),
-			lon:   event.latLng.lng(),
+			lat:   event.latLng.lat().toFixed(4),
+			lon:   event.latLng.lng().toFixed(4),
 			tst:   tst,
 			addr:  event.feature.getProperty('address'),
 			fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
 		};
 
-		var t = "{{ addr }}<br/><span class='latlon>{{ lat }},{{lon}}</span> {{ fulldate }}";
+		var t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> {{ fulldate }}";
 
 		infowindow.setContent(Mustache.render(t, data));
 		infowindow.setPosition(event.latLng);
