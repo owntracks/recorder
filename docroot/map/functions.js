@@ -70,23 +70,19 @@ function initialize() {
 		map.fitBounds(bounds);
 	});
 
-	// click to show info
+	// click dot on map to show info
 	map.data.addListener('click', function(event) {
 		var tst = event.feature.getProperty('tst');
+		var dt = moment.utc(tst * 1000).local();
 		var data = {
 			lat:   event.latLng.lat(),
 			lon:   event.latLng.lng(),
 			tst:   tst,
 			addr:  event.feature.getProperty('address'),
-
+			fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
 		};
-		var dt = moment.utc(tst * 1000).local();
 
-		data['fulldate'] = dt.format("DD MMM YYYY HH:mm:ss");
-
-		var t = "<img class='img-circle' src='data:image/png;base64,{{ face }}' height='20' width='20' />";
-
-		var t = "{{ addr }}<br/>{{ lat }},{{lon}} {{ fulldate }}";
+		var t = "{{ addr }}<br/><span class='latlon>{{ lat }},{{lon}}</span> {{ fulldate }}";
 
 		infowindow.setContent(Mustache.render(t, data));
 		infowindow.setPosition(event.latLng);
