@@ -126,25 +126,28 @@ function map_marker(loc)
 	var s = loc.topic.split('/');
 	var username = (s[0]) ? s[1] : s[2];	/* cater for leading / in topic */
 	var device = (s[0]) ? s[2] : s[3];	/* cater for leading / in topic */
-	var userdev = username + "/" + device;
 
 	var dt = moment.utc(loc.tst * 1000).local();
-	var fulldate = dt.format("DD MMM YYYY HH:mm:ss");
 
-	var ghash = loc.ghash ? loc.ghash : "unknown";
-	var extrainfo = ghash + " (" + loc.lat + "," + loc.lon + ") " + fulldate;
-	extrainfo = "<span class='extrainfo'>" + extrainfo + "</span>";
+	var data = {
+		userdev: username + "/" + device,
+		ghash:	loc.ghash ? loc.ghash : 'unknown',
+		addr:	loc.addr,
+		lat:	loc.lat,
+		lon:	loc.lon,
+		fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
+	};
 
 	if (loc.addr) {
-		htmldesc = "<b>" + userdev + "</b><br />" + loc.addr + "<br/>" + extrainfo;
-		shortdesc = userdev + " " + loc.addr;
+		htmldesc = "<b>{{userdev}}</b><br/>{{addr}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+		shortdesc = "{{userdev}} {{addr}}";
 	} else {
-		htmldesc = "<b>" + userdev + "</b><br />" + loc.lat + ", " + loc.lon + "<br/>" + extrainfo;
-		shortdesc = userdev + " " + loc.lat + ", " + loc.lon;
+		htmldesc = "<b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+		shortdesc = "{{userdev}} {{lat}},{{lon}}";
 	}
 
-	loc.description = shortdesc;
-	loc.htmldesc = htmldesc;
+	loc.description = Mustache.render(shortdesc, data);
+	loc.htmldesc = Mustache.render(htmldesc, data);
 
 	if (markers.hasOwnProperty(id)) {
 		clog("UPD", id, JSON.stringify(loc));
