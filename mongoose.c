@@ -3329,6 +3329,8 @@ static int is_not_modified(const struct connection *conn,
   const char *ims = mg_get_header(&conn->mg_conn, "If-Modified-Since");
   const char *inm = mg_get_header(&conn->mg_conn, "If-None-Match");
   construct_etag(etag, sizeof(etag), stp);
+  if (inm != NULL && mg_strcasecmp(etag, inm))	/* JPM */
+	return 0;
   return (inm != NULL && !mg_strcasecmp(etag, inm)) ||
     (ims != NULL && stp->st_mtime <= parse_date_string(ims));
 }
