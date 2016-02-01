@@ -733,7 +733,7 @@ Beware: these secret keys are stored in plain text so the database must be prote
 
 ## Encryption (*experimental!*)
 
-If compiled with `WITH_ENCRYPT` support, the recorder will handle messages from OwnTracks devices which support payload encryption. Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
+If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
 Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
 
@@ -770,6 +770,8 @@ sudo apt-get install libcurl3 libcurl4-openssl-dev
 [![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
 
 ## Packages
+
+We create packages for releases for a number of distributions. Please note that these packages depend on libmosquitto1 from the [Mosquitto project](http://mosquitto.org/downloads).
 
 ### Installing on Centos 7
 
