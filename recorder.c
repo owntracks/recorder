@@ -1242,7 +1242,7 @@ void usage(char *prog)
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
 	printf("  --initialize		       initialize storage\n");
-	printf("  --label <label>	       server label (dflt: Recorder)\n");
+	printf("  --label <label>	       server label (dflt: OwnTracks)\n");
 #ifdef WITH_HTTP
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
@@ -1317,7 +1317,7 @@ int main(int argc, char **argv)
 	udata.luadb		= NULL;
 # endif /* WITH_LMDB */
 #endif /* WITH_LUA */
-	udata.label		= strdup("Recorder");
+	udata.label		= strdup("OwnTracks");
 	udata.geokey		= NULL;		/* default: no API key */
 	udata.debug		= FALSE;
 
