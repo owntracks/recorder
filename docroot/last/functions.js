@@ -129,8 +129,11 @@ function map_marker(loc)
 
 	var dt = moment.utc(loc.tst * 1000).local();
 
+	var userdev = username + "/" + device;
+	userdev = renames[userdev] ? renames[userdev] : userdev;
+
 	var data = {
-		userdev: username + "/" + device,
+		userdev: userdev,
 		ghash:	loc.ghash ? loc.ghash : 'unknown',
 		addr:	loc.addr,
 		lat:	loc.lat,
