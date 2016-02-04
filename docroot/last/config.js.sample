@@ -4,6 +4,6 @@
  */
 
 var renames = {
-	'owntracks/jjolie/phone' : 'Jane Jolie',
-	'owntracks/john/android' : "John Smith",
+	'jjolie/phone' : 'Jane Jolie',
+	'john/android' : "John Smith",
 };
