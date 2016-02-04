@@ -52,7 +52,7 @@ function ws_connect() {
 	};
 
 	ws.onerror = function(ev) {
-		out('<span style="color: red; ">ERROR: </span> ' + ev.data);
+		// out('<span style="color: red; ">ERROR: </span> ' + ev.data);
 	};
 }
 
