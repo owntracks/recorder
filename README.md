@@ -773,6 +773,8 @@ sudo apt-get install libcurl3 libcurl4-openssl-dev
 
 We create packages for releases for a number of distributions. Please note that these packages depend on libmosquitto1 from the [Mosquitto project](http://mosquitto.org/downloads).
 
+Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by `owntracks`.
+
 ### Installing on Centos 7
 
 ```
