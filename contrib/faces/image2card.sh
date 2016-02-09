@@ -14,6 +14,7 @@
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
 # because of a bug in mosquitto_pub: https://bugs.eclipse.org/bugs/show_bug.cgi?id=478917
+# If you have a newish version it should work fine.
 
 
 [ $# -ne 2 ] && { echo "Usage: $0 image-file full-name" >&2; exit 2; }
