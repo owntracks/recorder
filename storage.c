@@ -1016,11 +1016,11 @@ char *gpx_string(JsonNode *location_array)
                 }
 
 		utstring_printf(xml, "    <trkpt lat='%lf' lon='%lf'>\n", lat, lon);
-		utstring_printf(xml, "      <time>%s</time>\n", isotst);
-                if ((j = json_find_member(one, "alt")) != NULL) {
-			utstring_printf(xml, "      <ele>%.2f</ele>\n", j->number_);
-                }
-		utstring_printf(xml, "      </trkpt>\n");
+		utstring_printf(xml, "\t<time>%s</time>\n", isotst);
+		if ((j = json_find_member(one, "alt")) != NULL) {
+			utstring_printf(xml, "\t<ele>%.2f</ele>\n", j->number_);
+		}
+		utstring_printf(xml, "\t</trkpt>\n");
 	}
 
 	utstring_printf(xml, "%s", "  </trkseg>\n</trk>\n</gpx>\n");
