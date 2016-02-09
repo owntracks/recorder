@@ -1,4 +1,17 @@
 
+2016-02-09 version 0.4.9
+- NEW: introduce /etc/default/ot-recorder
+- UPD: GPX output now contains elevation and UTC time
+- UPD: default --label on live map changed from "Recorder" to "OwnTracks"
+- NEW: optional rename of topics in map popups (#79)
+- FIX: mongoose correctly identifies changed files (304 vs 200 and Etag)
+- NEW: points on GeoJSON map are now clickable for infowindow (#78)
+- NEW: GeoJSON points now have tst in properties (#78)
+- FIX: map with extra info in popup box (#77)
+- NEW: packaging for Centos7
+- NEW: ot-recorder --debug
+- FIX: ocat version shows libmosquitto and sodium versions
+
 2016-01-27 version 0.4.8
 - FIX: finish Debian8 packaging
 - FIX: add missing entry to reason table which could cause SIGSEGV
