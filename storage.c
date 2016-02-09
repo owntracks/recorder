@@ -999,7 +999,7 @@ char *gpx_string(JsonNode *location_array)
       // <trkpt lat="xx.xxx" lon="yy.yyy"> <!-- Attribute des Trackpunkts --> </trkpt>
 
 	json_foreach(one, location_array) {
-		double lat = 0.0, lon = 0.0, alt = 0.0;
+		double lat = 0.0, lon = 0.0;
 		char *isotst = "";
 		JsonNode *j;
 
@@ -1011,14 +1011,16 @@ char *gpx_string(JsonNode *location_array)
                         lon = j->number_;
                 }
 
-                if ((j = json_find_member(one, "alt")) != NULL) {
-                        alt = j->number_;
-                }
                 if ((j = json_find_member(one, "isotst")) != NULL) {
                         isotst = j->string_;
                 }
 
-		utstring_printf(xml, "    <trkpt lat='%lf' lon='%lf'><ele>%.2f</ele><time>%s</time></trkpt>\n", lat, lon, alt, isotst);
+		utstring_printf(xml, "    <trkpt lat='%lf' lon='%lf'>\n", lat, lon);
+		utstring_printf(xml, "      <time>%s</time>\n", isotst);
+                if ((j = json_find_member(one, "alt")) != NULL) {
+			utstring_printf(xml, "      <ele>%.2f</ele>\n", j->number_);
+                }
+		utstring_printf(xml, "      </trkpt>\n");
 	}
 
 	utstring_printf(xml, "%s", "  </trkseg>\n</trk>\n</gpx>\n");
