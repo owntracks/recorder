@@ -2,9 +2,9 @@ language: c
 compiler: gcc
 before_install:
 # Fix apt preferences for libconfig
-- echo "Package: libconfig*" | sudo tee -a /etc/apt/preferences
-- echo "Pin: release n=quantal*" | sudo tee -a /etc/apt/preferences
-- echo "Pin-Priority: 990" | sudo tee -a /etc/apt/preferences
+- "echo 'Package: libconfig*' | sudo tee -a /etc/apt/preferences"
+- "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
+- "echo 'Pin-Priority: 990' | sudo tee -a /etc/apt/preferences"
 - sudo apt-get dist-upgrade
 - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
 - sudo apt-get update -qq
