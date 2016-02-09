@@ -40,7 +40,7 @@ static void print_xml_line(char *line, void *param)
 {
 	FILE *fp = (FILE *)param;
 
-	fprintf(fp, "%s\n", line);
+	fprintf(fp, "%s", line);
 }
 
 void usage(char *prog)
