@@ -111,8 +111,8 @@ void get_defaults(char *filename, struct udata *ud)
 	config_init(cf = &cfg);
 
 	if (!config_read_file(cf, filename)) {
-		olog(LOG_ERR, "%s:%d - %s",
-			config_error_file(cf),
+		olog(LOG_ERR, "Syntax error in %s:%d - %s",
+			filename,
 			config_error_line(cf),
 			config_error_text(cf));
 		config_destroy(cf);
