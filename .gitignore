@@ -10,3 +10,4 @@ obsolete/
 codesign.sh
 sundry/
 *.lua
+kick*.sh
