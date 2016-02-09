@@ -722,10 +722,25 @@ static int candidate_line(char *line, void *param)
 			}
 		}
 
-	}
-	if (limit > 0 && otype == RAW) {
+	} else if (limit > 0 && otype == RAW) {
 		printf("%s\n", line);
 		return (1); /* make it 'count' or tac() will not decrement line counter and continue until EOF */
+	} else if (limit > 0) {
+		/* reading backwards; check time */
+
+		char *p;
+		struct tm tmline;
+		time_t secs;
+
+		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
+			fprintf(stderr, "no strptime on %s", line);
+			return (0);
+		}
+		secs = mktime(&tmline);
+
+		if (secs <= s_lo || secs >= s_hi) {
+			return (0);
+		}
 	}
 
 	/* Do we have location line? */

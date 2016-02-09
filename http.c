@@ -443,6 +443,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
                 if ((json = lister(u, d, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
 			JsonNode *arr, *fields = NULL;
 			char *flds = field(conn, "fields");
+			int i_have = 0;
 
 			if (flds != NULL) {
 				fields = json_splitter(flds, ",");
@@ -455,6 +456,11 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 				JsonNode *f;
                                 json_foreach(f, arr) {
                                         locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, fields, NULL, NULL);
+					if (limit) {
+						i_have += limit;
+						if (i_have >= limit)
+							break;
+					}
                                         // printf("%s\n", f->string_);
                                 }
                         }

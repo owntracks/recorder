@@ -462,10 +462,17 @@ int main(int argc, char **argv)
 		 */
 
 		if ((json = lister(username, device, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
+			int i_have = 0;
+
 			if ((arr = json_find_member(json, "results")) != NULL) { // get array
 				json_foreach(f, arr) {
 					// locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, fields, username, device);
 					locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, fields, NULL, NULL);
+					if (limit) {
+						i_have += limit;
+						if (i_have >= limit)
+							break;
+					}
 					// printf("%s\n", f->string_);
 				}
 			}
