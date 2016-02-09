@@ -34,6 +34,7 @@ fpm -s dir \
         -d "libmosquitto1" \
         -d "liblua5.2-0" \
         -d "libconfig9" \
+	--config-files etc/default/ot-recorder \
         --post-install etc/debian/postinst \
         usr var etc
 

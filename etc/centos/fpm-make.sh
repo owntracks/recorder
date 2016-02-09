@@ -29,6 +29,7 @@ fpm -s dir \
         -d "libmosquitto1" \
         -d "lua" \
         -d "libconfig" \
+	--config-files etc/default/ot-recorder \
         --post-install etc/centos/postinst \
         usr var etc
 
