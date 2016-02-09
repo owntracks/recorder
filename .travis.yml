@@ -4,7 +4,7 @@ before_install:
 - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
 - sudo apt-get update -qq
 - apt-cache search mosquitto
-- sudo apt-get install -qq libmosquitto-dev
+- sudo apt-get install -qq libmosquitto-dev libconfig8-dev
 script:
 - cp config.mk.in config.mk
 - make
