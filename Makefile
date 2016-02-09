@@ -2,7 +2,7 @@ include config.mk
 
 CFLAGS	=-Wall -Werror $(MOSQUITTO_INC)
 LIBS	= $(MORELIBS) $(MOSQUITTO_LIB) -lmosquitto -lm
-LIBS 	+= -lcurl
+LIBS 	+= -lcurl -lconfig
 
 TARGETS=
 OTR_OBJS = json.o \
@@ -64,8 +64,7 @@ else
 endif
 
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
-
-
+CFLAGS += -DCONFIGFILE=\"$(CONFIGFILE)\"
 
 TARGETS += ot-recorder ocat
 
@@ -111,6 +110,7 @@ install: ot-recorder ocat
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
+	test -r $(DESTDIR)/$(CONFIGFILE) || install -D etc/ot-recorder.default $(DESTDIR)/$(CONFIGFILE)
 ifndef DESTDIR
 	$(INSTALLDIR)/sbin/ot-recorder --initialize
 endif

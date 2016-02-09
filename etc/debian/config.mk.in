@@ -1,6 +1,7 @@
 #(@)config.mk for Debian 8 (x86_64)
 
 INSTALLDIR = /usr/local
+CONFIGFILE = /etc/default/ot-recorder
 
 WITH_HTTP ?= yes
 WITH_LMDB ?= yes

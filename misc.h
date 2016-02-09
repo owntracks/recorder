@@ -17,5 +17,6 @@ char *bindump(char *buf, long buflen);
 // void monitor_update(struct udata *ud, time_t now, char *topic);
 void monitorhook(struct udata *userdata, time_t now, char *topic);
 char *monitor_get();
+void get_defaults(char *filename, struct udata *userdata);
 
 #endif

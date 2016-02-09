@@ -114,6 +114,7 @@ void print_versioninfo()
 	printf("\tWITH_RONLY = yes\n");
 #endif
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
+	printf("\tSTORAGEDIR = \"%s\"\n", STORAGEDIR);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
 	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
@@ -151,6 +152,8 @@ int main(int argc, char **argv)
 	output_type otype = JSON;
 	JsonNode *fields = NULL;
 	FILE *xmlp = stdout;
+
+	get_defaults(CONFIGFILE, NULL);
 
 	if ((p = getenv("OCAT_USERNAME")) != NULL) {
 		username = strdup(p);

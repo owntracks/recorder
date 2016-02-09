@@ -22,6 +22,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <libconfig.h>
 #include "utstring.h"
 #include "ctype.h"
 #include "udata.h"
@@ -92,4 +94,33 @@ char *monitor_get()
 	}
 
 	return (ret);
+}
+
+/*
+ * Fill in some defaults
+ */
+
+void get_defaults(char *filename, struct udata *ud)
+{
+	config_t cfg, *cf;
+	const char *value;
+
+	if (access(filename, R_OK) == -1)
+		return;
+
+	config_init(cf = &cfg);
+
+	if (!config_read_file(cf, filename)) {
+		olog(LOG_ERR, "%s:%d - %s",
+			config_error_file(cf),
+			config_error_line(cf),
+			config_error_text(cf));
+		config_destroy(cf);
+		exit(2);
+	}
+
+	if (config_lookup_string(cf, "OTR_STORAGEDIR", &value) != CONFIG_FALSE)
+		strcpy(STORAGEDIR, value);
+
+	config_destroy(cf);
 }

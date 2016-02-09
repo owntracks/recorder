@@ -33,8 +33,9 @@ fpm -s dir \
         -d "libcurl3" \
         -d "libmosquitto1" \
         -d "liblua5.2-0" \
+        -d "libconfig9" \
         --post-install etc/debian/postinst \
-        usr var
+        usr var etc
 
 echo "${debfile}" > package.name
 rm -rf "${tempdir}"

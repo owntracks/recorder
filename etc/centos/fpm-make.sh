@@ -28,8 +28,9 @@ fpm -s dir \
         -d "libcurl" \
         -d "libmosquitto1" \
         -d "lua" \
+        -d "libconfig" \
         --post-install etc/centos/postinst \
-        usr var
+        usr var etc
 
 echo "${rpmfile}" > package.name
 rm -rf "${tempdir}"

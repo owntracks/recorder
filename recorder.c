@@ -1321,6 +1321,10 @@ int main(int argc, char **argv)
 	udata.geokey		= NULL;		/* default: no API key */
 	udata.debug		= FALSE;
 
+	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
+
+	get_defaults(CONFIGFILE, &udata);
+
 	if ((p = getenv("OTR_HOST")) != NULL) {
 		hostname = strdup(p);
 	}
@@ -1568,8 +1572,6 @@ int main(int argc, char **argv)
 		password = getenv("OTR_PASS");
 	}
 
-	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
-
 #ifdef WITH_HTTP
 	if (http_port) {
 		if (!is_directory(doc_root)) {
@@ -1580,7 +1582,7 @@ int main(int argc, char **argv)
 		udata.mgserver = mg_create_server(ud, ev_handler);
 	}
 #endif
-	olog(LOG_DEBUG, "starting");
+	olog(LOG_DEBUG, "starting with STORAGEDIR=%s", STORAGEDIR);
 
 	if (ud->revgeo == TRUE) {
 #ifdef WITH_LMDB
