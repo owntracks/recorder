@@ -10,7 +10,7 @@
 # You probably want to do this:
 #
 # image2card.sh filename.jpg "Jane Jolie" > card.json
-# mosquitto_pub -t owntracks/jane/phone -f card.json
+# mosquitto_pub -t owntracks/jane/phone/info -f card.json
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
 # because of a bug in mosquitto_pub: https://bugs.eclipse.org/bugs/show_bug.cgi?id=478917

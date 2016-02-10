@@ -9,7 +9,7 @@
 # You probably want to do this:
 #
 # gravatar2card.sh email-address  "Jane Jolie" > card.json
-# mosquitto_pub -t owntracks/jane/phone -r -f card.json
+# mosquitto_pub -t owntracks/jane/phone/info -r -f card.json
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
 # because of a bug in mosquitto_pub: https://bugs.eclipse.org/bugs/show_bug.cgi?id=478917
