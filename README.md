@@ -26,6 +26,7 @@ You will require:
 * [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
 * Optionally [Lua](http://lua.org)
+* [libconfig](http://www.hyperrealm.com/libconfig/)
 
 1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
 2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
@@ -743,17 +744,18 @@ Upon successful decryption, the Recorder processes the original (device-transmit
 
 You need a current version of the Mosquitto library (and you probably require the Mosquitto broker as well for OwnTracks). We strongly recommend installing Mosquitto either from [source](http://mosquitto.org/download/) or from a [binary package](http://mosquitto.org/download/), both of which are provided by the [Mosquitto project](http://mosquitto.org/). In particular, older or LTS OS versions profit from this.
 
+
 ### Debian
 
 ```
-apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev
+apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
 ```
 
 ### Centos 7
 
 ```
 yum groupinstall 'Development Tools'
-yum install libmosquitto-devel libcurl-devel lua-devel
+yum install libmosquitto-devel libcurl-devel lua-devel libconfig-devel
 ```
 
 libsodium is in epel-stable
