@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OwnTracks View</title>
+    <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0" />
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <style type="text/css">
+      body {  font-size: 80%; padding: 0px; margin: 0px; }
+
+      #map-canvas { height: 100% }
+      .extrainfo { font-size: 80%; }
+      .latlon { color: gray; }
+
+
+    </style>
+     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+     <script src="../static/js/jquery-1.9.1.min.js"></script>
+     <script src="../static/js/jquery-migrate-1.1.1.min.js"></script>
+     <script src="../static/js/moment.min.js"></script>
+     <script src="../static/js/mustache.js"></script>
+    <script>
+	var map;
+	var markers = {};
+	var devices = [];
+	var refresh = 60000;
+	var livemarkers = true;
+	var do_fit  = false;
+
+	function clog(upd, id, s) {
+		var ident = id || 'unknown';
+		console.log(upd + ": " + ident + " " + s);
+	}
+
+	function setmarkers() {
+		for (var n = 0; n < devices.length; n++) {
+			map_marker(devices[n]);
+		}
+	}
+
+	function reload() {
+		getdata();
+		setmarkers();
+		setTimeout(reload, refresh);
+	}
+
+	function getdata() {
+
+		var json = (function () {
+		    var json = null; 
+		    $.ajax({ 
+			'type' : 'GET',
+			'async': false, 
+			'cache' : false,
+			'global': true, 
+			'url'   : '@@@LASTPOS@@@',
+			'dataType': "json", 
+			'success': function (data) {
+			     json = data['data']; 
+			     console.log("DATA = " + JSON.stringify(json));
+				for (var n = 0; n < json.length; n++) {
+					console.log(json[n]);
+					devices.push(json[n]);
+				}
+				return (json.length);
+			 }
+		    });
+		})();
+
+
+	}
+
+	/**
+	 * The TrackControl adds a control to the map that loads the GeoJSON track.
+	 * This constructor takes the track DIV as an argument.
+	 */
+	function TrackControl(controlDiv, map) {
+
+	  // Set CSS for the control border
+	  var controlUI = document.createElement('div');
+	  controlUI.style.backgroundColor = '#fff';
+	  controlUI.style.border = '2px solid #fff';
+	  controlUI.style.borderRadius = '3px';
+	  controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+	  controlUI.style.cursor = 'pointer';
+	  controlUI.style.marginBottom = '22px';
+	  controlUI.style.textAlign = 'center';
+	  controlUI.title = 'Click to load the track onto the map';
+	  controlDiv.appendChild(controlUI);
+
+	  // Set CSS for the control interior
+	  var controlText = document.createElement('div');
+	  controlText.style.color = 'rgb(25,25,25)';
+	  controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+	  controlText.style.fontSize = '16px';
+	  controlText.style.lineHeight = '38px';
+	  controlText.style.paddingLeft = '5px';
+	  controlText.style.paddingRight = '5px';
+	  controlText.innerHTML = 'Load track';
+	  controlUI.appendChild(controlText);
+
+	  // Setup the click event listeners: simply set the map to
+	  // Chicago
+	  google.maps.event.addDomListener(controlUI, 'click', function() {
+
+		map.data.loadGeoJson('@@@GEO@@@');
+
+		// Set the stroke width, and fill color for each polygon
+		var featureStyle = {
+			strokeColor: 'red',
+			strokeWeight: 4,
+		}
+		map.data.setStyle(featureStyle);
+	  });
+
+	}
+
+	function initialize() {
+		var lat;
+		var lon;
+
+		if (getdata() < 1) {
+			return;
+		}
+		
+		lat = devices[0].lat;
+		lon = devices[0].lon;
+		tst = devices[0].tst;
+
+		var center = new google.maps.LatLng(lat,lon);
+		
+		mapOptions = {
+			center: center,
+			zoom: devices[0].zoom ? devices[0].zoom : 9,
+			mapTypeId: google.maps.MapTypeId.ROADMAP,
+			scrollwheel: false,
+			disableDefaultUI: false,
+			panControl: false,
+			scaleControl: false,
+			streetViewControl: true,
+			overviewMapControl: true,
+		};
+
+		map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+		// Create the DIV to hold the control and call the TrackControl()
+		// constructor passing in this DIV.
+
+		var trackControlDiv = document.createElement('div');
+		var trackControl = new TrackControl(trackControlDiv, map);
+
+		trackControlDiv.index = 1;
+		map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(trackControlDiv);
+
+
+		setmarkers()
+		setTimeout(reload, refresh);
+	}
+
+	/*
+	 * Close all the infowindows in the `markers' object, and then open the
+	 * infowindow in the specified marker.
+	 */
+	
+	function refreshmarkers(m) {
+	        for (var k in markers) {
+	                markers[k]['infowindow'].close();
+	        }
+	        m['infowindow'].open(map, m);
+	}
+	
+	function fitbounds() {
+	        var bounds = new google.maps.LatLngBounds();
+	        for (var k in markers) {
+	                bounds.extend(markers[k].getPosition());
+	        }
+	        map.setCenter(bounds.getCenter());      /* Center to geometric center of all markers */
+	        map.fitBounds(bounds);
+	}
+	
+	/*
+	 * `loc' is a location object obtained from the Recorder, with some extra bits
+	 * included from the view's configuration
+	 */
+	
+	function map_marker(loc)
+	{
+	        var id = loc.tid;
+	        var htmldesc;
+	        var shortdesc;
+	        var dt = moment.utc(loc.tst * 1000).local();
+	
+	        var userdev = loc.label ? loc.label : loc.tid;
+
+	
+	        var data = {
+	                userdev: userdev,
+	                ghash:  loc.ghash ? loc.ghash : '',
+	                addr:   loc.addr,
+	                lat:    loc.lat,
+	                lon:    loc.lon,
+	                fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
+	        };
+	
+	        if (loc.addr) {
+	                htmldesc = "<b>{{userdev}}</b><br/>{{addr}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+	                shortdesc = "{{userdev}} {{addr}}";
+	        } else {
+	                htmldesc = "<b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+	                shortdesc = "{{userdev}} {{lat}},{{lon}}";
+	        }
+	
+	        loc.description = Mustache.render(shortdesc, data);
+	        loc.htmldesc = Mustache.render(htmldesc, data);
+	
+	        if (markers.hasOwnProperty(id)) {
+	                clog("UPD", id, JSON.stringify(loc));
+	                m = markers[id];
+	                var LatLng = new google.maps.LatLng(loc.lat, loc.lon);
+	                m.setPosition(LatLng);
+	                m.setTitle(loc.description);
+	
+	                /* Grab the InfoWindow of this marker and change content */
+	                m['infowindow'].setContent(loc.htmldesc);
+	                if (livemarkers) {
+	                        refreshmarkers(m);
+	                }
+	        } else {
+	                clog("NEW", id, JSON.stringify(loc));
+	                var circle ={
+	                        path: google.maps.SymbolPath.CIRCLE,
+	                        fillColor: '#ff0000',
+	                        fillOpacity: .9,
+	                        scale: 5.5,
+	                        strokeColor: 'white',
+	                        strokeWeight: 2
+	                };
+	
+	                var LatLng = new google.maps.LatLng(loc.lat, loc.lon);
+	                var m = new google.maps.Marker({
+	                        position: LatLng,
+	                        map: map,
+	                        title: loc.description,
+	                        icon: circle
+	                });
+	
+	                /* Create a new InfoWindow for this marker, and add listener */
+	                m['infowindow'] = new google.maps.InfoWindow({
+	                                        content: loc.htmldesc
+	                                  });
+	                google.maps.event.addListener(m, "click", function(e) {
+	                        this['infowindow'].open(map, this);
+	                });
+	                if (livemarkers) {
+	                        refreshmarkers(m);
+	                }
+	
+	                markers[id] = m;
+	        }
+	
+	        if (do_fit) {
+	                fitbounds();
+	        }
+	}
+
+
+	google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <div>
+      <div id="map-canvas" style='width: 100vw; height: 100vh;'/></div>
+    </div>
+  </body>
+</html>
