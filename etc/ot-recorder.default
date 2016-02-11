@@ -2,5 +2,6 @@
 #
 # Specify global configuration options for the OwnTracks Recorder
 # and its associated utilities to override compiled-in defaults.
+# *** In libconfig versions < 1.4 a trailing semicolon is mandatory
 
 # OTR_STORAGEDIR = "/var/spool/owntracks/recorder/store"
