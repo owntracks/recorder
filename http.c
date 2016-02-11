@@ -40,6 +40,7 @@
 #ifdef WITH_HTTP
 
 #define MAXPARTS 40
+#define VIEWSUBDIR	"views"
 
 /* A transparent 40x40 PNG image with a black border */
 static unsigned char border40x40png[] = {
@@ -88,6 +89,58 @@ static char *field(struct mg_connection *conn, char *fieldname)
 		return (p);
 	}
 	return (NULL);
+}
+
+/*
+ * Open a view.json file, parse the JSON and return the object
+ * or NULL.
+ */
+
+static JsonNode *loadview(struct udata *ud, const char *viewname)
+{
+	static UT_string *fpath = NULL;
+	const char *doc_root = mg_get_option(ud->mgserver, "document_root");
+	JsonNode *view;
+
+	utstring_renew(fpath);
+	utstring_printf(fpath, "%s/%s/%s.json", doc_root, VIEWSUBDIR, viewname);
+	debug(ud, "loadview fpath=%s", UB(fpath));
+
+	view = json_mkobject();
+	if (json_copy_from_file(view, UB(fpath)) != TRUE) {
+		json_delete(view);
+		return (NULL);
+	}
+
+	return (view);
+}
+
+static void http_debug(char *event_name, struct mg_connection *conn)
+{
+	int n;
+	char authuser[64];
+	const char *hdr;
+
+	*authuser = 0;
+
+	if ((hdr = mg_get_header(conn, "Authorization")) != NULL && strncasecmp(hdr, "Digest ", 7) == 0) {
+		mg_parse_header(hdr, "username", authuser, sizeof(authuser));
+	}
+
+	fprintf(stderr, "--- %s --------------------------- %s (%ld) %.*s [auth=%s]\n",
+		event_name,
+		conn->uri,
+		conn->content_len,
+		(int)conn->content_len,
+		conn->content,
+		authuser);
+	for (n = 0; n < conn->num_headers; n++) {
+		struct mg_header *hh;
+
+		hh = &conn->http_headers[n];
+		fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+
+	}
 }
 
 /*
@@ -308,6 +361,246 @@ static int csv_response(struct mg_connection *conn, JsonNode *obj)
 		if (time_from) free(time_from);\
 		if (time_to) free(time_to);\
 	} while(0)
+
+
+static int send_status(struct mg_connection *conn, int status, char *text)
+{
+	mg_send_status(conn, status);
+	mg_printf_data(conn, text);
+	return (MG_TRUE);
+}
+
+/*
+ * Procure back-end data for a VIEW. `view' is the JSON view from which
+ * we obtain who/what to get. This returns a JSON array of location
+ * objects obtained from REC files:
+ *
+ *	[
+ *	 {
+ *	  "_type": "location",
+ *	  "dist": 11,
+ *	  "cc": "DE",
+ *	  "lon": xxx,
+ *	  "trip": 18659000,
+ *	  "lat": yyy,
+ *	  "alt": 380,
+ *	  "vel": 0,
+ *	  "t": "T",
+ *	  "cog": 0,
+ *	  "tid": "hK",
+ *	  "tst": 1442609999,
+ *	  "ghash": "zzzzz",
+ *	  "addr": "zzzzzzzzzzzzzzzzz15C, 000000 Example, Germany",
+ *	  "locality": "Example",
+ *	  "isorcv": "2015-09-18T22:59:59Z",
+ *	  "isotst": "2015-09-18T20:59:59Z",
+ *	  "disptst": "2015-09-18 20:59:59"
+ *	 }
+ *	]
+ */
+
+static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	JsonNode *from, *to, *json, *obj, *locs, *ju, *jd, *arr;
+	time_t s_lo, s_hi;
+
+	ju = json_find_member(view, "user");
+	jd = json_find_member(view, "device");
+	from = json_find_member(view, "from");
+	to = json_find_member(view, "to");
+
+	/* FIXME: default from/to */
+
+	if (!from || !to || (make_times(from->string_, &s_lo, to->string_, &s_hi) != 1)) {
+		send_status(conn, 416, "impossible date/time ranges");
+		return (NULL);
+	}
+	/*
+	 * Obtain a list of .rec files from lister(), possibly limited
+	 * by s_lo/s_hi times, process each and build the JSON object
+	 * `obj` containing an array of locations.
+	 */
+
+	obj = json_mkobject();
+	locs = json_mkarray();
+
+	debug(ud, "u=%s, d=%s, f=%ld, t=%ld", ju->string_, jd->string_, s_lo, s_hi);
+
+	if ((json = lister(ju->string_, jd->string_, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
+		int i_have = 0;
+
+		if ((arr = json_find_member(json, "results")) != NULL) {
+			JsonNode *f;
+			json_foreach(f, arr) {
+				locations(f->string_, obj, locs, s_lo, s_hi, JSON, limit, NULL, NULL, NULL);
+				if (limit) {
+					i_have += limit;
+					if (i_have >= limit)
+						break;
+				}
+			}
+		}
+		json_delete(json);
+	}
+	json_delete(obj);
+
+	puts(json_stringify(locs, " "));
+	return (locs);
+}
+
+/*
+ * We're being asked for a view. `uri' contains the ID for this view.
+ * A view is a JSON file in docroot. The JSON describes which file
+ * should actually be served as well as a bunch of other things
+ * FIXME: which???
+ */
+
+static int view(struct mg_connection *conn, const char *uri)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	int limit;
+	char *p, buf[BUFSIZ];
+	const char *doc_root = mg_get_option(ud->mgserver, "document_root");
+	static UT_string *fpath = NULL, *sbuf = NULL;
+	FILE *fp;
+	JsonNode *view, *j, *locarray, *obj, *loc, *geoline;
+	viewtype vtype = PAGE;
+
+	if ((p = field(conn, "geodata")) != NULL) {
+		vtype = GEODATA;
+		free(p);
+	}
+
+	if ((p = field(conn, "lastpos")) != NULL) {
+		vtype = LASTPOS;
+		free(p);
+	}
+
+	debug(ud, "view: [%s]: => viewtype=%d", uri, vtype);
+
+	if (!uri || !*uri) {
+		return send_status(conn, 404, "Not found");
+	}
+
+
+	view = loadview(ud, uri);
+
+	switch (vtype) {
+	    case PAGE:
+
+		/*
+		 * Find the page we're going to serve and serve it,
+		 * replacing occurrences of "@@@" with our special URIs.
+		 */
+
+		if ((j = json_find_member(view, "page")) == NULL) {
+			json_delete(view);
+			return send_status(conn, 401, "no page in view");
+		}
+
+		utstring_renew(fpath);
+		utstring_printf(fpath, "%s/%s/%s", doc_root, VIEWSUBDIR, j->string_);
+		debug(ud, "page file=%s", UB(fpath));
+
+		if ((fp = fopen(UB(fpath), "r")) == NULL) {
+			json_delete(view);
+			return send_status(conn, 404, "Cannot open view page");
+		}
+
+		utstring_renew(sbuf);
+		while (fgets(buf, sizeof(buf), fp) != NULL) {
+			if ((p = strstr(buf, "@@@GEO@@@")) != NULL) {
+				*p = 0;
+				utstring_clear(sbuf);
+				utstring_printf(sbuf, "%s%s?geodata=1%s",
+					buf,
+					conn->uri,
+					p+strlen("@@@GEO@@@"));
+				mg_printf_data(conn, "%s", UB(sbuf));
+			} else if ((p = strstr(buf, "@@@LASTPOS@@@")) != NULL) {
+				*p = 0;
+				utstring_clear(sbuf);
+				utstring_printf(sbuf, "%s%s?lastpos=1%s",
+					buf,
+					conn->uri,
+					p+strlen("@@@LASTPOS@@@"));
+				mg_printf_data(conn, "%s", UB(sbuf));
+			} else {
+				mg_printf_data(conn, "%s", buf);
+			}
+		}
+		fclose(fp);
+		return (MG_TRUE);
+		/* NOTREACHED */
+		break;
+
+	    case GEODATA:
+
+			/*
+			 * We're being asked for the GeoJSON track data for this view.
+			 */
+
+			if ((locarray = viewdata(conn, view, limit=0)) == NULL) {
+				return (MG_TRUE);
+			}
+
+			obj = json_mkobject();
+
+			json_delete(view);
+
+			if ((geoline = geo_linestring(locarray)) != NULL) {
+				json_delete(obj);
+				return (json_response(conn, geoline));
+			}
+
+			/* Return empty object */
+
+			return (json_response(conn, obj));
+			/* NOTREACHED */
+			break;
+
+	    case LASTPOS:
+
+			/*
+			 * Last position being requested. We're going to search with
+			 * limit=1 in order to get the very last position in the
+			 * requested time frame. Furthermore, we add all elements
+			 * of the actual view.json to the object we return to the
+			 * Web browser to allow those for page configuration if
+			 * desired.
+			 */
+
+			if ((locarray = viewdata(conn, view, limit=1)) == NULL) {
+				return (MG_TRUE);
+			}
+
+			obj = json_mkobject();
+
+			/*
+			 * Append members of the view object into the location object
+			 * which is being sent back to the view's page, in particular
+			 * things like 'label' and 'zoom'.
+			 */
+
+			json_foreach(loc, locarray) {
+				JsonNode *v;
+				json_foreach(v, view) {
+					json_copy_element_to_object(loc, v->key, v);
+				}
+			}
+
+			json_append_member(obj, "data", locarray);
+
+			json_delete(view);
+
+			return (json_response(conn, obj));
+			/* NOTREACHED */
+			break;
+	}
+
+	return (MG_TRUE);
+}
 
 static int dispatch(struct mg_connection *conn, const char *uri)
 {
@@ -545,6 +838,91 @@ static int photo(struct mg_connection *conn)
 	return (MG_TRUE);
 }
 
+/*
+ * Verify that the digest credentials presented in the request match
+ * the on-file  `hash_ha1' we have for the user. (Most of this code
+ * adapted from check_password() and authorize_digest() in mongoose.c.)
+ * If they match, return MG_TRUE.
+ */
+
+static int authorize_digest(struct mg_connection *c, char *hash_ha1)
+{
+	const char *hdr;
+	char ha2[32 + 1], expected_response[32 + 1], user[100], nonce[100];
+	char uri[BUFSIZ], cnonce[100], resp[100], qop[100], nc[100];
+
+	if (c == NULL || hash_ha1 == NULL) return (MG_FALSE);
+	if ((hdr = mg_get_header(c, "Authorization")) == NULL ||
+		strncasecmp(hdr, "Digest ", 7) != 0) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "username", user, sizeof(user))) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "cnonce", cnonce, sizeof(cnonce))) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "response", resp, sizeof(resp))) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "uri", uri, sizeof(uri))) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "qop", qop, sizeof(qop))) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "nc", nc, sizeof(nc))) return (MG_FALSE);
+	if (!mg_parse_header(hdr, "nonce", nonce, sizeof(nonce))) return (MG_FALSE);
+
+	mg_md5(ha2, c->request_method, ":", uri, NULL);
+	mg_md5(expected_response, hash_ha1, ":", nonce, ":", nc,
+		":", cnonce, ":", qop, ":", ha2, NULL);
+
+#if 1
+	printf("method = %s\n", c->request_method);
+	printf("ha1 = %s\n", hash_ha1);
+	printf("uri = %s\n", uri);
+	printf("nonce = %s\n", nonce);
+	printf("nc = %s\n", nc);
+	printf("cnonce = %s\n", cnonce);
+	printf("qop = %s\n", qop);
+	printf("response          = %s\n", resp);
+	printf("expected_response = %s\n", expected_response);
+#endif
+
+	return (strcasecmp(resp, expected_response) == 0 ? (MG_TRUE) : (MG_FALSE));
+}
+
+/*
+ * Called from ev_handler() to determine whether a connection should be
+ * authorized. Currently only supported for VIEWs.
+ */
+
+static int authorize(struct mg_connection *conn)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	const char *viewname;
+	JsonNode *view, *j;
+	int authorized = TRUE;
+
+	if (strncmp(conn->uri, "/view/", strlen("/view/")) != 0) {
+		return (MG_TRUE);
+	}
+
+	viewname = conn->uri + strlen("/view/");
+	debug(ud, "In authorize() for view=%s", viewname);
+
+	/* IDEA: we could have an expire= field in view.json to let this die automatically */
+
+	/*
+	 * Load view. Check if "auth" element exists, and if it does,
+	 * verify digest auth against that. If that fails, access is
+	 * denied, otherwise granted.
+	 */
+
+	if ((view = loadview(ud, viewname)) != NULL) {
+
+		/* If we have no 'auth' element, access is granted because nothing to check */
+		if ((j = json_find_member(view, "auth")) != NULL) {
+			char *auth = j->string_;
+
+			authorized = authorize_digest(conn, auth);
+			debug(ud, "AUTHTOKEN=%s, AUTHORIZED=%d", auth, authorized);
+		}
+		json_delete(view);
+	}
+
+	return (authorized);
+}
+
 int ev_handler(struct mg_connection *conn, enum mg_event ev)
 {
 #ifdef WITH_LMDB
@@ -553,26 +931,27 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 	switch (ev) {
 		case MG_AUTH:
-			return (MG_TRUE);
+			if (ud->debug) http_debug("AUTH", conn);
+			return (authorize(conn));
 
 		case MG_REQUEST:
 
-#if 0
-			{ int n;
-			fprintf(stderr, "------------------------------ %s (%ld) %.*s\n",
+			if (ud->debug) http_debug("REQUEST", conn);
+			if (ud->debug) {
+				int n;
+				fprintf(stderr, "------------------------------ %s (%ul) %.*s\n",
 					conn->uri,
-					conn->content_len,
+					(int)conn->content_len,
 					(int)conn->content_len,
 					conn->content);
-			for (n = 0; n < conn->num_headers; n++) {
-				struct mg_header *hh;
+				for (n = 0; n < conn->num_headers; n++) {
+					struct mg_header *hh;
 
-				hh = &conn->http_headers[n];
-				fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+					hh = &conn->http_headers[n];
+					fprintf(stderr, "  %s=%s\n", hh->name, hh->value);
+				}
+			}
 
-			}
-			}
-#endif
 			/* Websockets URI ?*/
 			if (strcmp(conn->uri, "/ws/last") == 0) {
 
@@ -602,6 +981,10 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 			if (strncmp(conn->uri, API_PREFIX, strlen(API_PREFIX)) == 0) {
 				return dispatch(conn, conn->uri + strlen(API_PREFIX) - 1);
+			}
+
+			if (strncmp(conn->uri, "/view/", strlen("/view/")) == 0) {
+				return view(conn, conn->uri + strlen("/view/"));
 			}
 
 
