@@ -710,6 +710,12 @@ A view is a sort of sandboxed look at data provided by the Recorder. Assume you 
 
 You configure a view by creating a small JSON file of an arbitrary name which defines which user / device combination of data the view should display. Say you are recording data for `owntracks/jjolie/phone`, the _user_ would be `jjolie` and the _device_ is `phone`. You can also create a specific HTML page for this view or just use the default `vmap.html` we provide.
 
+The view then provides three URLs:
+
+* `views/viewname` can serve a HTML or text page
+* `views/viewname?lastpos=1` serves a JSON array of objects with the last position recorded
+* `views/viewname?geodata=1` serves a GeoJSON object containing recorded track data
+
 Suppose Jane wishes to have her acqaintances see where she is whilst on vacation. Jane knows she'll be en-route between 2015-06-29 and 2015-07-15. She creates a file called, say, `loire.json` in the `views/` directory of the Recorder's document root:
 
 ```json
