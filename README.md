@@ -373,7 +373,7 @@ We took a number of decisions when designing the _recorder_ and its utilities:
 * We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below. (In the particular case of the OwnTracks firmware for Greenwich devices which can publish in CSV mode, we convert the CSV into OwnTracks JSON for storage.)
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
-* The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the `recorder` to control access to it.
+* The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the `recorder` to control access to it. Or use views (see below).
 * `ocat`, the _cat_ program for the _recorder_ uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
 * The _recorder_ supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".)
 
@@ -703,6 +703,166 @@ ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
 ProxyPass /otr                  http://127.0.0.1:8083/
 ProxyPassReverse /otr           http://127.0.0.1:8083/
 ```
+
+## Views
+
+A view is a sort of sandboxed look at data provided by the Recorder. Assume you host several devices, be they your own or those of some of your friends, and assume you want to allow somebody else to see where you are or have been during a specific time frame: with the Recorder's default Web server you cannot limit a visitor to see specific data only; once they reach the Recorder's Web interface, they have access to all your data. (We warned you about that earlier.) Using a HTTP proxy, you can provide an insight into certain portions of your data only.
+
+You configure a view by creating a small JSON file of an arbitrary name which defines which user / device combination of data the view should display. Say you are recording data for `owntracks/jjolie/phone`, the _user_ would be `jjolie` and the _device_ is `phone`. You can also create a specific HTML page for this view or just use the default `vmap.html` we provide.
+
+Suppose Jane wishes to have her acqaintances see where she is whilst on vacation. Jane knows she'll be en-route between 2015-06-29 and 2015-07-15. She creates a file called, say, `loire.json` in the `views/` directory of the Recorder's document root:
+
+```json
+{
+  "user"  : "jjolie",
+  "device": "phone",
+  "page"  : "vmap.html",
+  "from"  : "2015-06-29",
+  "to"    : "2015-07-15"
+}
+```
+
+Jane's friends can now visit the URL `/view/loire` (note the missing `.json` extension) to be served a map showing Jane's progress along the Loire valley (if that is where she's actually travelling through). Jane can keep that view up even after she returns because the view will not serve data after the 15th of July, in other words, her location at any other time before or after the _from_ / _to_ dates is hidden.
+
+![Jane's vacation](assets/view-map.png)
+
+### view JSON
+
+The JSON in the view file (called `view.json` here) contains mandatory and optional elements:
+
+| element         |  mandatory  | meaning                               |
+| ----------------| :---------: | ------------------------------------- |
+| user            |      Y      | username for data (from topic owntracks/user/device       |
+| device          |      Y      | device for data (from topic owntracks/user/device       |
+| page            |      Y      | HTML page to be loaded from `docroot/views/` for this view |
+| from            |      N      | `from` timestamp for data, defaults to now - 6H |
+| to              |      N      | `to` timestamp for data, defaults to now  |
+| auth            |      N      | array of digest authentication tokens described below |
+| label           |      N      | text to use in popup of default `vmap.html` instead of user/device |
+| zoom            |      N      | zoom level for map used in `vmap.html`, defaults to 9 |
+| *               |      N      | any other element is copied into the data returned |
+
+
+
+The _page_ is a single HTML file which must be located in the `views/` directory of the Recorder's document root. Trivial (primitive actually) text substitution is done for the following two tokens:
+
+* `@@@LASTPOS@@@` is converted to a URI on which the Recorder will serve the last position data
+* `@@@GEO@@@` is converted to a URI on which the Recorder will serve GeoJSON data from its storage.
+
+The default _page_ we provide is called `vmap.html`; by default it refreshes the last position every 60 seconds, and clicking on _Load track_ loads the GeoJSON track for the time frame specified by `from` and `to`. 
+
+![Jane's vacation track](assets/view-track.png)
+
+A little bit more complex view would look like this:
+
+```json
+{
+  "config": {
+    "port": 9001,
+    "pathname": "/tmp/somewhere"
+  },
+  "zoom": 7,
+  "label": "Jane's Loire vacation",
+  "to": "2015-07-15",
+  "from": "2015-06-29",
+  "device": "phone",
+  "user": "jjolie",
+  "page": "vmap.html"
+}
+```
+
+All JSON elements are copied into the _lastpos_ data which is returned to the caller. Using the above view configuration, a user requesting `http://localhost:8083/view/loire?lastpos=1` would obtain
+
+```json
+{
+ "data": [
+  {
+   "_type": "location",
+   "cc": "FR",
+   "lon": -1.564214,
+   "lat": 47.217871,
+   "alt": 35,
+   "vel": 0,
+   "t": "L",
+   "cog": 0,
+   "tid": "K2",
+   "tst": 1436895718,
+   "ghash": "gbqus7u",
+   "addr": "Maison d'arrêt, 9 Rue Descartes, 44000 Nantes, France",
+   "locality": "Nantes",
+   "isorcv": "2015-07-14T19:41:58Z",
+   "isotst": "2015-07-14T17:41:58Z",
+   "disptst": "2015-07-14 17:41:58",
+   "page": "vmap.html",
+   "user": "jjolie",
+   "device": "phone",
+   "from": "2015-06-29",
+   "to": "2015-07-15",
+   "label": "Jane's Loire vacation",
+   "zoom": 7,
+   "pathname": "/tmp/somewhere",
+   "port": 9001
+  }
+ ]
+}
+```
+
+Note how `pathname` and `port` have been copied into the object. These values can be used by the _page_ served in the view.
+
+### Authentication
+
+If `view.json` contains an element called `auth`, it is assumed to be an array of strings, each of which are a 32-character [Digest authentication](https://en.wikipedia.org/wiki/Digest_access_authentication) HA1 strings for the realm `owntracks-recorder`, for example:
+
+```json
+"auth" : [ "225544f9acf99d18a8880c5ce844f303", "ba69e267302a7ef98e0862b9aae68cab" ]
+```
+
+Each user/password digest combination will be able to access the view.
+
+You create these strings with, say, the _htdigest_ program or `contrib/new-view-auth.py`:
+
+```bash
+htdigest -c /tmp/dd owntracks-recorder jjolie
+Adding password for jjolie in realm owntracks-recorder.
+New password:
+Re-type new password:
+
+cat /tmp/dd
+jjolie:owntracks-recorder:225544f9acf99d18a8880c5ce844f303
+```
+
+In the above example, you copy the 32-character digest into your `view.json`, whereas in the following example, we create a template for you which you copy into your view.
+
+```bash
+./new-view-auth.py jjolie
+Enter password for user jjolie:
+Re-enter password:
+"auth" : [ "225544f9acf99d18a8880c5ce844f303" ]
+```
+
+
+### HTTP proxy
+
+We recommend you have the Recorder listening to a loopback interface (e.g. 127.0.0.1) as it does by default, and set up a reverse proxy to its views. Using _nginx_ the following configuration shows how we proxy the `view/` and the required `static/` URIs into the Recorder:
+
+```
+# OwnTracks Recorder Views
+location /owntracks/view/ {
+     proxy_buffering         off;            # Chrome
+     proxy_pass              http://127.0.0.1:8085/view/;
+     proxy_http_version      1.1;
+     proxy_set_header        Host $host;
+     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+location /owntracks/static/ {
+     proxy_pass              http://127.0.0.1:8085/static/;
+     proxy_http_version      1.1;
+     proxy_set_header        Host $host;
+     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+You would then visit `http://example.com/owntracks/view/loire` to see the `loire` view, assuming `example.com` is your proxy.
 
 ## Advanced topics
 
