@@ -130,7 +130,7 @@ static void http_debug(char *event_name, struct mg_connection *conn)
 	fprintf(stderr, "--- %s --------------------------- %s (%ld) %.*s [auth=%s]\n",
 		event_name,
 		conn->uri,
-		conn->content_len,
+		(long)conn->content_len,
 		(int)conn->content_len,
 		conn->content,
 		authuser);
@@ -402,17 +402,21 @@ static int send_status(struct mg_connection *conn, int status, char *text)
 static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
-	JsonNode *from, *to, *json, *obj, *locs, *ju, *jd, *arr;
+	JsonNode *j, *json, *obj, *locs, *ju, *jd, *arr;
+	char *from = NULL, *to = NULL;
 	time_t s_lo, s_hi;
 
 	ju = json_find_member(view, "user");
 	jd = json_find_member(view, "device");
-	from = json_find_member(view, "from");
-	to = json_find_member(view, "to");
+	if ((j = json_find_member(view, "from")) != NULL)
+		from = j->string_;
+	if ((j = json_find_member(view, "to")) != NULL)
+		to = j->string_;
 
-	/* FIXME: default from/to */
+	if (!ju || !jd)
+		return (NULL);
 
-	if (!from || !to || (make_times(from->string_, &s_lo, to->string_, &s_hi) != 1)) {
+	if (make_times(from, &s_lo, to, &s_hi) != 1) {
 		send_status(conn, 416, "impossible date/time ranges");
 		return (NULL);
 	}
@@ -445,18 +449,16 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 	}
 	json_delete(obj);
 
-	puts(json_stringify(locs, " "));
 	return (locs);
 }
 
 /*
- * We're being asked for a view. `uri' contains the ID for this view.
+ * We're being asked for a view. `viewname' contains the ID for this view.
  * A view is a JSON file in docroot. The JSON describes which file
- * should actually be served as well as a bunch of other things
- * FIXME: which???
+ * should actually be served as well as a bunch of other things.
  */
 
-static int view(struct mg_connection *conn, const char *uri)
+static int view(struct mg_connection *conn, const char *viewname)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
 	int limit;
@@ -477,14 +479,16 @@ static int view(struct mg_connection *conn, const char *uri)
 		free(p);
 	}
 
-	debug(ud, "view: [%s]: => viewtype=%d", uri, vtype);
+	debug(ud, "view: [%s]: => viewtype=%d", viewname, vtype);
 
-	if (!uri || !*uri) {
+	if (!viewname || !*viewname) {
 		return send_status(conn, 404, "Not found");
 	}
 
 
-	view = loadview(ud, uri);
+	if ((view = loadview(ud, viewname)) == NULL) {
+		return send_status(conn, 404, "View not found");
+	}
 
 	switch (vtype) {
 	    case PAGE:
@@ -515,7 +519,7 @@ static int view(struct mg_connection *conn, const char *uri)
 				utstring_clear(sbuf);
 				utstring_printf(sbuf, "%s%s?geodata=1%s",
 					buf,
-					conn->uri,
+					viewname, // conn->uri,
 					p+strlen("@@@GEO@@@"));
 				mg_printf_data(conn, "%s", UB(sbuf));
 			} else if ((p = strstr(buf, "@@@LASTPOS@@@")) != NULL) {
@@ -523,7 +527,7 @@ static int view(struct mg_connection *conn, const char *uri)
 				utstring_clear(sbuf);
 				utstring_printf(sbuf, "%s%s?lastpos=1%s",
 					buf,
-					conn->uri,
+					viewname, // conn->uri,
 					p+strlen("@@@LASTPOS@@@"));
 				mg_printf_data(conn, "%s", UB(sbuf));
 			} else {
@@ -586,7 +590,13 @@ static int view(struct mg_connection *conn, const char *uri)
 			json_foreach(loc, locarray) {
 				JsonNode *v;
 				json_foreach(v, view) {
-					json_copy_element_to_object(loc, v->key, v);
+					if (!strcmp(v->key, "auth"))
+						continue;
+					// printf("%d %s\n", v->tag, v->key);
+					if (v->tag == JSON_OBJECT)
+						json_copy_to_object(loc, v, FALSE);
+					else
+						json_copy_element_to_object(loc, v->key, v);
 				}
 			}
 
@@ -866,7 +876,7 @@ static int authorize_digest(struct mg_connection *c, char *hash_ha1)
 	mg_md5(expected_response, hash_ha1, ":", nonce, ":", nc,
 		":", cnonce, ":", qop, ":", ha2, NULL);
 
-#if 1
+#if 0
 	printf("method = %s\n", c->request_method);
 	printf("ha1 = %s\n", hash_ha1);
 	printf("uri = %s\n", uri);
@@ -910,12 +920,22 @@ static int authorize(struct mg_connection *conn)
 
 	if ((view = loadview(ud, viewname)) != NULL) {
 
-		/* If we have no 'auth' element, access is granted because nothing to check */
-		if ((j = json_find_member(view, "auth")) != NULL) {
-			char *auth = j->string_;
+		/*
+		 * If we have no 'auth' element, access is granted because nothing to check.
+		 * Otherwise, "auth" is an array of HA1 strings.
+		 */
 
-			authorized = authorize_digest(conn, auth);
-			debug(ud, "AUTHTOKEN=%s, AUTHORIZED=%d", auth, authorized);
+		if ((j = json_find_member(view, "auth")) != NULL) {
+			JsonNode *ha1;
+
+			json_foreach(ha1, j) {
+				char *hash_ha1 = ha1->string_;
+
+				authorized = authorize_digest(conn, hash_ha1);
+				debug(ud, "AUTHTOKEN=%s, AUTHORIZED=%d", hash_ha1, authorized);
+				if (authorized)
+					break;
+			}
 		}
 		json_delete(view);
 	}
