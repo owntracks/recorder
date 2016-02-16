@@ -7,7 +7,8 @@ tempdir=$(mktemp -d /tmp/ot-XXX)
 make install DESTDIR=$tempdir
 
 name="ot-recorder"
-version=$(awk '{print $NF;}' version.h | sed -e 's/"//g' )
+# add -0 to indicate "not in Debian" as per Roger's suggestion
+version="$(awk '{print $NF;}' version.h | sed -e 's/"//g' )-0"
 arch=$(uname -m)
 
 case $arch in
