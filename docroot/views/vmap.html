@@ -8,13 +8,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <style type="text/css">
-      body {  font-size: 80%; padding: 0px; margin: 0px; }
+	html { height: 100%; }
+	body { height: 100%; margin: 0px; padding: 0px; }
+	#map-canvas { height: 100%; }
 
-      #map-canvas { height: 100% }
       .extrainfo { font-size: 80%; }
       .latlon { color: gray; }
-
-
+      .block1 { float: left; }
+      .block2 { border 1px solid; background-color: white; width: 40px; height: 40px; float: right; margin-left: 20px; margin-right: 0px; padding-right: 0; }
+      .img-circle { border-radius: 50%; border: 1px solid #CACACA; }
     </style>
      <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
      <script src="../static/js/jquery-1.12.0.min.js"></script>
@@ -31,7 +33,7 @@
 
 	function clog(upd, id, s) {
 		var ident = id || 'unknown';
-		console.log(upd + ": " + ident + " " + s);
+		console.log(upd + " " + Math.round(new Date().getTime()/1000.0) + ": " + ident + " " + s);
 	}
 
 	function setmarkers() {
@@ -65,7 +67,11 @@
 					devices.push(json[n]);
 				}
 				return (json.length);
-			 }
+			 },
+			'error': function (xhr, text, error) {
+				console.log(error);
+				return (-1);
+			}
 		    });
 		})();
 
@@ -125,9 +131,16 @@
 			return;
 		}
 		
-		lat = devices[0].lat;
-		lon = devices[0].lon;
-		tst = devices[0].tst;
+		try {
+			lat = devices[0].lat;
+			lon = devices[0].lon;
+			tst = devices[0].tst;
+		} catch (err) {
+			document.write("NO data");
+			return;
+		}
+
+		// FIXME: we can use "center" from VIEW to nail the map
 
 		var center = new google.maps.LatLng(lat,lon);
 		
@@ -194,7 +207,8 @@
 	
 	        var userdev = loc.label ? loc.label : loc.tid;
 
-	
+		var facedata;
+
 	        var data = {
 	                userdev: userdev,
 	                ghash:  loc.ghash ? loc.ghash : '',
@@ -202,15 +216,25 @@
 	                lat:    loc.lat,
 	                lon:    loc.lon,
 	                fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
+			facedata: loc.face,
 	        };
 	
 	        if (loc.addr) {
-	                htmldesc = "<b>{{userdev}}</b><br/>{{addr}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+	                htmldesc = "<div class='block1'><b>{{userdev}}</b><br/>{{addr}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+
+
 	                shortdesc = "{{userdev}} {{addr}}";
 	        } else {
-	                htmldesc = "<b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+	                htmldesc = "<div class='block1'><b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
 	                shortdesc = "{{userdev}} {{lat}},{{lon}}";
 	        }
+
+
+		if (loc.face) {
+			htmldesc = htmldesc + "</div><div class='block2' id='avatar'><img class='img-circle' src='data:image/png;base64,{{ facedata }}' height='35' width='35' /></div>";
+		} else {
+			htmldesc = htmldesc + "</div><div class='block2' id='avatar'></div>";
+		}
 	
 	        loc.description = Mustache.render(shortdesc, data);
 	        loc.htmldesc = Mustache.render(htmldesc, data);
@@ -270,8 +294,6 @@
     </script>
   </head>
   <body>
-    <div>
-      <div id="map-canvas" style='width: 100vw; height: 100vh;'/></div>
-    </div>
+      <div id="map-canvas"></div>
   </body>
 </html>
