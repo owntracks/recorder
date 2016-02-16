@@ -397,6 +397,8 @@ static int send_status(struct mg_connection *conn, int status, char *text)
  *	  "disptst": "2015-09-18 20:59:59"
  *	 }
  *	]
+ *
+ * If `limit' then just one, and we add CARD details (face and name).
  */
 
 static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
@@ -440,8 +442,26 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 				locations(f->string_, obj, locs, s_lo, s_hi, JSON, limit, NULL, NULL, NULL);
 				if (limit) {
 					i_have += limit;
-					if (i_have >= limit)
+					if (i_have >= limit) {
+						JsonNode *o, *c = json_mkobject();
+						append_card_to_object(c, ju->string_);
+
+						/* Add card details to 0th locs element */
+						if ((o = json_find_element(locs, 0)) != NULL) {
+							JsonNode *face, *name;
+
+							face = json_find_member(c, "face");
+							name = json_find_member(c, "name");
+
+							if (face)
+								json_append_member(o, "face", json_mkstring(face->string_));
+							if (name)
+								json_append_member(o, "name", json_mkstring(name->string_));
+							// puts(json_stringify(o, " "));
+						}
+						json_delete(c);
 						break;
+					}
 				}
 			}
 		}
