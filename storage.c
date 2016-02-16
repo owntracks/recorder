@@ -178,10 +178,25 @@ static void get_gw_data(char *username, char *device, JsonNode *last)
 
 #endif /* GREENWICH */
 
+void append_card_to_object(JsonNode *obj, char *user)
+{
+	char path[BUFSIZ];
+	JsonNode *card;
+
+	snprintf(path, BUFSIZ, "%s/cards/%s/%s.json",
+		STORAGEDIR, user, user);
+
+	card = json_mkobject();
+	if (json_copy_from_file(card, path) == TRUE) {
+		json_copy_to_object(obj, card, FALSE);
+	}
+	json_delete(card);
+}
+
 void append_device_details(JsonNode *userlist, char *user, char *device)
 {
 	char path[BUFSIZ];
-	JsonNode *node, *last, *card;
+	JsonNode *node, *last;
 
 	snprintf(path, BUFSIZ, "%s/last/%s/%s/%s-%s.json",
 		STORAGEDIR, user, device, user, device);
@@ -198,14 +213,8 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 		json_append_element(userlist, last);
 	}
 
-	snprintf(path, BUFSIZ, "%s/cards/%s/%s.json",
-		STORAGEDIR, user, user);
+	append_card_to_object(last, user);
 
-	card = json_mkobject();
-	if (json_copy_from_file(card, path) == TRUE) {
-		json_copy_to_object(last, card, FALSE);
-	}
-	json_delete(card);
 
 	if ((node = json_find_member(last, "ghash")) != NULL) {
 		if (node->tag == JSON_STRING) {
