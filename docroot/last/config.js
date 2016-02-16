@@ -6,4 +6,5 @@
 var renames = {
 	'jjolie/phone' : 'Jane Jolie',
 	'john/android' : "John Smith",
+
 };

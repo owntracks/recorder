@@ -10,9 +10,10 @@
     <link rel="apple-touch-icon" href="../img/recorder.png" />
 
     <style type="text/css">
+     html { height: 100%; }
+     body { height: 100%; margin: 0px; padding: 0px; }
+     #map-canvas { height: 100%; }
       body {  font-size: 80%; padding: 0; margin: 0px; }
-
-      #map-canvas { height: 100vh; }
 
     </style>
      <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
@@ -21,9 +22,6 @@
     <script src="functions.js"></script>
   </head>
   <body>
-
-    <div>
-      <div id="map-canvas" style='width: 100vw; height: 100vh;'/></div>
-    </div>
+      <div id="map-canvas"></div>
   </body>
 </html>

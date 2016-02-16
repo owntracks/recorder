@@ -10,12 +10,14 @@
     <link rel="icon" sizes="192x192" href="../img/recorder.png" />
     <link rel="apple-touch-icon" href="../img/recorder.png" />
     <style type="text/css">
+     html { height: 100% }
+     body { height: 100%; margin: 0px; padding: 0px }
       body {  font-size: 80%; margin: 0; padding: 0; }
 
       td { border-bottom: 1px solid; border-right: 1px dotted;}
 
       #map-canvas { height: 100% }
-      #wrapper { position: relative; }
+      #wrapper { position: relative; height: 100%; }
       #maplabel { position: absolute; top: 10px; left: 120px; z-index: 99;
 	background: white;
 	font-size: 1.2em;
@@ -38,7 +40,7 @@
   <body>
   	<div id="output"></div>
     <div id="wrapper">
-      <div id="map-canvas" style='width: 100vw; height: 100vh;'/></div>
+      <div id="map-canvas"></div>
       <div id="maplabel"></div>
     </div>
   </body>
