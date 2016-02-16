@@ -127,6 +127,8 @@ function map_marker(loc)
 	var username = (s[0]) ? s[1] : s[2];	/* cater for leading / in topic */
 	var device = (s[0]) ? s[2] : s[3];	/* cater for leading / in topic */
 
+	console.log(loc);
+
 	var dt = moment.utc(loc.tst * 1000).local();
 
 	var userdev = username + "/" + device;
@@ -139,6 +141,7 @@ function map_marker(loc)
 		lat:	loc.lat,
 		lon:	loc.lon,
 		fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
+		facedata: loc.face,
 	};
 
 	if (loc.addr) {
@@ -147,6 +150,12 @@ function map_marker(loc)
 	} else {
 		htmldesc = "<b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
 		shortdesc = "{{userdev}} {{lat}},{{lon}}";
+	}
+
+	if (loc.face) {
+		htmldesc = htmldesc + "</div><div class='block2' id='avatar'><img class='img-circle' src='data:image/png;base64,{{ facedata }}' height='35' width='35' /></div>";
+	} else {
+		htmldesc = htmldesc + "</div><div class='block2' id='avatar'></div>";
 	}
 
 	loc.description = Mustache.render(shortdesc, data);
