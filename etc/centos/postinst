@@ -8,7 +8,7 @@
 set -e
 
 case "$1" in
-    1)
+    1|2)
         getent group owntracks > /dev/null || /usr/sbin/groupadd --system owntracks
         getent passwd owntracks > /dev/null || adduser --system -g owntracks --no-create-home owntracks
         mkdir -p /var/spool/owntracks/recorder/store/last
