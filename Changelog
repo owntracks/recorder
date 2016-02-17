@@ -1,4 +1,13 @@
 
+2016-02-17 version 0.5.0
+- FIX: License: GPL2 (#18)
+- NEW: view contains CARD's avatar if available, as does last/
+- FIX: map heights _ought_ to now be ok, also on mobile devices
+- NEW: small utility for creating view auth
+- NEW: support for VIEWs with optional digest authentication
+- NEW: gravatar2card.sh and github2card.py in contrib/faces
+- FIX: use of limit in locations api
+
 2016-02-09 version 0.4.9
 - NEW: introduce /etc/default/ot-recorder
 - UPD: GPX output now contains elevation and UTC time
