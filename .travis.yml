@@ -1,11 +1,11 @@
 language: c
 compiler: gcc
 before_install:
-# Fix apt preferences for libconfig
-- "echo 'Package: libconfig*' | sudo tee -a /etc/apt/preferences"
-- "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
-- "echo 'Pin-Priority: 990' | sudo tee -a /etc/apt/preferences"
-- sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y --fix-missing -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
+## Fix apt preferences for libconfig
+#- "echo 'Package: libconfig*' | sudo tee -a /etc/apt/preferences"
+#- "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
+#- "echo 'Pin-Priority: 990' | sudo tee -a /etc/apt/preferences"
+#- sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y --fix-missing -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
 - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
 - sudo DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_FRONTEND=noninteractive apt-get update -qq
 - apt-cache search mosquitto
