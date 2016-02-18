@@ -5,7 +5,7 @@ before_install:
 - "echo 'Package: libconfig*' | sudo tee -a /etc/apt/preferences"
 - "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
 - "echo 'Pin-Priority: 990' | sudo tee -a /etc/apt/preferences"
-- sudo DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_FRONTEND=noninteractive apt-get -qq --fix-missing dist-upgrade
+- sudo apt-get -qq --fix-missing -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold dist-upgrade
 - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
 - sudo DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_FRONTEND=noninteractive apt-get update -qq
 - apt-cache search mosquitto
