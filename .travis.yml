@@ -1,6 +1,7 @@
 language: c
 compiler: gcc
 before_install:
+- export DEBCONF_NONINTERACTIVE_SEEN=true
 # Fix apt preferences for libconfig
 - "echo 'Package: libconfig*' | sudo tee -a /etc/apt/preferences"
 - "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
