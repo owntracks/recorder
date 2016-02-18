@@ -1,4 +1,6 @@
 
+- UPD: startup log message includes version
+
 2016-02-18 version 0.5.1
 - FIX: RHEL postinstall shoud run on update as well
 
