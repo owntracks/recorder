@@ -50,6 +50,7 @@
 #if WITH_ENCRYPT
 # include <sodium.h>
 #endif
+#include "version.h"
 
 
 #define SSL_VERIFY_PEER (1)
@@ -1579,7 +1580,7 @@ int main(int argc, char **argv)
 		udata.mgserver = mg_create_server(ud, ev_handler);
 	}
 #endif
-	olog(LOG_DEBUG, "starting with STORAGEDIR=%s", STORAGEDIR);
+	olog(LOG_DEBUG, "version %s starting with STORAGEDIR=%s", VERSION, STORAGEDIR);
 
 	if (ud->revgeo == TRUE) {
 #ifdef WITH_LMDB
