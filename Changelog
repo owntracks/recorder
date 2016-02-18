@@ -1,4 +1,7 @@
 
+2016-02-18 version 0.5.1
+- FIX: RHEL postinstall shoud run on update as well
+
 2016-02-17 version 0.5.0
 - FIX: License: GPL2 (#18)
 - NEW: view contains CARD's avatar if available, as does last/
