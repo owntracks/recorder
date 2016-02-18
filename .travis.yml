@@ -1,14 +1,13 @@
 language: c
 compiler: gcc
 before_install:
-- export DEBCONF_NONINTERACTIVE_SEEN=true
 # Fix apt preferences for libconfig
 - "echo 'Package: libconfig*' | sudo tee -a /etc/apt/preferences"
 - "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
 - "echo 'Pin-Priority: 990' | sudo tee -a /etc/apt/preferences"
 - sudo apt-get -qq --fix-missing dist-upgrade
 - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
-- sudo apt-get update -qq
+- sudo DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_FRONTEND=noninteractive apt-get update -qq
 - apt-cache search mosquitto
 - sudo apt-get install -qq libmosquitto-dev libconfig8-dev
 script:
