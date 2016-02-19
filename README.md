@@ -883,6 +883,24 @@ The content of the request is used by the Recorder as though it had arrived as a
 
 If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
 
+### Authentication
+
+In HTTP mode, the Recorder provides no form of authentication; anybody who "stumbles" over the correct endpoint will be able to post location data to your Recorder! You do not want this to happen.
+
+Install, say, an _nginx_ proxy before it and ensure it's configured for HTTP basic authentication:
+
+```
+# - Recorder PUB -----------------------------------------------------------
+location /owntracks/pub {
+    auth_basic              "OwnTracks pub";
+    auth_basic_user_file    /usr/local/etc/nginx/owntracks.htpasswd;
+    proxy_pass              http://127.0.0.1:8083/pub;
+    proxy_http_version      1.1;
+    proxy_set_header        Host $host;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
 ## Advanced topics
 
 ### The LMDB database
