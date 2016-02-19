@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include "recorder.h"
 #include "json.h"
 #include "util.h"
 #include "misc.h"
@@ -370,6 +371,47 @@ static int send_status(struct mg_connection *conn, int status, char *text)
 	mg_send_status(conn, status);
 	mg_printf_data(conn, text);
 	return (MG_TRUE);
+}
+
+/*
+ * Invoked from an HTTP POST to /pub?u=username&d=devicename
+ * We need u and d in order to contruct a topic name. Obtain
+ * the content of the POST request and give it to the recorder
+ * to do the needful. :)
+ */
+
+static int dopublish(struct mg_connection *conn, const char *uri)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	char *payload, *u, *d;
+	static UT_string *topic = NULL;
+
+
+	if ((u = field(conn, "u")) == NULL) {
+		u = strdup("owntracks");
+	}
+
+	if ((d = field(conn, "d")) == NULL) {
+		d = strdup("phone");
+	}
+
+	utstring_renew(topic);
+	utstring_printf(topic, "owntracks/%s/%s", u, d);
+	free(u);
+	free(d);
+
+
+	payload = malloc(conn->content_len + 1);
+	memcpy(payload, conn->content, conn->content_len);
+	payload[conn->content_len] = 0;
+
+	debug(ud, "HTTPPUB clen=%zu, topic=%s", conn->content_len, UB(topic));
+
+	handle_message(ud, UB(topic), payload, conn->content_len, 0);
+
+	free(payload);
+
+	return json_response(conn, NULL);
 }
 
 /*
@@ -1030,6 +1072,12 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			}
 
 
+
+			if (!strcmp(conn->request_method, "POST")) {
+				if (!strcmp(conn->uri, "/pub")) {
+					return dopublish(conn, conn->uri + strlen("/pub"));
+				}
+			}
 
 			if (!strcmp(conn->request_method, "POST")) {
 

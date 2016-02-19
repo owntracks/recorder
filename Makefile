@@ -1,7 +1,7 @@
 include config.mk
 
-CFLAGS	=-Wall -Werror $(MOSQUITTO_INC)
-LIBS	= $(MORELIBS) $(MOSQUITTO_LIB) -lmosquitto -lm
+CFLAGS	=-Wall -Werror
+LIBS	= $(MORELIBS) -lm
 LIBS 	+= -lcurl -lconfig
 
 TARGETS=
@@ -17,6 +17,12 @@ OTR_OBJS = json.o \
 OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
+
+ifeq ($(WITH_MQTT),yes)
+	CFLAGS += -DWITH_MQTT=1
+	CFLAGS += $(MOSQUITTO_INC)
+	LIBS += $(MOSQUITTO_LIB) -lmosquitto -lm
+endif
 
 ifeq ($(WITH_PING),yes)
 	CFLAGS += -DWITH_PING=1

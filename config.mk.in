@@ -2,6 +2,9 @@
 
 INSTALLDIR = /usr/local
 
+# Do you want support for MQTT?
+WITH_MQTT ?= yes
+
 # Do you want recorder's built-in HTTP REST API?
 WITH_HTTP ?= yes
 

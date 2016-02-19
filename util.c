@@ -212,6 +212,14 @@ int splitter(char *s, char *sep, char **parts)
         return (nt);
 }
 
+void splitterfree(char **parts)
+{
+	int n;
+
+	for (n = 0; parts[n] != NULL; n++)
+		free(parts[n]);
+}
+
 /*
  * Split a string separated by characters in `sep' into a JSON
  * array and return that or NULL on error.

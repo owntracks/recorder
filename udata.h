@@ -14,10 +14,12 @@
 struct udata {
 	JsonNode *topics;		/* Array of topics to subscribe to */
 	int ignoreretained;		/* True if retained messages should be ignored */
+#if WITH_MQTT
 	char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
+	int qos;			/* Subscribe QoS */
+#endif
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
-	int qos;			/* Subscribe QoS */
 	int verbose;			/* TRUE if print verbose messages to stdout */
 	int norec;			/* If TRUE, no .REC files are written to */
 #ifdef WITH_LMDB

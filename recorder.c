@@ -24,7 +24,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <mosquitto.h>
+#if WITH_MQTT
+# include <mosquitto.h>
+#endif
 #include <getopt.h>
 #include <time.h>
 #include <math.h>
@@ -152,6 +154,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	return (rc);
 }
 
+#ifdef WITH_MQTT
 void republish(struct mosquitto *mosq, struct udata *userdata, char *username, char *topic, double lat, double lon, char *cc, char *addr, long tst, char *t)
 {
 	struct udata *ud = (struct udata *)userdata;
@@ -190,6 +193,7 @@ void republish(struct mosquitto *mosq, struct udata *userdata, char *username, c
         json_delete(json);
 
 }
+#endif /* WITH_MQTT */
 
 /*
  * Quickly check wheterh the payload looks like
@@ -594,7 +598,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	double lat, lon, acc;
 	long tst;
 	struct udata *ud = (struct udata *)userdata;
-        char **topics;
+        char *topics[42];
         int count = 0, cached;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
 	static UT_string *reltopic = NULL;
@@ -617,6 +621,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	time(&now);
 	monitorhook(ud, now, topic);
 
+	debug(ud, "%s (plen=%d, r=%d)", topic, payloadlen, retain);
 	if (payloadlen == 0) {
 		return;
 	}
@@ -633,7 +638,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	utstring_renew(username);
 	utstring_renew(device);
 
-        if (mosquitto_sub_topic_tokenise(topic, &topics, &count) != MOSQ_ERR_SUCCESS) {
+        if ((count = splitter(topic, "/", topics)) == -1) {
 		return;
 	}
 
@@ -649,7 +654,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	}
 	if (count - skipslash < 3) {
 		fprintf(stderr, "Ignoring short topic %s\n", topic);
-		mosquitto_sub_topic_tokens_free(&topics, count);
+		splitterfree(topics);
 		return;
 	}
 
@@ -702,7 +707,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 #endif
 
-	mosquitto_sub_topic_tokens_free(&topics, count);
+	splitterfree(topics);
 
 	/*
 	 * Now let's see if this contains some sort of valid JSON
@@ -1129,6 +1134,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if (_typestr)	free(_typestr);
 }
 
+#ifdef WITH_MQTT
+
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *m)
 {
 	struct udata *ud = (struct udata *)userdata;
@@ -1183,6 +1190,8 @@ void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 	}
 }
 
+#endif /* WITH_MQTT */
+
 static void catcher(int sig)
 {
         fprintf(stderr, "Going down on signal %d\n", sig);
@@ -1191,17 +1200,25 @@ static void catcher(int sig)
 
 void usage(char *prog)
 {
-	printf("Usage: %s [options..] topic [topic ...]\n", prog);
+	printf("Usage: %s [options..] ", prog);
+#ifdef WITH_MQTT
+	printf("topic [topic ...]\n");
+#else
+	printf("\n");
+#endif
 	printf("  --help		-h	this message\n");
 	printf("  --storage		-S     storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G     disable ghash to reverge-geo lookups\n");
 	printf("  --skipdemo 		-D     do handle objects with _demo (default: don't)\n");
+#if WITH_MQTT
 	printf("  --useretained		-R     process retained messages (default: no)\n");
 	printf("  --clientid		-i     MQTT client-ID\n");
 	printf("  --qos			-q     MQTT QoS (dflt: 2)\n");
 	printf("  --pubprefix		-P     republish prefix (dflt: no republish)\n");
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
+	printf("  --hosted		       use OwnTracks Hosted\n");
+#endif
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
 	printf("  --initialize		       initialize storage\n");
@@ -1215,15 +1232,15 @@ void usage(char *prog)
 	printf("  --lua-script <script.lua>    path to Lua script. If unset, no Lua hooks\n");
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
-	printf("  --hosted		       use OwnTracks Hosted\n");
 	printf("  --norec		       don't maintain REC files\n");
 	printf("  --geokey		       optional Google reverse-geo API key\n");
 	printf("  --debug  		       additional debugging\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");
+	printf("  $OTR_STORAGEDIR\n");
+#ifdef WITH_MQTT
 	printf("  $OTR_HOST		MQTT hostname\n");
 	printf("  $OTR_PORT		MQTT port\n");
-	printf("  $OTR_STORAGEDIR\n");
 	printf("  $OTR_USER\n");
 	printf("  $OTR_PASS\n");
 	printf("  $OTR_CAFILE		PEM CA certificate chain\n");
@@ -1231,6 +1248,7 @@ void usage(char *prog)
 	printf("  $OTR_USER		username as registered on Hosted\n");
 	printf("  $OTR_DEVICE		connect as device\n");
 	printf("  $OTR_TOKEN		device token\n");
+#endif
 
 	exit(1);
 }
@@ -1238,18 +1256,24 @@ void usage(char *prog)
 
 int main(int argc, char **argv)
 {
+#if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	char err[1024], *p, *username, *password, *cafile, *device;
-	char *hostname = "localhost", *logfacility = "local0";
+	char *username, *password, *cafile, *device;
+	char *hostname = "localhost";
+	int port = 1883;
+	int hosted = FALSE;
+	UT_string *clientid;
+	int rc, i;
+	struct utsname uts;
+#endif /* WITH_MQTT */
+	char err[1024], *p;
+	char *logfacility = "local0";
 #ifdef WITH_LUA
 	char *luascript = NULL;
 #endif
-	int port = 1883;
 	int loop_timeout = 0;
-	int rc, i, ch, hosted = FALSE, initialize = FALSE;
+	int ch, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
-	struct utsname uts;
-	UT_string *clientid;
 #ifdef WITH_HTTP
 	int http_port = 8083;
 	char *doc_root = DOCROOT;
@@ -1257,9 +1281,11 @@ int main(int argc, char **argv)
 #endif
 	char *progname = *argv;
 
+#if WITH_MQTT
 	udata.qos		= DEFAULT_QOS;
-	udata.ignoreretained	= TRUE;
 	udata.pubprefix		= NULL;
+#endif
+	udata.ignoreretained	= TRUE;
 	udata.skipdemo		= TRUE;
 	udata.revgeo		= TRUE;
 	udata.verbose		= TRUE;
@@ -1288,6 +1314,7 @@ int main(int argc, char **argv)
 
 	get_defaults(CONFIGFILE, &udata);
 
+#if WITH_MQTT
 	if ((p = getenv("OTR_HOST")) != NULL) {
 		hostname = strdup(p);
 	}
@@ -1295,33 +1322,38 @@ int main(int argc, char **argv)
 	if ((p = getenv("OTR_PORT")) != NULL) {
 		port = atoi(p);
 	}
+#endif
 
 	if ((p = getenv("OTR_STORAGEDIR")) != NULL) {
 		strcpy(STORAGEDIR, p);
 	}
 
+#if WITH_MQTT
 	utstring_new(clientid);
 	utstring_printf(clientid, "ot-recorder");
 	if (uname(&uts) == 0) {
 		utstring_printf(clientid, "-%s", uts.nodename);
 	}
 	utstring_printf(clientid, "-%d", getpid());
+#endif
 
 	while (1) {
 		static struct option long_options[] = {
 			{ "help",	no_argument,		0, 	'h'},
 			{ "skipdemo",	no_argument,		0, 	'D'},
 			{ "norevgeo",	no_argument,		0, 	'G'},
+#if WITH_MQTT
 			{ "useretained",	no_argument,		0, 	'R'},
 			{ "clientid",	required_argument,	0, 	'i'},
 			{ "pubprefix",	required_argument,	0, 	'P'},
 			{ "qos",	required_argument,	0, 	'q'},
 			{ "host",	required_argument,	0, 	'H'},
 			{ "port",	required_argument,	0, 	'p'},
+			{ "hosted",	no_argument,		0, 	6},
+#endif /* !MQTT */
 			{ "storage",	required_argument,	0, 	'S'},
 			{ "logfacility",	required_argument,	0, 	4},
 			{ "precision",	required_argument,	0, 	5},
-			{ "hosted",	no_argument,		0, 	6},
 			{ "quiet",	no_argument,		0, 	8},
 			{ "initialize",	no_argument,		0, 	9},
 			{ "label",	required_argument,	0, 	10},
@@ -1369,31 +1401,9 @@ int main(int argc, char **argv)
 				luascript = strdup(optarg);
 				break;
 #endif
+#ifdef WITH_MQTT
 			case 6:
 				hosted = TRUE;
-				break;
-			case 5:
-				geohash_setprec(atoi(optarg));
-				break;
-			case 4:
-				logfacility = strdup(optarg);
-				break;
-#ifdef WITH_HTTP
-			case 'A':	/* API */
-				http_port = atoi(optarg);
-				break;
-			case 2:		/* no short char */
-				doc_root = strdup(optarg);
-				break;
-			case 3:		/* no short char */
-				http_host = strdup(optarg);
-				break;
-#endif
-			case 'D':
-				ud->skipdemo = FALSE;
-				break;
-			case 'G':
-				ud->revgeo = FALSE;
 				break;
 			case 'i':
 				utstring_clear(clientid);
@@ -1417,6 +1427,30 @@ int main(int argc, char **argv)
 				break;
 			case 'p':
 				port = atoi(optarg);
+				break;
+#endif /* WITH_MQTT */
+			case 5:
+				geohash_setprec(atoi(optarg));
+				break;
+			case 4:
+				logfacility = strdup(optarg);
+				break;
+#ifdef WITH_HTTP
+			case 'A':	/* API */
+				http_port = atoi(optarg);
+				break;
+			case 2:		/* no short char */
+				doc_root = strdup(optarg);
+				break;
+			case 3:		/* no short char */
+				http_host = strdup(optarg);
+				break;
+#endif
+			case 'D':
+				ud->skipdemo = FALSE;
+				break;
+			case 'G':
+				ud->revgeo = FALSE;
 				break;
 			case 'S':
 				strcpy(STORAGEDIR, optarg);
@@ -1494,11 +1528,14 @@ int main(int argc, char **argv)
 	argc -= (optind);
 	argv += (optind);
 
+#ifdef WITH_MQTT
 	if (argc < 1) {
 		usage(progname);
 		return (-1);
 	}
+#endif
 
+#ifdef WITH_MQTT
 	if (hosted) {
 		char tmp[BUFSIZ];
 
@@ -1534,6 +1571,7 @@ int main(int argc, char **argv)
 		username = getenv("OTR_USER");
 		password = getenv("OTR_PASS");
 	}
+#endif /* WITH_MQTT */
 
 #ifdef WITH_HTTP
 	if (http_port) {
@@ -1598,12 +1636,12 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	mosquitto_lib_init();
-
-
 	signal(SIGINT, catcher);
 	signal(SIGTERM, catcher);
 	signal(SIGPIPE, SIG_IGN);
+
+#ifdef WITH_MQTT
+	mosquitto_lib_init();
 
 	mosq = mosquitto_new(UB(clientid), CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
@@ -1680,6 +1718,7 @@ int main(int argc, char **argv)
 		mosquitto_lib_cleanup();
 		return rc;
 	}
+#endif /* WITH_MQTT */
 
 #ifdef WITH_HTTP
 	if (http_port) {
@@ -1720,15 +1759,18 @@ int main(int argc, char **argv)
 #endif
 
 	while (run) {
+#ifdef WITH_MQTT
 		rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
 		if (run && rc) {
 			olog(LOG_INFO, "MQTT connection: rc=%d [%s] (errno=%d; %s). Sleeping...", rc, mosquitto_strerror(rc), errno, strerror(errno));
 			sleep(10);
 			mosquitto_reconnect(mosq);
 		}
+#endif
 #ifdef WITH_HTTP
 		if (udata.mgserver) {
-			mg_poll_server(udata.mgserver, 100);
+			// mg_poll_server(udata.mgserver, 100);
+			mg_poll_server(udata.mgserver, 50);
 		}
 #endif
 	}
@@ -1753,10 +1795,13 @@ int main(int argc, char **argv)
 #if WITH_LUA && WITH_LMDB
 	hooks_exit(ud->luadata, "recorder stops");
 #endif
+
+#ifdef WITH_MQTT
 	mosquitto_disconnect(mosq);
 
 	mosquitto_destroy(mosq);
 	mosquitto_lib_cleanup();
+#endif
 
 	return (0);
 }

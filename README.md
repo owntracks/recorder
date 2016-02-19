@@ -2,7 +2,7 @@
 
 ![Recorder logo](assets/recorder-logo-192.png)
 
-The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require external an external database. It is also suited for you to record and store the data you publish via our [Hosted mode](http://owntracks.org/booklet/features/hosted/).
+The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT (or HTTP) by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require external an external database. It is also suited for you to record and store the data you publish via our [Hosted mode](http://owntracks.org/booklet/features/hosted/).
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
 
@@ -14,7 +14,7 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 
 The _recorder_ serves two purposes:
 
-1. It subscribes to an MQTT broker and reads messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of plain files on the file system.
+1. It subscribes to an MQTT broker and reads messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of plain files on the file system. Alternatively the Recorder can listen on HTTP for OwnTracks-type JSON messages POSTed to its HTTP server.
 2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a Websocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
 
 
@@ -869,6 +869,19 @@ location /owntracks/static/ {
 ```
 
 You would then visit `http://example.com/owntracks/view/loire` to see the `loire` view, assuming `example.com` is your proxy.
+
+## HTTP mode
+
+If enabled at compile time (`WITH_HTTP`), the Recorder will accept OwnTracks-type JSON payloads via HTTP at the URL endpoint `/pub&u=username&d=device`. You specify the username with the `u` parameter and the device name with the `d` parameter. (Alternatively you can provide `X-Limit-U` and `X-Limit-D` as headers with the username and device name respectively.) If unspecified, the username defaults to `owntracks` and the device to `phone`. For example:
+
+```
+curl --data "${payload}" 'http://127.0.0.1:8085/pub?u=jane&d=3s'
+curl -H 'X-Limit-U: jane' -H 'X-Limit-D: 3s' --data "${payload}" 'http://127.0.0.1:8085/pub'
+```
+
+The content of the request is used by the Recorder as though it had arrived as an MQTT message.
+
+If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
 
 ## Advanced topics
 
