@@ -14,6 +14,7 @@ OTR_OBJS = json.o \
 	   util.o \
 	   storage.o \
 	   listsort.o
+OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
@@ -50,7 +51,7 @@ endif
 
 ifeq ($(WITH_HTTP),yes)
 	CFLAGS += -DWITH_HTTP=1
-	OTR_OBJS += mongoose.o http.o
+	OTR_EXTRA_OBJS += mongoose.o http.o
 endif
 
 ifeq ($(WITH_GREENWICH),yes)
@@ -70,8 +71,8 @@ TARGETS += ot-recorder ocat
 
 all: $(TARGETS)
 
-ot-recorder: recorder.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(LIBS)
+ot-recorder: recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS)
+	$(CC) $(CFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS) $(LIBS)
 	if test -r codesign.sh; then /bin/sh codesign.sh; fi
 
 ocat: ocat.o $(OTR_OBJS)
@@ -79,7 +80,7 @@ ocat: ocat.o $(OTR_OBJS)
 
 $(OTR_OBJS): config.mk Makefile
 
-recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h base64.h version.h
+recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h base64.h recorder.h version.h
 geo.o: geo.h geo.c udata.h
 geohash.o: geohash.h geohash.c udata.h
 base64.o: base64.h base64.c
