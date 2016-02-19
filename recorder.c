@@ -151,28 +151,6 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	return (rc);
 }
 
-void do_msg(void *userdata, UT_string *username, UT_string *device, JsonNode *json)
-{
-	struct udata *ud = (struct udata *)userdata;
-	FILE *fp;
-
-	/* I know the payload is valid JSON: write message */
-
-	if ((fp = pathn("ab", "msg", username, NULL, "json")) != NULL) {
-		char *js = json_stringify(json, NULL);
-
-		if (js) {
-			fprintf(fp, "%s\n", js);
-			free(js);
-		}
-		fclose(fp);
-	}
-
-	if (ud->verbose) {
-		printf("* MSG: %s-%s\n", UB(username), UB(device));
-	}
-}
-
 void republish(struct mosquitto *mosq, struct udata *userdata, char *username, char *topic, double lat, double lon, char *cc, char *addr, long tst, char *t)
 {
 	struct udata *ud = (struct udata *)userdata;
@@ -831,7 +809,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 			else if (!strcmp(j->string_, "card"))		_type = T_CARD;
 			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
 			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
-			else if (!strcmp(j->string_, "msg"))		_type = T_MSG;
 			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
 			else if (!strcmp(j->string_, "transition"))	_type = T_TRANSITION;
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
@@ -846,9 +823,6 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 	switch (_type) {
 		case T_CARD:
 			do_info(ud, username, device, json);
-			goto cleanup;
-		case T_MSG:
-			do_msg(ud, username, device, json);
 			goto cleanup;
 		case T_BEACON:
 #ifdef WITH_HTTP
