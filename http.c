@@ -386,7 +386,6 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	char *payload, *u, *d;
 	static UT_string *topic = NULL;
 
-
 	if ((u = field(conn, "u")) == NULL) {
 		u = strdup("owntracks");
 	}
@@ -400,10 +399,9 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	free(u);
 	free(d);
 
-
-	payload = malloc(conn->content_len + 1);
+	/* We need a nul-terminated payload in handle_message() */
+	payload = calloc(sizeof(char), conn->content_len + 1);
 	memcpy(payload, conn->content, conn->content_len);
-	payload[conn->content_len] = 0;
 
 	debug(ud, "HTTPPUB clen=%zu, topic=%s", conn->content_len, UB(topic));
 
