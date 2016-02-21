@@ -621,7 +621,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	time(&now);
 	monitorhook(ud, now, topic);
 
-	debug(ud, "%s (plen=%d, r=%d)", topic, payloadlen, retain);
+	debug(ud, "%s (plen=%d, r=%d) [%s]", topic, payloadlen, retain, payload);
 	if (payloadlen == 0) {
 		return;
 	}
@@ -1271,7 +1271,9 @@ int main(int argc, char **argv)
 #ifdef WITH_LUA
 	char *luascript = NULL;
 #endif
-	int loop_timeout = 0;
+#if WITH_MQTT
+	int loop_timeout = 1000;
+#endif
 	int ch, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
@@ -1750,13 +1752,6 @@ int main(int argc, char **argv)
 #endif
 
 	olog(LOG_INFO, "Using storage at %s with precision %d", STORAGEDIR, geohash_prec());
-
-#ifdef WITH_HTTP
-	if (udata.mgserver == NULL)
-		loop_timeout = 1000;
-#else
-	loop_timeout = 1000;
-#endif
 
 	while (run) {
 #ifdef WITH_MQTT
