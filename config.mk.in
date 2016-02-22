@@ -8,9 +8,6 @@ WITH_MQTT ?= yes
 # Do you want recorder's built-in HTTP REST API?
 WITH_HTTP ?= yes
 
-# Do you want to use reverse-geo caching? (Highly recommended)
-WITH_LMDB ?= yes
-
 # Do you have Lua libraries installed and want the Lua hook integration?
 WITH_LUA ?= no
 

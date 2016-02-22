@@ -41,9 +41,7 @@
 #include "misc.h"
 #include "util.h"
 #include "storage.h"
-#ifdef WITH_LMDB
-# include "gcache.h"
-#endif
+#include "gcache.h"
 #ifdef WITH_HTTP
 # include "http.h"
 #endif
@@ -929,7 +927,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	}
 #endif
 
-#ifdef WITH_LMDB
 	/*
 	 * If the topic we are handling is in topic2tid, replace the TID
 	 * in this payload with that from the database.
@@ -945,7 +942,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			json_append_member(json, "tid", json_mkstring(newtid));
 		}
 	}
-#endif
 
 	/*
 	 * Chances are high that what we have now contains lat, lon. Attempt to
@@ -964,7 +960,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
-#ifdef WITH_LMDB
 		if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
 			/* Habemus cached data */
 			
@@ -993,11 +988,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				}
 			}
 		}
-#else /* !LMDB */
-		if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
-			;
-		}
-#endif /* LMDB */
 	} else {
 		utstring_printf(cc, "??");
 		utstring_printf(addr, "n.a.");
@@ -1083,11 +1073,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 #endif
 
 #ifdef WITH_LUA
-# ifdef WITH_LMDB
 	if (ud->luadata && !pingping) {
 		hooks_hook(ud, topic, json);
 	}
-# endif /* LMDB */
 #endif
 
 	if (ud->verbose) {
@@ -1177,14 +1165,10 @@ static char *mosquitto_reason(int rc)
 
 void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 {
-#ifdef WITH_LMDB
 	struct udata *ud = (struct udata *)userdata;
-#endif
 
 	if (reason == 0) { 	// client wish
-#ifdef WITH_LMDB
 		gcache_close(ud->gc);
-#endif
 	} else {
 		olog(LOG_INFO, "Disconnected. Reason: 0x%X [%s]", reason, mosquitto_reason(reason));
 	}
@@ -1286,21 +1270,17 @@ int main(int argc, char **argv)
 	udata.revgeo		= TRUE;
 	udata.verbose		= TRUE;
 	udata.norec		= FALSE;
-#ifdef WITH_LMDB
 	udata.gc		= NULL;
 	udata.t2t		= NULL;		/* Topic to TID */
 # ifdef WITH_RONLY
 	udata.ronlydb		= NULL;		/* RONLY db */
 # endif
-#endif
 #ifdef WITH_HTTP
 	udata.mgserver		= NULL;
 #endif
 #ifdef WITH_LUA
-# ifdef WITH_LMDB
 	udata.luadata		= NULL;
 	udata.luadb		= NULL;
-# endif /* WITH_LMDB */
 #endif /* WITH_LUA */
 	udata.label		= strdup("OwnTracks");
 	udata.geokey		= NULL;		/* default: no API key */
@@ -1463,9 +1443,7 @@ int main(int argc, char **argv)
 	 */
 
 	if (initialize == TRUE) {
-#ifdef WITH_LMDB
 		struct gcache *gt;
-#endif
 
 		char path[BUFSIZ], *pp;
 		snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
@@ -1480,7 +1458,6 @@ int main(int argc, char **argv)
 
 		}
 
-#ifdef WITH_LMDB
 		if ((gt = gcache_open(path, NULL, FALSE)) == NULL) {
 			fprintf(stderr, "Cannot lmdb-open MainDB\n");
 			exit(2);
@@ -1513,7 +1490,6 @@ int main(int argc, char **argv)
 		}
 		gcache_close(gt);
 #endif /* !ENCRYPT */
-#endif
 		exit(0);
 	}
 
@@ -1545,7 +1521,6 @@ int main(int argc, char **argv)
 	olog(LOG_DEBUG, "version %s starting with STORAGEDIR=%s", VERSION, STORAGEDIR);
 
 	if (ud->revgeo == TRUE) {
-#ifdef WITH_LMDB
 		char db_filename[BUFSIZ], *pa;
 
 		snprintf(db_filename, BUFSIZ, "%s/ghash", STORAGEDIR);
@@ -1558,11 +1533,9 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		storage_init(ud->revgeo);	/* For the HTTP server */
-#endif
 		revgeo_init();
 	}
 
-#ifdef WITH_LMDB
 	snprintf(err, sizeof(err), "%s/ghash", STORAGEDIR);
 	ud->t2t = gcache_open(err, "topic2tid", TRUE);
 # ifdef WITH_LUA
@@ -1574,9 +1547,8 @@ int main(int argc, char **argv)
 # ifdef WITH_ENCRYPT
 	ud->keydb = gcache_open(err, "keys", TRUE);
 # endif
-#endif
 
-#if WITH_LUA && WITH_LMDB
+#if WITH_LUA
 	/*
 	 * If option for lua-script has not been given, ignore all hooks.
 	 */
@@ -1725,13 +1697,11 @@ int main(int argc, char **argv)
 
 	json_delete(ud->topics);
 
-#ifdef WITH_LMDB
 	if (ud->t2t)
 		gcache_close(ud->t2t);
-# ifdef WITH_LUA
+#ifdef WITH_LUA
 	if (ud->luadb)
 		gcache_close(ud->luadb);
-# endif
 #endif
 
 	free(ud->label);
@@ -1740,7 +1710,7 @@ int main(int argc, char **argv)
 	mg_destroy_server(&udata.mgserver);
 #endif
 
-#if WITH_LUA && WITH_LMDB
+#if WITH_LUA
 	hooks_exit(ud->luadata, "recorder stops");
 #endif
 

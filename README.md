@@ -24,7 +24,7 @@ You will require:
 
 * [libmosquitto](http://mosquitto.org), but see below for platform instructions
 * [libCurl](http://curl.haxx.se/libcurl/)
-* [lmdb](http://symas.com/mdb) (included). While the use of lmdb is optional, we strongly recommend you configure the _recorder_ to use it.
+* [lmdb](http://symas.com/mdb) (included)
 * Optionally [Lua](http://lua.org)
 
 1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.

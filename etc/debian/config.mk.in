@@ -5,7 +5,6 @@ CONFIGFILE = /etc/default/ot-recorder
 
 WITH_MQTT ?= yes
 WITH_HTTP ?= yes
-WITH_LMDB ?= yes
 WITH_LUA ?= yes
 WITH_PING ?= yes
 WITH_KILL ?= no

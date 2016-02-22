@@ -40,15 +40,12 @@ char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
 #define LINESIZE	8192
 
-#ifdef WITH_LMDB
 static struct gcache *gc = NULL;
-#endif
 
 void storage_init(int revgeo)
 {
 	setenv("TZ", "UTC", 1);
 
-#ifdef WITH_LMDB
 	if (revgeo) {
 		char path[BUFSIZ];
 
@@ -58,10 +55,8 @@ void storage_init(int revgeo)
 			olog(LOG_ERR, "storage_init(): gc is NULL");
 		}
 	}
-#endif
 }
 
-#ifdef WITH_LMDB
 void storage_gcache_dump(char *lmdbname)
 {
 	char path[BUFSIZ];
@@ -77,19 +72,16 @@ void storage_gcache_load(char *lmdbname)
 	snprintf(path, BUFSIZ, "%s/ghash", STORAGEDIR);
 	gcache_load(path, lmdbname);
 }
-#endif /* !LMDB */
 
 
 void get_geo(JsonNode *o, char *ghash)
 {
-#ifdef WITH_LMDB
 	JsonNode *geo;
 
 	if ((geo = gcache_json_get(gc, ghash)) != NULL) {
 		json_copy_to_object(o, geo, FALSE);
 		json_delete(geo);
 	}
-#endif
 }
 
 

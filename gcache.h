@@ -1,8 +1,6 @@
 #ifndef _GCACHE_H_INCLUDED_
 # define _GCACHE_H_INCLUDED_
 
-#ifdef WITH_LMDB
-
 #include "json.h"
 #include "lmdb.h"
 
@@ -23,5 +21,4 @@ void gcache_dump(char *path, char *lmdbname);
 void gcache_load(char *path, char *lmdbname);
 int gcache_del(struct gcache *gc, char *keystr);
 
-#endif
 #endif

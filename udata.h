@@ -6,9 +6,7 @@
 #ifdef WITH_HTTP
 # include "mongoose.h"
 #endif
-#ifdef WITH_LMDB
-# include "gcache.h"
-#endif
+#include "gcache.h"
 
 
 struct udata {
@@ -22,21 +20,17 @@ struct udata {
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
 	int verbose;			/* TRUE if print verbose messages to stdout */
 	int norec;			/* If TRUE, no .REC files are written to */
-#ifdef WITH_LMDB
 	struct gcache *gc;
 	struct gcache *t2t;		/* topic to tid */
-# ifdef WITH_RONLY
+#ifdef WITH_RONLY
 	struct gcache *ronlydb;		/* RONLY db */
-# endif
 #endif
 #ifdef WITH_HTTP
 	struct mg_server *mgserver;	/* Mongoose */
 #endif
 #ifdef WITH_LUA
 	struct luadata *luadata;	/* Lua stuff */
-# ifdef WITH_LMDB
 	struct gcache *luadb;		/* lmdb named database 'luadb' */
-# endif
 #endif
 #ifdef WITH_ENCRYPT
 	struct gcache *keydb;		/* encryption keys */

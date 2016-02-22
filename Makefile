@@ -18,6 +18,11 @@ OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
+CFLAGS += -Imdb/
+OTR_OBJS += gcache.o
+LIBS += mdb/liblmdb.a -lpthread
+TARGETS += mdb/liblmdb.a
+
 ifeq ($(WITH_MQTT),yes)
 	CFLAGS += -DWITH_MQTT=1
 	CFLAGS += $(MOSQUITTO_INC)
@@ -45,15 +50,8 @@ endif
 
 ifeq ($(WITH_RONLY),yes)
 	CFLAGS += -DWITH_RONLY=1
-	WITH_LMDB = yes
 endif
 
-ifeq ($(WITH_LMDB),yes)
-	CFLAGS += -DWITH_LMDB=1 -Imdb/
-	OTR_OBJS += gcache.o
-	LIBS += mdb/liblmdb.a -lpthread
-	TARGETS += mdb/liblmdb.a
-endif
 
 ifeq ($(WITH_HTTP),yes)
 	CFLAGS += -DWITH_HTTP=1

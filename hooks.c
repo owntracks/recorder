@@ -38,12 +38,10 @@
 
 static int otr_log(lua_State *lua);
 static int otr_strftime(lua_State *lua);
-#if WITH_LMDB
 static int otr_putdb(lua_State *lua);
 static int otr_getdb(lua_State *lua);
 
 static struct gcache *LuaDB = NULL;
-#endif
 
 
 /*
@@ -98,19 +96,15 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 		lua_pushcfunction(ld->L, otr_strftime);
 		lua_setfield(ld->L, -2, "strftime");
 
-#if WITH_LMDB
 		lua_pushcfunction(ld->L, otr_putdb);
 		lua_setfield(ld->L, -2, "putdb");
 
 		lua_pushcfunction(ld->L, otr_getdb);
 		lua_setfield(ld->L, -2, "getdb");
-#endif
 
 	lua_setglobal(ld->L, "otr");
 
-#ifdef WITH_LMDB
 	LuaDB = ud->luadb;
-#endif
 
 	olog(LOG_DEBUG, "initializing Lua hooks from `%s'", script);
 
@@ -294,8 +288,6 @@ static int otr_strftime(lua_State *lua)
 	return (0);
 }
 
-#ifdef WITH_LMDB
-
 /*
  * Requires two string arguments: key, value
  * These are written into the named LMDB database
@@ -335,5 +327,4 @@ static int otr_getdb(lua_State *lua)
 	}
 	return (rc);
 }
-#endif /* LMDB */
 #endif /* WITH_LUA */
