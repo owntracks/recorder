@@ -1217,7 +1217,6 @@ void usage(char *prog)
 	printf("  --pubprefix		-P     republish prefix (dflt: no republish)\n");
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
-	printf("  --hosted		       use OwnTracks Hosted\n");
 #endif
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
@@ -1244,10 +1243,6 @@ void usage(char *prog)
 	printf("  $OTR_USER\n");
 	printf("  $OTR_PASS\n");
 	printf("  $OTR_CAFILE		PEM CA certificate chain\n");
-	printf("For --hosted:\n");
-	printf("  $OTR_USER		username as registered on Hosted\n");
-	printf("  $OTR_DEVICE		connect as device\n");
-	printf("  $OTR_TOKEN		device token\n");
 #endif
 
 	exit(1);
@@ -1258,10 +1253,9 @@ int main(int argc, char **argv)
 {
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	char *username, *password, *cafile, *device;
+	char *username, *password, *cafile;
 	char *hostname = "localhost";
 	int port = 1883;
-	int hosted = FALSE;
 	UT_string *clientid;
 	int rc, i;
 	struct utsname uts;
@@ -1351,7 +1345,6 @@ int main(int argc, char **argv)
 			{ "qos",	required_argument,	0, 	'q'},
 			{ "host",	required_argument,	0, 	'H'},
 			{ "port",	required_argument,	0, 	'p'},
-			{ "hosted",	no_argument,		0, 	6},
 #endif /* !MQTT */
 			{ "storage",	required_argument,	0, 	'S'},
 			{ "logfacility",	required_argument,	0, 	4},
@@ -1404,9 +1397,6 @@ int main(int argc, char **argv)
 				break;
 #endif
 #ifdef WITH_MQTT
-			case 6:
-				hosted = TRUE;
-				break;
 			case 'i':
 				utstring_clear(clientid);
 				utstring_printf(clientid, "%s", optarg);
@@ -1538,41 +1528,8 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef WITH_MQTT
-	if (hosted) {
-		char tmp[BUFSIZ];
-
-		hostname = strdup("hosted-mqtt.owntracks.org");
-		port = 8883;
-
-		if ((username = getenv("OTR_USER")) == NULL) {
-			fprintf(stderr, "%s requires $OTR_USER\n", progname);
-			exit(1);
-		}
-		if ((device = getenv("OTR_DEVICE")) == NULL) {
-			fprintf(stderr, "%s requires $OTR_DEVICE\n", progname);
-			exit(1);
-		}
-		if ((password = getenv("OTR_TOKEN")) == NULL) {
-			fprintf(stderr, "%s requires $OTR_TOKEN\n", progname);
-			exit(1);
-		}
-		if ((cafile = getenv("OTR_CAFILE")) == NULL) {
-			fprintf(stderr, "%s requires $OTR_CAFILE\n", progname);
-			exit(1);
-		}
-
-		utstring_renew(clientid);
-		utstring_printf(clientid, "ot-RECORDER-%s-%s", username, device);
-		if (uname(&uts) == 0) {
-			utstring_printf(clientid, "-%s", uts.nodename);
-		}
-
-		snprintf(tmp, sizeof(tmp), "%s|%s", username, device);
-		username = strdup(tmp);
-	} else {
-		username = getenv("OTR_USER");
-		password = getenv("OTR_PASS");
-	}
+	username = getenv("OTR_USER");
+	password = getenv("OTR_PASS");
 #endif /* WITH_MQTT */
 
 #ifdef WITH_HTTP
@@ -1699,14 +1656,10 @@ int main(int argc, char **argv)
 
 	}
 
-	if (hosted) {
-		olog(LOG_INFO, "connecting to Hosted as clientID %s", UB(clientid));
-	} else {
-		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
-			hostname, port,
-			UB(clientid),
-			(cafile) ? "with" : "without");
-	}
+	olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
+		hostname, port,
+		UB(clientid),
+		(cafile) ? "with" : "without");
 
 	rc = mosquitto_connect(mosq, hostname, port, 60);
 	if (rc) {

@@ -2,13 +2,13 @@
 
 ![Recorder logo](assets/recorder-logo-192.png)
 
-The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT (or HTTP) by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require external an external database. It is also suited for you to record and store the data you publish via our [Hosted mode](http://owntracks.org/booklet/features/hosted/).
+The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT (or HTTP) by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require external an external database.
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
 
 There are two main components: the _recorder_ obtains data via MQTT subscribes, stores the data in plain files and serve it via its built-in REST API, and the _ocat_ command-line utility reads stored data in a variety of formats.
 
-We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. As an aside, we use this in heavy production on our Hosted offering.
+We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. 
 
 ## `recorder`
 
@@ -64,28 +64,6 @@ The location message received by the _recorder_ will be written to storage. In p
 2. a directory called `rec/` with several subdirectories and a `.rec` file therein.
 3. a directory called `last/` which contains subdirectories and a `.json` file therein.
 
-### Launching `ot-recorder` for _Hosted mode_
-
-You have an account with our Hosted platform and you want to store the data published by your device and the devices you track. Proceed as follows:
-
-1. Download the [StartCom ca-bundle.pem](https://www.startssl.com/certs/ca-bundle.pem) file to a directory of choice, and make a note of the path to that file.
-2. Create a small shell script modelled after the one hereafter (you can copy it from [etc/hosted.sh](etc/hosted.sh)) with which to launch the _recorder_.
-3. Launch that shell script to have the _recorder_ connect to _Hosted_ and subscribe to messages your OwnTracks apps publish via _Hosted_.
-
-```bash
-#!/bin/sh
-
-export OTR_USER="username"          # your OwnTracks Hosted username
-export OTR_DEVICE="device"          # one of your OwnTracks Hosted device names
-export OTR_TOKEN="xab0x993z8tdw"    # the Token corresponding to above pair
-export OTR_CAFILE="/path/to/startcom-ca-bundle.pem"
-
-
-ot-recorder --hosted "owntracks/#"
-```
-
-Note in particular the `--hosted` option: you specify neither a host name or a port number; the _recorder_ has those built-in, and it uses a specific _clientID_ for the MQTT connection. Other than that, there is no difference between the _recorder_ connecting to Hosted or to your private MQTT broker.
-
 
 When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083`.
 
@@ -93,21 +71,17 @@ When the recorder has received a publish or two, visit it with your favorite Web
 
 This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
 
-`--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. This option cannot be used with `--hosted`.
+`--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. 
 
-`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost". For `--hosted` mode you do not have to specify this.
+`--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost". 
 
-`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. For `--hosted` mode you do not have to specify this.
+`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. 
 
-`--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection. This option is also required in `--hosted` mode.
+`--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection.
 
-`$OTR_PASS` is the password for the MQTT connection. (This is ignored in `--hosted` mode.)
+`$OTR_PASS` is the password for the MQTT connection.
 
-`$OTR_DEVICE` is required for `--hosted` and specifies the name of the device associated with `$OTR_USER`.
-
-`$OTR_TOKEN` is required for `--hosted` mode.
-
-`$OTR_CAFILE` specifies the path to a readable PEM-formatted file containing the CA certificate chain to be used for the MQTT TLS connection. This is required for `--hosted`. If this environment variable is set, a TLS connection is assumed (and the port number should probably be adjusted accordingly).
+`$OTR_CAFILE` specifies the path to a readable PEM-formatted file containing the CA certificate chain to be used for the MQTT TLS connection. If this environment variable is set, a TLS connection is assumed (and the port number should probably be adjusted accordingly).
 
 `--qos` specifies the MQTT QoS to use; it defaults to 2.
 
@@ -381,7 +355,7 @@ We took a number of decisions when designing the _recorder_ and its utilities:
 
 As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
 
-* `cards/`, optional, contains user cards which are published when either you or one of your trackers on Hosted adds a new device. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar.
+* `cards/`, optional, may contains user cards. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar.
 * `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data. You can use this `.otrc` file to restore the OwnTracks configuration on your device by copying to the device and opening it in OwnTracks.
 * `ghash/`, unless disabled, reverse Geo data is collected into an LMDB database located in this directory. This LMDB database also contains named databases which are used by your optional Lua hooks, as well as a `topic2tid` database which can be used for TID re-mapping.
 * `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`. If a device's `last/` directory contains a file called `extra.json` (i.e. matching the example, this would be `last/jjolie/iphone/extra.json`), the content of this file is merged into the existing JSON for this user and returned by the API. Note, that you cannot overwrite existing values. So, an `extra.json` containing `{ "tst" : 11 }` will do nothing because the `tst` element we obtain from location data overrules, but adding `{ "beverage" : "water" }` will do what you want. If _recorder_ is built with support for our Greenwich firmware, this directory might contain `batt.json`, `ext.json`, and/or `status.json` each of which hold an array of the last 100 reports for internal battery voltage, external voltage, and status respectively. These values are returned via the API in the LAST object.
