@@ -3,6 +3,7 @@
 INSTALLDIR = /usr/local
 CONFIGFILE = /etc/default/ot-recorder
 
+WITH_MQTT ?= yes
 WITH_HTTP ?= yes
 WITH_LMDB ?= yes
 WITH_LUA ?= yes
