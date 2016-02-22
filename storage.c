@@ -1018,28 +1018,19 @@ char *gpx_string(JsonNode *location_array)
       // <trkpt lat="xx.xxx" lon="yy.yyy"> <!-- Attribute des Trackpunkts --> </trkpt>
 
 	json_foreach(one, location_array) {
-		double lat = 0.0, lon = 0.0;
-		char *isotst = "";
-		JsonNode *j;
+		JsonNode *jlat, *jlon, *jisotst, *j;
 
-                if ((j = json_find_member(one, "lat")) != NULL) {
-                        lat = j->number_;
-                }
+                if ((jlat = json_find_member(one, "lat")) &&
+			(jlon = json_find_member(one, "lon")) &&
+			(jisotst = json_find_member(one, "isotst"))) {
 
-                if ((j = json_find_member(one, "lon")) != NULL) {
-                        lon = j->number_;
-                }
-
-                if ((j = json_find_member(one, "isotst")) != NULL) {
-                        isotst = j->string_;
-                }
-
-		utstring_printf(xml, "    <trkpt lat='%lf' lon='%lf'>\n", lat, lon);
-		utstring_printf(xml, "\t<time>%s</time>\n", isotst);
-		if ((j = json_find_member(one, "alt")) != NULL) {
-			utstring_printf(xml, "\t<ele>%.2f</ele>\n", j->number_);
+				utstring_printf(xml, "    <trkpt lat='%lf' lon='%lf'>\n", jlat->number_, jlon->number_);
+				utstring_printf(xml, "\t<time>%s</time>\n", jisotst->string_);
+				if ((j = json_find_member(one, "alt")) != NULL) {
+					utstring_printf(xml, "\t<ele>%.2f</ele>\n", j->number_);
+				}
+				utstring_printf(xml, "\t</trkpt>\n");
 		}
-		utstring_printf(xml, "\t</trkpt>\n");
 	}
 
 	utstring_printf(xml, "%s", "  </trkseg>\n</trk>\n</gpx>\n");
