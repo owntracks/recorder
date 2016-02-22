@@ -241,8 +241,10 @@ JsonNode *last_users(char *in_user, char *in_device, JsonNode *fields)
 	// fprintf(stderr, "last_users(%s, %s)\n", (in_user) ? in_user : "<nil>",
 	// 	(in_device) ? in_device : "<nil>");
 
-	if (user_device_list(path, 0, obj) == 1)
+	if (user_device_list(path, 0, obj) == 1) {
+		json_delete(userlist);
 		return (obj);
+	}
 
 	/* Loop through users, devices */
 	json_foreach(un, obj) {
@@ -391,11 +393,14 @@ static void ls(char *path, JsonNode *obj)
         struct dirent *dp;
 	JsonNode *jarr = json_mkarray();
 
-	if (obj == NULL || obj->tag != JSON_OBJECT)
+	if (obj == NULL || obj->tag != JSON_OBJECT) {
+		json_delete(jarr);
 		return;
+	}
 
         if ((dirp = opendir(path)) == NULL) {
 		json_append_member(obj, "error", json_mkstring("Cannot open requested directory"));
+		json_delete(jarr);
                 return;
         }
 
@@ -564,7 +569,7 @@ JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
 	JsonNode *json = json_mkobject(), *ud;
 	UT_string *path = NULL;
 	char *pairs[2];
-	int np, n;
+	int np;
 
 	if (udpairs == NULL || udpairs->tag != JSON_ARRAY) {
 		return (json);
@@ -581,9 +586,7 @@ JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
 			pairs[1]);		/* device */
 		lsscan(UB(path), s_lo, s_hi, json, reverse);
 
-		for (n = 0; n < np; n++) {
-			free(pairs[n]);
-		}
+		splitterfree(pairs);
 	}
 
 	return (json);
