@@ -408,6 +408,14 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 			free(js);
 	}
 
+	if (friends == NULL) {
+		return (results);
+	}
+	if (friends->tag != JSON_ARRAY) {
+		olog(LOG_ERR, "expecting value of friends:%s to be an array", UB(userdevice));
+		return (results);
+	}
+
 	/*
 	 * Run through the array of friends of this user. Get LAST object,
 	 * which contains CARD and LOCATION data. Create an array of
