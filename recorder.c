@@ -1680,6 +1680,7 @@ int main(int argc, char **argv)
 
 	while (run) {
 #ifdef WITH_MQTT
+		loop_timeout = 0;
 		rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
 		if (run && rc) {
 			olog(LOG_INFO, "MQTT connection: rc=%d [%s] (errno=%d; %s). Sleeping...", rc, mosquitto_strerror(rc), errno, strerror(errno));
