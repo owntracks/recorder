@@ -205,6 +205,12 @@ void revgeo_init()
 	curl = curl_easy_init();
 }
 
+void revgeo_free()
+{
+	curl_easy_cleanup(curl);
+	curl = NULL;
+}
+
 #if 0
 int main()
 {
