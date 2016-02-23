@@ -568,7 +568,7 @@ JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
 {
 	JsonNode *json = json_mkobject(), *ud;
 	UT_string *path = NULL;
-	char *pairs[2];
+	char *pairs[3];
 	int np;
 
 	if (udpairs == NULL || udpairs->tag != JSON_ARRAY) {
