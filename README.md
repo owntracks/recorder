@@ -968,7 +968,7 @@ apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev l
 
 ```
 yum groupinstall 'Development Tools'
-yum install libmosquitto-devel libcurl-devel lua-devel
+yum install libmosquitto-devel libcurl-devel lua-devel libsodium-devel libconfig-devel
 ```
 
 libsodium is in epel-stable
