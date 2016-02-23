@@ -941,6 +941,7 @@ For http mode, the `friends` named LMDB database contains lists of "friends" on 
 ```bash
 ocat --load=friends <<EOF
 jane-phone [ "john/android" ]
+EOF
 ```
 
 The user/device separator in the array's strings may be a slash (`/`), a dash (`-`), or a colon (`:`).
