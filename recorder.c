@@ -1490,6 +1490,11 @@ int main(int argc, char **argv)
 		}
 		gcache_close(gt);
 #endif /* !ENCRYPT */
+		if ((gt = gcache_open(path, "friends", FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open `friends'\n");
+			exit(2);
+		}
+		gcache_close(gt);
 		exit(0);
 	}
 
@@ -1547,6 +1552,7 @@ int main(int argc, char **argv)
 # ifdef WITH_ENCRYPT
 	ud->keydb = gcache_open(err, "keys", TRUE);
 # endif
+	ud->httpfriends = gcache_open(err, "friends", TRUE);
 
 #if WITH_LUA
 	/*

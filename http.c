@@ -374,6 +374,103 @@ static int send_status(struct mg_connection *conn, int status, char *text)
 }
 
 /*
+ * Create an array of OwnTracks objects of locations and cards of
+ * friends of user `u` and device `d`. Each of the objects in this
+ * array *must* contain a TID as the apps will use that to construct
+ * a ficticious topic name (owntracks/_http/<tid>) internally.
+ * If this user/device combo has no friends, return an empty array.
+ */
+
+JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	JsonNode *results = json_mkarray(), *lastuserlist;
+	JsonNode *friends, *obj, *jud, *newob, *jtid;
+	int np;
+	char *pairs[3];
+	static UT_string *userdevice = NULL;
+
+
+	utstring_renew(userdevice);
+	utstring_printf(userdevice, "%s-%s", u, d);
+
+	friends = gcache_json_get(ud->httpfriends, UB(userdevice));
+
+	if (ud->debug) {
+		char *js = NULL;
+
+		if (friends)
+			js = json_stringify(friends, NULL);
+		debug(ud, "Friends of %s: %s", UB(userdevice), js ? js : "<nil>");
+		if (js)
+			free(js);
+	}
+
+
+	/* assume the following are friends of jane/3s */
+	// json_append_element(friends, json_mkstring("foo/bar"));
+	// json_append_element(friends, json_mkstring("e:1"));
+	// json_append_element(friends, json_mkstring("jog/fok"));
+	// json_append_element(friends, json_mkstring("iss-iss"));
+	// json_append_element(friends, json_mkstring("db/station"));
+
+	/*
+	 * Run through the array of friends of this user. Get LAST object,
+	 * which contains CARD and LOCATION data. Create an array of
+	 * separate location and card objects to return in HTTP mode.
+	 */
+
+	json_foreach(jud, friends) {
+		if ((np = splitter(jud->string_, "/:-", pairs)) != 2) {
+			continue;
+		}
+		if ((lastuserlist = last_users(pairs[0], pairs[1], NULL)) == NULL) {
+			splitterfree(pairs);
+			continue;
+		}
+		splitterfree(pairs);
+
+		if ((obj = json_find_element(lastuserlist, 0)) == NULL) {
+			json_delete(lastuserlist);
+			continue;
+		}
+
+		// printf("OBJ --->%s<---\n", json_stringify(obj, " "));
+
+		/* TID is mandatory; if we don't have that, skip */
+		if ((jtid = json_find_member(obj, "tid")) == NULL) {
+			json_delete(lastuserlist);
+			continue;
+		}
+
+		/* CARD */
+		if (json_find_member(obj, "face") && json_find_member(obj, "name")) {
+			newob = json_mkobject();
+			json_append_member(newob, "_type", json_mkstring("card"));
+			json_copy_element_to_object(newob, "tid", jtid);
+			json_copy_element_to_object(newob, "face", json_find_member(obj, "face"));
+			json_copy_element_to_object(newob, "name", json_find_member(obj, "name"));
+			json_append_element(results, newob);
+		}
+
+		/* LOCATION */
+		newob = json_mkobject();
+		json_append_member(newob, "_type", json_mkstring("location"));
+		json_copy_element_to_object(newob, "tid", jtid);
+		json_copy_element_to_object(newob, "lat", json_find_member(obj, "lat"));
+		json_copy_element_to_object(newob, "lon", json_find_member(obj, "lon"));
+		json_copy_element_to_object(newob, "tst", json_find_member(obj, "tst"));
+		json_append_element(results, newob);
+
+		json_delete(lastuserlist);
+	}
+
+	json_delete(friends);
+
+	return (results);
+}
+
+/*
  * Invoked from an HTTP POST to /pub?u=username&d=devicename
  * We need u and d in order to contruct a topic name. Obtain
  * the content of the POST request and give it to the recorder
@@ -385,6 +482,7 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	struct udata *ud = (struct udata *)conn->server_param;
 	char *payload, *u, *d;
 	static UT_string *topic = NULL;
+	JsonNode *jarray;
 
 	if ((u = field(conn, "u")) == NULL) {
 		u = strdup("owntracks");
@@ -396,8 +494,6 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	utstring_renew(topic);
 	utstring_printf(topic, "owntracks/%s/%s", u, d);
-	free(u);
-	free(d);
 
 	/* We need a nul-terminated payload in handle_message() */
 	payload = calloc(sizeof(char), conn->content_len + 1);
@@ -409,7 +505,11 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	free(payload);
 
-	return json_response(conn, NULL);
+	jarray = populate_friends(conn, u, d);
+	free(u);
+	free(d);
+
+	return json_response(conn, jarray);
 }
 
 /*

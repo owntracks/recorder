@@ -857,6 +857,38 @@ The content of the request is used by the Recorder as though it had arrived as a
 
 If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
 
+### Friends in HTTP mode
+
+When a device posts a location request in HTTP mode, the endpoint may return a JSON array of OwnTracks objects of which `_type`s `cmd`, `location` and `card` may be supported by the device. This allows the device to see, say, friends. The Recorder has built-in support for this with the named "friends" lmdb database.
+Assuming the following content of the friends database
+
+```
+$ ocat -S JP --dump=friends
+jane-phone ["john/android"]
+```
+
+when user `jane` and device `phone` POST a new location via HTTP, the Recorder will present the following payload to the device:
+
+```json
+[
+ {
+  "_type": "card",
+  "tid": "JA",
+  "face": "/9j/4AAQSkZJR...",
+  "name": "John Doe"
+ },
+ {
+  "_type": "location",
+  "tid": "JA",
+  "lat": 48.95833,
+  "lon": 2.39523,
+  "tst": 1456212791
+ }
+]
+```
+
+
+
 ### Authentication
 
 In HTTP mode, the Recorder provides no form of authentication; anybody who "stumbles" over the correct endpoint will be able to post location data to your Recorder! You do not want this to happen.
@@ -901,6 +933,17 @@ echo "jjolie-iphone s3cr1t" | ocat --load=keys
 ```
 
 Beware: these secret keys are stored in plain text so the database must be protected!
+
+#### `friends`
+
+For http mode, the `friends` named LMDB database contains lists of "friends" on a per user-device key. The key's value must be a valid JSON array of strings, each in the form `"user:device"` or `"user/device"` which indicate which locations a particular user may see. For example, when a user called `jane` on device `phone` publishes in http mode and she should be permitted to see where `john` / `android` is, we add the following key/value to the friends named database:
+
+```bash
+ocat --load=friends <<EOF
+jane-phone [ "john/android" ]
+```
+
+The user/device separator in the array's strings may be a slash (`/`), a dash (`-`), or a colon (`:`).
 
 ## Encryption (*experimental!*)
 

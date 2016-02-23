@@ -38,6 +38,7 @@ struct udata {
 	char *label;			/* Server label */
 	char *geokey;			/* Google reverse-geo API key */
 	int debug;			/* enable for debugging */
+	struct gcache *httpfriends;	/* lmdb named database 'friends' */
 };
 
 #endif
