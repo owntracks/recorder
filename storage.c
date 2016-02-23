@@ -201,8 +201,6 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 			json_append_member(last, "isotst", json_mkstring(isotime(tst->number_)));
 			json_append_member(last, "disptst", json_mkstring(disptime(tst->number_)));
 		}
-
-		json_append_element(userlist, last);
 	}
 
 	append_card_to_object(last, user);
@@ -221,6 +219,7 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 #if WITH_GREENWICH
 	get_gw_data(user, device, last);
 #endif
+	json_append_element(userlist, last);
 }
 
 /*
