@@ -472,20 +472,12 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 {
 	struct dirent **namelist;
 	int i, n;
-	JsonNode *jarr;
+	JsonNode *jarr = NULL;
 	static UT_string *path = NULL;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
 		return;
 
-	/* If our obj contains the "results" array, use that
-	 * and remove from obj; we'll add it back later.
-	 */
-	if ((jarr = json_find_member(obj, "results")) == NULL) {
-		jarr = json_mkarray();
-	} else {
-		json_remove_from_parent(jarr);
-	}
 
 	utstring_renew(path);
 
@@ -496,6 +488,15 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 	if ((n = scandir(pathpat, &namelist, filter_filename, cmp)) < 0) {
 		json_append_member(obj, "error", json_mkstring("Cannot lsscan requested directory"));
                 return;
+	}
+
+	/* If our obj contains the "results" array, use that
+	 * and remove from obj; we'll add it back later.
+	 */
+	if ((jarr = json_find_member(obj, "results")) == NULL) {
+		jarr = json_mkarray();
+	} else {
+		json_remove_from_parent(jarr);
 	}
 
 	if (reverse) {
@@ -529,7 +530,7 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi, int reverse)
 {
 	JsonNode *json = json_mkobject();
-	UT_string *path = NULL;
+	static UT_string *path = NULL;
 	char *bp;
 
 	utstring_renew(path);
@@ -567,7 +568,7 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi, int reverse
 JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
 {
 	JsonNode *json = json_mkobject(), *ud;
-	UT_string *path = NULL;
+	static UT_string *path = NULL;
 	char *pairs[3];
 	int np;
 

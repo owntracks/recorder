@@ -599,7 +599,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
         char *topics[42];
         int count = 0, cached;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
-	static UT_string *reltopic = NULL;
+	static UT_string *reltopic = NULL, *filename = NULL;
 	char *jsonstring, *_typestr = NULL;
 	time_t now;
 	int pingping = FALSE, skipslash = 0;
@@ -1027,7 +1027,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	json_append_member(json, "ghash",    json_mkstring(UB(ghash)));
 
 	if (_type == T_LOCATION || _type == T_WAYPOINT) {
-		UT_string *filename = NULL;
 		char *component;
 
 		utstring_renew(filename);
@@ -1165,10 +1164,10 @@ static char *mosquitto_reason(int rc)
 
 void on_disconnect(struct mosquitto *mosq, void *userdata, int reason)
 {
-	struct udata *ud = (struct udata *)userdata;
+	// struct udata *ud = (struct udata *)userdata;
 
 	if (reason == 0) { 	// client wish
-		gcache_close(ud->gc);
+		;
 	} else {
 		olog(LOG_INFO, "Disconnected. Reason: 0x%X [%s]", reason, mosquitto_reason(reason));
 	}
@@ -1704,12 +1703,16 @@ int main(int argc, char **argv)
 
 	json_delete(ud->topics);
 
-	if (ud->t2t)
-		gcache_close(ud->t2t);
+	gcache_close(ud->gc);
+	gcache_close(ud->t2t);
+	gcache_close(ud->httpfriends);
 #ifdef WITH_LUA
 	if (ud->luadb)
 		gcache_close(ud->luadb);
 #endif
+# ifdef WITH_ENCRYPT
+	gcache_close(ud->keydb);
+# endif
 
 	free(ud->label);
 
@@ -1720,6 +1723,8 @@ int main(int argc, char **argv)
 #if WITH_LUA
 	hooks_exit(ud->luadata, "recorder stops");
 #endif
+
+	revgeo_free();
 
 #ifdef WITH_MQTT
 	mosquitto_disconnect(mosq);
