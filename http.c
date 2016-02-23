@@ -460,6 +460,9 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 		json_copy_element_to_object(newob, "lat", json_find_member(obj, "lat"));
 		json_copy_element_to_object(newob, "lon", json_find_member(obj, "lon"));
 		json_copy_element_to_object(newob, "tst", json_find_member(obj, "tst"));
+		json_copy_element_to_object(newob, "vel", json_find_member(obj, "vel"));
+		json_copy_element_to_object(newob, "alt", json_find_member(obj, "alt"));
+		json_copy_element_to_object(newob, "cog", json_find_member(obj, "cog"));
 		json_append_element(results, newob);
 
 		json_delete(lastuserlist);

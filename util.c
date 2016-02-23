@@ -97,7 +97,7 @@ char *slurp_file(char *filename, int fold_newlines)
 /* Copy the node into obj */
 int json_copy_element_to_object(JsonNode *obj, char *key, JsonNode *node)
 {
-	if (obj->tag != JSON_OBJECT)
+	if (obj->tag != JSON_OBJECT || node == NULL)
 		return (FALSE);
 
 	if (node->tag == JSON_STRING)
