@@ -379,6 +379,8 @@ static int send_status(struct mg_connection *conn, int status, char *text)
  * array *must* contain a TID as the apps will use that to construct
  * a ficticious topic name (owntracks/_http/<tid>) internally.
  * If this user/device combo has no friends, return an empty array.
+ *
+ * 	[ { _type: card }, {_type: location} ... ]
  */
 
 JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
@@ -406,14 +408,6 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 			free(js);
 	}
 
-
-	/* assume the following are friends of jane/3s */
-	// json_append_element(friends, json_mkstring("foo/bar"));
-	// json_append_element(friends, json_mkstring("e:1"));
-	// json_append_element(friends, json_mkstring("jog/fok"));
-	// json_append_element(friends, json_mkstring("iss-iss"));
-	// json_append_element(friends, json_mkstring("db/station"));
-
 	/*
 	 * Run through the array of friends of this user. Get LAST object,
 	 * which contains CARD and LOCATION data. Create an array of
@@ -434,8 +428,6 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 			json_delete(lastuserlist);
 			continue;
 		}
-
-		// printf("OBJ --->%s<---\n", json_stringify(obj, " "));
 
 		/* TID is mandatory; if we don't have that, skip */
 		if ((jtid = json_find_member(obj, "tid")) == NULL) {
