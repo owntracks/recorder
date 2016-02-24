@@ -18,3 +18,29 @@ end
 
 function otr_exit()
 end
+
+-- invoked when a publish over httpmode is received
+-- data is a Lua table with the OwnTracks payload in it,
+-- keys are those known from our JSON
+
+function otr_httpobject(user, device, _type, data)
+
+	resp = {}
+
+	if _type == 'transition' and data['desc'] == 'Fireplace' then
+		resp["_type"]	= "cmd"
+		resp["tid"]	= data['tid']
+		resp["tst"]	= os.time()
+		resp["action"]	= "action"
+		resp["comment"]	= "by Lua in otr_httpobject()"
+
+		if data['event'] == 'enter' then
+			resp["url"]	= "http://www.lua.org"
+			resp["extern"]	= false
+		else
+			resp["url"] = nil
+		end
+	end
+
+	return resp
+end

@@ -38,6 +38,9 @@
 # include <sodium.h>
 # include "base64.h"
 #endif
+#if WITH_LUA
+# include "hooks.h"
+#endif
 
 #ifdef WITH_HTTP
 
@@ -501,7 +504,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	memset(key, 0, sizeof(key));
 	klen = gcache_get(ud->keydb, userdevice, (char *)key, sizeof(key));
 	if (klen < 1) {
-		debug(ud, "no encryption key for %s", userdevice);
+		debug(ud, "no encryption key for %s; not encrypting response", userdevice);
 		free(js_string);
 		return (NULL);
 	}
@@ -561,6 +564,9 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 #endif
 	static UT_string *topic = NULL, *userdevice = NULL;
 	JsonNode *jarray;
+#if WITH_LUA
+	JsonNode *htobj;
+#endif
 
 	if ((u = field(conn, "u")) == NULL) {
 		u = strdup("owntracks");
@@ -584,10 +590,15 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	handle_message(ud, UB(topic), payload, conn->content_len, 0);
 
-	free(payload);
 
 	jarray = populate_friends(conn, u, d);
 	extra_http_json(jarray, u, d);
+#if WITH_LUA
+	if ((htobj = hooks_http(ud, u, d, payload)) != NULL) {
+		json_append_element(jarray, htobj);
+	}
+#endif
+	free(payload);
 	free(u);
 	free(d);
 

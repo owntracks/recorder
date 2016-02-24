@@ -534,7 +534,7 @@ Returns a JSON object which contains the Recorder's version string, such as
 If _recorder_ is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:
 
 * insert publishes into a database of your choice
-* switch on the coffee machine when your OwnTracks device reports you're entering home (but see also [mqttwarn](http://jpmens.net/2014/02/17/introducing-mqttwarn-a-pluggable-mqtt-notifier/)
+* switch on the coffee machine when your OwnTracks device reports you're entering home (but see also [mqttwarn](http://jpmens.net/2014/02/17/introducing-mqttwarn-a-pluggable-mqtt-notifier/))
 * write a file with data in a format of your choice (see `etc/example.lua`)
 
 Run the _recorder_ with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the _recorder_ unloads Lua and continues *without* your script.
@@ -612,6 +612,10 @@ An optional function you provide is called `otr_putrec(u, d, s)`. If it exists,
 it is called with the current user in `u`, the device in `d` and the payload
 (which for OwnTracks apps is JSON but for, eg Greenwich devices might not be) in the string `s`. If your function returns a
 non-zero value, the _recorder_ will *not* write the REC file for this publish.
+
+### `otr_httpobject`
+
+An optional function you provide is called `otr_httpobject(u, d, t, data)` where `u` is the username used by the client (`?u=`), `d` is the device name (`&d=` in the URI), `t` is the OwnTracks JSON `_type` and `data` a Lua table built from the OwnTracks JSON payload of `_type`. If it exists, this function is called whenever a POST is received in httpmode and the Recorder is gathering data to return to the client app. The function *must* return a Lua table containing any number of string, number, or boolean values which are converted to a JSON object and appended to the JSON array returned to the client. An [example](etc/example.lua) shows how, say, a transition event can be used to open the Featured content tab in the app.
 
 ### Hooklets
 

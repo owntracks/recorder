@@ -237,6 +237,117 @@ int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
 	return (rc);
 }
 
+
+/*
+ * Invoked in http to populate response FIXME
+ */
+
+JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
+{
+	struct luadata *ld = ud->luadata;
+	char *_type = "unknown";
+	JsonNode *obj = NULL, *j, *fullo;
+
+	debug(ud, "in hooks_http()");
+	if (ld == NULL)
+		return (0);
+
+	fullo = json_decode(payload);
+
+	lua_settop(ld->L, 0);
+	lua_getglobal(ld->L, "otr_httpobject");
+	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
+		debug(ud, "no otr_httpobject function in Lua file: returning");
+		return (0);
+	}
+
+	lua_pushstring(ld->L, user);			/* arg1 */
+	lua_pushstring(ld->L, device);			/* arg2 */
+
+
+	if ((j = json_find_member(fullo, "_type")) != NULL) {
+		if (j->tag == JSON_STRING)
+			_type = j->string_;
+	}
+
+	lua_pushstring(ld->L, _type);			/* arg3: record type */
+
+	lua_newtable(ld->L);				/* arg4: table */
+	json_foreach(j, fullo) {
+		lua_pushstring(ld->L, j->key);		/* table key */
+		if (j->tag == JSON_STRING) {
+			lua_pushstring(ld->L, j->string_);
+		} else if (j->tag == JSON_NUMBER) {
+			lua_pushnumber(ld->L, j->number_);
+		} else if (j->tag == JSON_NULL) {
+			lua_pushnil(ld->L);
+		} else if (j->tag == JSON_BOOL) {
+			lua_pushboolean(ld->L, j->bool_);
+		}
+		lua_rawset(ld->L, -3);
+
+	}
+
+
+	// lua_pushstring(ld->L, payload);
+
+	/* Invoke Lua function with our args */
+	/* return value is a TABLE; all else is ignored */
+	if (lua_pcall(ld->L, 4, 1, 0)) {
+		olog(LOG_ERR, "Failed to run hooks_http in Lua: %s", lua_tostring(ld->L, -1));
+		exit(1);
+	}
+
+	/* Verify we have a table and create a JSON object from it. */
+
+	if (lua_istable(ld->L, -1)) {
+		obj = json_mkobject();
+
+		int t = -2;
+
+		lua_pushnil(ld->L);		/* first key */
+		while (lua_next(ld->L, t) != 0) {
+			const char *key, *val;
+			size_t len;
+			int type, bf, nil;
+			lua_Number d;
+
+			key = lua_tolstring(ld->L, -2, &len);
+			type = lua_type(ld->L, -1);
+
+			// printf("%s len=%zd vtype=%d\n", key, len, type);
+
+			switch (type) {
+				case LUA_TNUMBER:
+					d = lua_tonumber(ld->L, -1);
+					json_append_member(obj, key, json_mknumber(d));
+					break;
+				case LUA_TSTRING:
+					val = lua_tostring(ld->L, -1);
+					json_append_member(obj, key, json_mkstring(val));
+					break;
+				case LUA_TNIL:
+					nil = lua_isnil(ld->L, -1);
+					if (nil)
+						json_append_member(obj, key, json_mknull());
+					break;
+				case LUA_TBOOLEAN:
+					bf = lua_toboolean(ld->L, -1);
+					json_append_member(obj, key, json_mkbool(bf));
+					break;
+				default:
+					/* unsupported */
+					break;
+			}
+
+			lua_pop(ld->L, 1);
+		}
+	}
+	lua_settop(ld->L, 0);
+
+	return (obj);
+}
+
 void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
 {
 	do_hook("otr_hook", ud, topic, fullo);
