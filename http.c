@@ -490,7 +490,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	unsigned char key[crypto_secretbox_KEYBYTES];
 	unsigned char *ciphertext;
 	unsigned long ciphertext_len, mlen;
-	char *js_string, *b64;
+	char *js_string, *b64, *encrypted;
 	int klen;
 
 	if ((js_string = json_stringify(json, NULL)) == NULL) {
@@ -502,6 +502,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	klen = gcache_get(ud->keydb, userdevice, (char *)key, sizeof(key));
 	if (klen < 1) {
 		debug(ud, "no encryption key for %s", userdevice);
+		free(js_string);
 		return (NULL);
 	}
 	debug(ud, "encryption key for %s is {%s}", userdevice, key);
@@ -514,20 +515,27 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 		return (NULL);
 	}
 
-	/* Create random nonce */
-	randombytes_buf(nonce, sizeof nonce);
-
-	/* create ciphertext into same js_string we have */
-	if (crypto_secretbox_easy((unsigned char *)js_string, (unsigned char *)js_string, mlen, nonce, key) != 0) {
-		olog(LOG_ERR, "payload cannot be encrypted");
-		free(js_string);
+	if ((encrypted = malloc(ciphertext_len + 40)) == NULL) {
+		olog(LOG_ERR, "out of memory in encrypt() two");
 		free(ciphertext);
+		free(js_string);
 		return (NULL);
 	}
 
-	memcpy(ciphertext, nonce, crypto_secretbox_NONCEBYTES);
-	memcpy(ciphertext + crypto_secretbox_NONCEBYTES, js_string, ciphertext_len);
-	b64 = base64_encode(ciphertext, ciphertext_len + crypto_secretbox_NONCEBYTES);
+	/* Create random nonce */
+	randombytes_buf(nonce, sizeof nonce);
+
+	if (crypto_secretbox_easy((unsigned char *)ciphertext, (unsigned char *)js_string, mlen, nonce, key) != 0) {
+		olog(LOG_ERR, "payload cannot be encrypted");
+		free(js_string);
+		free(ciphertext);
+		free(encrypted);
+		return (NULL);
+	}
+
+	memcpy(encrypted, nonce, crypto_secretbox_NONCEBYTES);
+	memcpy(encrypted + crypto_secretbox_NONCEBYTES, ciphertext, ciphertext_len);
+	b64 = base64_encode(encrypted, ciphertext_len + crypto_secretbox_NONCEBYTES);
 	free(js_string);
 
 	return (b64);
