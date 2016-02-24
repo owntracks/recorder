@@ -35,6 +35,11 @@ static double cmp(JsonNode * a, JsonNode * b)
 	JsonNode *tb = json_find_member(b, "tst");
 	//printf("a=%lf, b=%lf\n", ta->number_, tb->number_);
 
+	/* user may have chosen fields without tst */
+
+	if (!ta || !tb)
+		return (0.0);
+
 	return ta->number_ - tb->number_;
 }
 
