@@ -56,6 +56,8 @@ Launch the recorder:
 $ ./ot-recorder 'owntracks/#'
 ```
 
+(In httpmode, you do not have to specify a topic.)
+
 Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
 
 The location message received by the _recorder_ will be written to storage. In particular you should verify that your _storage_ directory contains:
@@ -65,7 +67,7 @@ The location message received by the _recorder_ will be written to storage. In p
 3. a directory called `last/` which contains subdirectories and a `.json` file therein.
 
 
-When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083`.
+When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083` or the address / port configured with the `--http-host` and `--http-port` options respectively.
 
 ### `ot-recorder` options and variables
 
@@ -115,7 +117,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 ## The HTTP server
 
-Some examples of what the _recorder_'s built-in HTTP server is capable of:
+Some examples of what the _recorder_'s built-in HTTP server is capable of, in addition to obtaining OwnTracks app data via HTTP POST to the `/pub` endpoint.
 
 #### Last position of a particular user
 
@@ -349,7 +351,7 @@ We took a number of decisions when designing the _recorder_ and its utilities:
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
 * The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the `recorder` to control access to it. Or use views (see below).
 * `ocat`, the _cat_ program for the _recorder_ uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
-* The _recorder_ supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".)
+* The _recorder_ supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".) Publishes via HTTP POST construct a ficticious topic internally using the provided user (`u`) and device (`d`) parameters.
 
 ## Storage
 
@@ -857,7 +859,7 @@ curl --data "${payload}" 'http://127.0.0.1:8085/pub?u=jane&d=3s'
 curl -H 'X-Limit-U: jane' -H 'X-Limit-D: 3s' --data "${payload}" 'http://127.0.0.1:8085/pub'
 ```
 
-The content of the request is used by the Recorder as though it had arrived as an MQTT message.
+The content of the request is used by the Recorder as though it had arrived as an MQTT message; Lua hooks and Websocket pushes are handled accordingly.
 
 If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
 
@@ -871,7 +873,7 @@ $ ocat -S JP --dump=friends
 jane-phone ["john/android"]
 ```
 
-when user `jane` and device `phone` POST a new location via HTTP, the Recorder will present the following payload to the device:
+when user `jane` and device `phone` POST a new location via HTTP, the Recorder will present John's data as the following payload to the device, assuming John has a card and last published this location:
 
 ```json
 [
