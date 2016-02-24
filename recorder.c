@@ -391,83 +391,6 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 		free(js);
 }
 
-#ifdef WITH_RONLY
-static int is_ronly(struct udata *ud, UT_string *basetopic)
-{
-	JsonNode *json, *j;
-	char *key = UB(basetopic);
-	int active = FALSE;
-
-	if ((json = gcache_json_get(ud->ronlydb, key)) == NULL)
-		return (FALSE);
-
-	if ((j = json_find_member(json, "active")) != NULL) {
-		active = j->bool_;
-	}
-
-	printf("**--- %s: return active = %d\n", key, active);
-	return (active);
-}
-
-/*
- * Make an RONLYdb entry for basetopic, updating timestamp in the JSON
- * active is TRUE if the user is an RONLY user, else FALSE.
- */
-
-static void ronly_set(struct udata *ud, UT_string *basetopic, int active)
-{
-	JsonNode *json, *j;
-	char *key = UB(basetopic);
-	int rc, touch = FALSE;
-
-	json = gcache_json_get(ud->ronlydb, key);
-	if (json == NULL) {
-
-		if (active == FALSE)		/* Has never been r:true b/c not in RONLYdb */
-			return;
-
-		json = json_mkobject();
-	}
-
-	if ((j = json_find_member(json, "first")) == NULL) {
-		json_append_member(json, "first", json_mknumber(time(0)));
-		touch = TRUE;
-	}
-
-	if ((j = json_find_member(json, "last")) != NULL) {
-		json_remove_from_parent(j);
-		json_delete(j);
-	}
-
-	if ((j = json_find_member(json, "active")) != NULL) {
-		if (active != j->bool_) {
-			json_remove_from_parent(j);
-			json_delete(j);
-			json_append_member(json, "active", json_mkbool(active));
-			json_append_member(json, "last", json_mknumber(time(0)));
-			touch = TRUE;
-		} else if (active == TRUE) {
-			json_append_member(json, "last", json_mknumber(time(0)));
-			touch = TRUE;
-		}
-	} else {
-		json_append_member(json, "active", json_mkbool(active));
-		touch = TRUE;
-	}
-
-
-	if (touch) {
-
-		if ((rc = gcache_json_put(ud->ronlydb, key, json)) != 0)
-			olog(LOG_ERR, "Cannot store %s in ronlydb: rc==%d", key, rc);
-
-		printf("+++++++++ TOUCH db for %s\n", key);
-	}
-
-	json_delete(json);
-}
-#endif
-
 #ifdef WITH_GREENWICH
 
 /*
@@ -720,20 +643,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	if ((json = json_decode(payload)) == NULL) {
 		if ((json = csv_to_json(payload)) == NULL) {
-#ifdef WITH_RONLY
-			/*
-			 * If the base topic belongs to an RONLY user, store
-			 * the payload.
-			 */
-
-			if (is_ronly(ud, basetopic)) {
-				// puts("*** storing plain publis");
-				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
-			}
-#else
 			/* It's not JSON or it's not a location CSV; store it */
 			putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
-#endif
 			return;
 		}
 	}
@@ -742,53 +653,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		json_delete(json);
 		return;
 	}
-
-#ifdef WITH_RONLY
-
-	/*
-	 * This is a special mode in which location (and a few other)
-	 * publishes will be recorded only if r:true in the payload.
-	 * If we cannot find `r' in the JSON, or if `r' isn't true,
-	 * set r_ok to FALSE. We cannot just bail out here, because
-	 * we still want info, cards &c.
-	 */
-
-	if ((j = json_find_member(json, "r")) == NULL) {
-
-		r_ok = FALSE;
-
-		/*
-		 * This JSON payload might actually belong to an RONLY user
-		 * but it doesn't have an `r:true' in it. Determine whether
-		 * the basetopic belongs to such a user, and force r_ok
-		 * accordingly. If this is _type:location it holds the definitive
-		 * truth.
-		 */
-
-		if (is_ronly(ud, basetopic)) {
-			r_ok = TRUE;
-			// printf("*** forcing TRUE b/c ronlydb (blen=%ld)\n", blen);
-		}
-
-		if ((j = json_find_member(json, "_type")) != NULL) {
-			if ((j->tag == JSON_STRING) && (strcmp(j->string_, "location") == 0)) {
-				r_ok = FALSE;
-			}
-		}
-	} else {
-		r_ok = TRUE;
-		if ((j->tag != JSON_BOOL) || (j->bool_ == FALSE)) {
-			r_ok = FALSE;
-		}
-	}
-
-	/*
-	 * Record the RONLY basetopic in RONLYdb, and indicate active or not
-	 */
-
-	ronly_set(ud, basetopic, r_ok);
-
-#endif
 
 	_type = T_UNKNOWN;
 	if ((j = json_find_member(json, "_type")) != NULL) {
@@ -1283,9 +1147,6 @@ int main(int argc, char **argv)
 	udata.norec		= FALSE;
 	udata.gc		= NULL;
 	udata.t2t		= NULL;		/* Topic to TID */
-# ifdef WITH_RONLY
-	udata.ronlydb		= NULL;		/* RONLY db */
-# endif
 #ifdef WITH_HTTP
 	udata.mgserver		= NULL;
 #endif
@@ -1489,13 +1350,6 @@ int main(int argc, char **argv)
 		}
 		gcache_close(gt);
 #endif /* !LUA */
-#ifdef WITH_RONLY
-		if ((gt = gcache_open(path, "ronlydb", FALSE)) == NULL) {
-			fprintf(stderr, "Cannot lmdb-open `ronly'\n");
-			exit(2);
-		}
-		gcache_close(gt);
-#endif /* !RONLY */
 #ifdef WITH_ENCRYPT
 		if ((gt = gcache_open(path, "keys", FALSE)) == NULL) {
 			fprintf(stderr, "Cannot lmdb-open `keys'\n");
@@ -1558,9 +1412,6 @@ int main(int argc, char **argv)
 	ud->t2t = gcache_open(err, "topic2tid", TRUE);
 # ifdef WITH_LUA
 	ud->luadb = gcache_open(err, "luadb", FALSE);
-# endif
-# ifdef WITH_RONLY
-	ud->ronlydb = gcache_open(err, "ronlydb", FALSE);
 # endif
 # ifdef WITH_ENCRYPT
 	ud->keydb = gcache_open(err, "keys", TRUE);

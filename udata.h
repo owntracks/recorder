@@ -22,9 +22,6 @@ struct udata {
 	int norec;			/* If TRUE, no .REC files are written to */
 	struct gcache *gc;
 	struct gcache *t2t;		/* topic to tid */
-#ifdef WITH_RONLY
-	struct gcache *ronlydb;		/* RONLY db */
-#endif
 #ifdef WITH_HTTP
 	struct mg_server *mgserver;	/* Mongoose */
 #endif
