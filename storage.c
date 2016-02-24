@@ -1261,10 +1261,10 @@ static void emit_one(JsonNode *j, JsonNode *inttypes, void (func)(char *line, vo
 	func(UB(line), param);
 }
 
-void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)
+void xml_output(JsonNode *array, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)
 {
 	JsonNode *node, *inttypes;
-	JsonNode *arr, *one, *j;
+	JsonNode *one, *j;
 
 	/* Prime the inttypes object with types we consider "integer" */
 	inttypes = json_mkobject();
@@ -1280,8 +1280,7 @@ void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func
 	<?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>", param);
 	func("<owntracks>", param);
 
-	arr = json_find_member(json, "locations");
-	json_foreach(one, arr) {
+	json_foreach(one, array) {
 		func(" <point>", param);
 		if (fields) {
 			json_foreach(node, fields) {
@@ -1353,10 +1352,10 @@ static void csv_title(UT_string *line, JsonNode *node, char *column)
  * default ALL.
  */
 
-void csv_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)
+void csv_output(JsonNode *array, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param)
 {
 	JsonNode *node, *inttypes;
-	JsonNode *arr, *one, *j;
+	JsonNode *one, *j;
 	short virgin = 1;
 	static UT_string *line = NULL;
 
@@ -1372,8 +1371,7 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func
 	json_append_member(inttypes, "dist", json_mkbool(1));
 	json_append_member(inttypes, "trip", json_mkbool(1));
 
-	arr = json_find_member(json, "locations");
-	json_foreach(one, arr) {
+	json_foreach(one, array) {
 		/* Headings */
 		if (virgin) {
 
