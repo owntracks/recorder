@@ -336,7 +336,9 @@ static void emit_csv_line(char *line, void *param)
 
 static int xml_response(struct mg_connection *conn, JsonNode *obj)
 {
-	xml_output(obj, XML, NULL, emit_xml_line, conn);
+	JsonNode *array = json_find_member(obj, "data");
+
+	xml_output(array, XML, NULL, emit_xml_line, conn);
 
 	json_delete(obj);
 	return (MG_TRUE);
@@ -344,7 +346,9 @@ static int xml_response(struct mg_connection *conn, JsonNode *obj)
 
 static int csv_response(struct mg_connection *conn, JsonNode *obj)
 {
-	csv_output(obj, CSV, NULL, emit_csv_line, conn);
+	JsonNode *array = json_find_member(obj, "data");
+
+	csv_output(array, CSV, NULL, emit_csv_line, conn);
 
 	json_delete(obj);
 	return (MG_TRUE);
@@ -871,6 +875,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			otype = CSV;
 		else if (!strcmp(buf, "xml"))
 			otype = XML;
+		else if (!strcmp(buf, "gpx"))
+			otype = GPX;
 		else {
 			mg_send_status(conn, 400);
 			mg_printf_data(conn, "unrecognized format\n");
@@ -944,13 +950,19 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			return (csv_response(conn, obj));
 		} else if (otype == XML) {
 			return (xml_response(conn, obj));
+		} else if (otype == GPX) {
+			char *xml = gpx_string(locs);
+
+			if (xml) {
+				mg_send_data(conn, xml, strlen(xml));
+			}
+			json_delete(obj);
+			return (MG_TRUE);
 		} else if (otype == LINESTRING) {
 			JsonNode *geoline = geo_linestring(locs);
 
-			if (geoline != NULL) {
-				json_delete(obj);
-				return (json_response(conn, geoline));
-			}
+			json_delete(obj);
+			return (json_response(conn, geoline));
 
 		} else if (otype == GEOJSON) {
 			JsonNode *geojson = geo_json(locs);
@@ -959,6 +971,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			if (geojson != NULL) {
 				return (json_response(conn, geojson));
 			}
+			json_delete(obj);
+			return send_status(conn, 422, "geojson failed");
 		}
         }
 
