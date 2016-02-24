@@ -34,6 +34,10 @@
 #ifdef WITH_HTTP
 # include "http.h"
 #endif
+#if WITH_ENCRYPT
+# include <sodium.h>
+# include "base64.h"
+#endif
 
 #ifdef WITH_HTTP
 
@@ -479,6 +483,58 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 	return (results);
 }
 
+#ifdef WITH_ENCRYPT
+char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
+{
+	unsigned char nonce[crypto_secretbox_NONCEBYTES];
+	unsigned char key[crypto_secretbox_KEYBYTES];
+	unsigned char *ciphertext;
+	unsigned long ciphertext_len, mlen;
+	char *js_string, *b64;
+	int klen;
+
+	if ((js_string = json_stringify(json, NULL)) == NULL) {
+		olog(LOG_ERR, "Cannot decode JSON array for encryption");
+		return (NULL);
+	}
+
+	memset(key, 0, sizeof(key));
+	klen = gcache_get(ud->keydb, userdevice, (char *)key, sizeof(key));
+	if (klen < 1) {
+		debug(ud, "no encryption key for %s", userdevice);
+		return (NULL);
+	}
+	debug(ud, "encryption key for %s is {%s}", userdevice, key);
+
+	mlen = strlen(js_string) + 0;
+	ciphertext_len = mlen + crypto_box_MACBYTES;
+	if ((ciphertext = malloc(ciphertext_len)) == NULL) {
+		olog(LOG_ERR, "out of memory in encrypt()");
+		free(js_string);
+		return (NULL);
+	}
+
+	/* Create random nonce */
+	randombytes_buf(nonce, sizeof nonce);
+
+	/* create ciphertext into same js_string we have */
+	if (crypto_secretbox_easy((unsigned char *)js_string, (unsigned char *)js_string, mlen, nonce, key) != 0) {
+		olog(LOG_ERR, "payload cannot be encrypted");
+		free(js_string);
+		free(ciphertext);
+		return (NULL);
+	}
+
+	memcpy(ciphertext, nonce, crypto_secretbox_NONCEBYTES);
+	memcpy(ciphertext + crypto_secretbox_NONCEBYTES, js_string, ciphertext_len);
+	b64 = base64_encode(ciphertext, ciphertext_len + crypto_secretbox_NONCEBYTES);
+	free(js_string);
+
+	return (b64);
+
+}
+#endif /* WITH_ENCRYPT */
+
 /*
  * Invoked from an HTTP POST to /pub?u=username&d=devicename
  * We need u and d in order to contruct a topic name. Obtain
@@ -490,7 +546,10 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
 	char *payload, *u, *d;
-	static UT_string *topic = NULL;
+#ifdef WITH_ENCRYPT
+	char *enc;
+#endif
+	static UT_string *topic = NULL, *userdevice = NULL;
 	JsonNode *jarray;
 
 	if ((u = field(conn, "u")) == NULL) {
@@ -503,6 +562,9 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	utstring_renew(topic);
 	utstring_printf(topic, "owntracks/%s/%s", u, d);
+
+	utstring_renew(userdevice);
+	utstring_printf(userdevice, "%s-%s", u, d);
 
 	/* We need a nul-terminated payload in handle_message() */
 	payload = calloc(sizeof(char), conn->content_len + 1);
@@ -517,6 +579,26 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	jarray = populate_friends(conn, u, d);
 	free(u);
 	free(d);
+
+#ifdef WITH_ENCRYPT
+	/*
+	 * The array of data to be returned is ready. Verify if the user
+	 * this pertains to has an encryption key, and if so, encrypt
+	 * the array in whole and return _type: encrypted
+	 */
+
+	if ((enc = j_encrypt(ud, jarray, UB(userdevice))) != NULL) {
+		JsonNode *json = json_mkobject();
+
+		json_delete(jarray);
+
+		json_append_member(json, "_type", json_mkstring("encrypted"));
+		json_append_member(json, "data", json_mkstring(enc));
+
+		return json_response(conn, json);
+	}
+
+#endif /* WITH_ENCRYPT */
 
 	return json_response(conn, jarray);
 }
