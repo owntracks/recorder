@@ -537,6 +537,8 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	memcpy(encrypted + crypto_secretbox_NONCEBYTES, ciphertext, ciphertext_len);
 	b64 = base64_encode(encrypted, ciphertext_len + crypto_secretbox_NONCEBYTES);
 	free(js_string);
+	free(ciphertext);
+	free(encrypted);
 
 	return (b64);
 
@@ -602,6 +604,7 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 		json_append_member(json, "_type", json_mkstring("encrypted"));
 		json_append_member(json, "data", json_mkstring(enc));
+		free(enc);
 
 		return json_response(conn, json);
 	}

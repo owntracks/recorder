@@ -542,9 +542,9 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 	unsigned char *ciphertext, *cleartext;
 	size_t ciphertext_len;
 	int n, klen;
-	UT_string *userdev;
+	static UT_string *userdev = NULL;
 
-	utstring_new(userdev);
+	utstring_renew(userdev);
 	utstring_printf(userdev, "%s-%s", username, device);
 
 	memset(key, 0, sizeof(key));
@@ -857,10 +857,13 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 						handle_message(ud, topic, cleartext, strlen(cleartext), retain);
 						free(cleartext);
 					}
+					if (_typestr) free(_typestr);
+					json_delete(json);
 					return;
 				}
 			}
 			olog(LOG_ERR, "no `data' in encrypted %s", topic);
+			json_delete(json);
 			return;
 			break;
 #endif /* WITH_ENCRYPT */
