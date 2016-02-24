@@ -76,6 +76,7 @@ double number(JsonNode *j, char *element)
 			d = atof(m->string_);
 			/* Normalize to number */
 			json_remove_from_parent(m);
+			json_delete(m);
 			json_append_member(j, element, json_mknumber(d));
 			return (d);
 		}
@@ -380,6 +381,7 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 
 	if ((j = json_find_member(json, "r")) != NULL) {
 		json_remove_from_parent(j);
+		json_delete(j);
 		js = json_stringify(json, NULL);
 		json_delete(json);
 	}
@@ -432,12 +434,15 @@ static void ronly_set(struct udata *ud, UT_string *basetopic, int active)
 		touch = TRUE;
 	}
 
-	if ((j = json_find_member(json, "last")) != NULL)
+	if ((j = json_find_member(json, "last")) != NULL) {
 		json_remove_from_parent(j);
+		json_delete(j);
+	}
 
 	if ((j = json_find_member(json, "active")) != NULL) {
 		if (active != j->bool_) {
 			json_remove_from_parent(j);
+			json_delete(j);
 			json_append_member(json, "active", json_mkbool(active));
 			json_append_member(json, "last", json_mknumber(time(0)));
 			touch = TRUE;
@@ -843,7 +848,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		case T_ENCRYPTED:
 			/*
 			 * Obtain the `data' element from JSON, and try and decrypt
-			 * that. If successful, we the decrypted message as
+			 * that. If successful, we use the decrypted message as
 			 * payload, and invoke this function again to do the
 			 * heavy lifting.
 			 */
@@ -890,6 +895,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		if (j->tag == JSON_STRING) {
 			tst = strtoul(j->string_, NULL, 10);
 			json_remove_from_parent(j);
+			json_delete(j);
 			json_append_member(json, "tst", json_mknumber(tst));
 		} else {
 			tst = (unsigned long)j->number_;
@@ -905,6 +911,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		if (j->tag == JSON_STRING) {
 			acc = atof(j->string_);
 			json_remove_from_parent(j);
+			json_delete(j);
 			json_append_member(json, "acc", json_mknumber(acc));
 		}
 	}
@@ -940,8 +947,10 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		long blen;
 
 		if ((blen = gcache_get(ud->t2t, topic, newtid, sizeof(newtid))) > 0) {
-			if ((j = json_find_member(json, "tid")) != NULL)
+			if ((j = json_find_member(json, "tid")) != NULL) {
 				json_remove_from_parent(j);
+				json_delete(j);
+			}
 			json_append_member(json, "tid", json_mkstring(newtid));
 		}
 	}
@@ -1240,7 +1249,7 @@ int main(int argc, char **argv)
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
 	char *username, *password, *cafile;
-	char *hostname = "localhost";
+	char *hostname = strdup("localhost");
 	int port = 1883;
 	UT_string *clientid;
 	int rc, i;
@@ -1259,7 +1268,7 @@ int main(int argc, char **argv)
 #ifdef WITH_HTTP
 	int http_port = 8083;
 	char *doc_root = DOCROOT;
-	char *http_host = "localhost";
+	char *http_host = strdup("localhost");
 #endif
 	char *progname = *argv;
 
@@ -1397,6 +1406,7 @@ int main(int argc, char **argv)
 				ud->ignoreretained = FALSE;
 				break;
 			case 'H':
+				free(hostname);
 				hostname = strdup(optarg);
 				break;
 			case 'p':
@@ -1417,6 +1427,7 @@ int main(int argc, char **argv)
 				doc_root = strdup(optarg);
 				break;
 			case 3:		/* no short char */
+				free(http_host);
 				http_host = strdup(optarg);
 				break;
 #endif
@@ -1734,7 +1745,9 @@ int main(int argc, char **argv)
 
 	mosquitto_destroy(mosq);
 	mosquitto_lib_cleanup();
+	free(hostname);
 #endif
+	free(http_host);
 
 	return (0);
 }

@@ -496,6 +496,7 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 		jarr = json_mkarray();
 	} else {
 		json_remove_from_parent(jarr);
+		json_delete(jarr);
 	}
 
 	if (reverse) {
@@ -1426,4 +1427,53 @@ char *storage_userphoto(char *username)
 	snprintf(path, sizeof(path), "%s/photos/%s/%s.png", STORAGEDIR, username, username);
 
 	return (path);
+}
+
+/*
+ * array is an array of JSON objects. Get the JSON at http.json
+ * and append that object to `array`.
+ */
+
+void extra_http_json(JsonNode *array, char *user, char *device)
+{
+	char path[BUFSIZ], *js_string;
+	JsonNode *node;
+
+	if (!array || !user || !*user || !device || !*device)
+		return;
+	if (array->tag != JSON_ARRAY)
+		return;
+
+	/* Extra data */
+	snprintf(path, BUFSIZ, "%s/last/%s/%s/http.json",
+		STORAGEDIR, user, device);
+
+	if ((js_string = slurp_file(path, TRUE)) == NULL) {
+		return;
+	}
+
+	if ((node = json_decode(js_string)) == NULL) {
+		fprintf(stderr, "extra_http_json: can't decode JSON from %s\n", path);
+		free(js_string);
+		return;
+	}
+
+	if (node->tag == JSON_OBJECT) {
+		json_append_element(array, node);
+	} else if (node->tag == JSON_ARRAY) {
+		JsonNode *f;
+
+		json_foreach(f, node) {
+			JsonNode *o;
+
+			if (f->tag != JSON_OBJECT)
+				continue;
+
+			o = json_mkobject();
+			json_copy_to_object(o, f, TRUE);
+			json_append_element(array, o);
+		}
+		json_delete(node);
+	}
+	free(js_string);
 }

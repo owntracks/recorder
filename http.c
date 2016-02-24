@@ -587,6 +587,7 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	free(payload);
 
 	jarray = populate_friends(conn, u, d);
+	extra_http_json(jarray, u, d);
 	free(u);
 	free(d);
 
