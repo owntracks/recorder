@@ -6,7 +6,7 @@ The _OwnTracks Recorder_ is a lightweight program for storing and accessing loca
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
 
-There are two main components: the _recorder_ obtains data via MQTT subscribes, stores the data in plain files and serve it via its built-in REST API, and the _ocat_ command-line utility reads stored data in a variety of formats.
+There are two main components: the _recorder_ obtains data via MQTT subscribes or HTTP POST, stores the data in plain files and serve it via its built-in REST API, and the _ocat_ command-line utility reads stored data in a variety of formats.
 
 We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. 
 
