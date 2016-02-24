@@ -1453,7 +1453,7 @@ void extra_http_json(JsonNode *array, char *user, char *device)
 	}
 
 	if ((node = json_decode(js_string)) == NULL) {
-		fprintf(stderr, "extra_http_json: can't decode JSON from %s\n", path);
+		olog(LOG_ERR, "extra_http_json: can't decode JSON from %s", path);
 		free(js_string);
 		return;
 	}
