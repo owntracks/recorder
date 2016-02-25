@@ -1179,8 +1179,16 @@ int main(int argc, char **argv)
 	}
 
 #if WITH_MQTT
-	ud->username = getenv("OTR_USER");
-	ud->password = getenv("OTR_PASS");
+	if ((p = getenv("OTR_USER")) != NULL) {
+		if (ud->username)
+			free(ud->username);
+		ud->username = strdup(p);
+	}
+	if ((p = getenv("OTR_PASS")) != NULL) {
+		if (ud->password)
+			free(ud->password);
+		ud->password = strdup(p);
+	}
 
 	utstring_new(clientid);
 	utstring_printf(clientid, "ot-recorder");
