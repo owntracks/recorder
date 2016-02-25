@@ -89,11 +89,18 @@ void print_versioninfo()
 {
 	printf("This is OwnTracks Recorder, version %s\n", VERSION);
 	printf("built with:\n");
-#ifdef WITH_LUA
-	printf("\tWITH_LUA  = yes\n");
+#ifdef WITH_MQTT
+	printf("\tWITH_MQTT = yes\n");
+#else
+	printf("\tWITH_MQTT = no\n");
 #endif
 #ifdef WITH_HTTP
 	printf("\tWITH_HTTP = yes\n");
+#else
+	printf("\tWITH_HTTP = no\n");
+#endif
+#ifdef WITH_LUA
+	printf("\tWITH_LUA  = yes\n");
 #endif
 #ifdef WITH_ENCRYPT
 	printf("\tWITH_ENCRYPT = yes\n");
