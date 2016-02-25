@@ -1,4 +1,17 @@
 
+2016-02-25 version 0.5.2
+- UPD: defaults file now contains most config settings
+- UPD: ocat -v explicitly shows yes/no for MQTT/HTTP
+- NEW: hooks in httpmode
+- REM: r-only mode removed
+- FIX: squashed a number of memory leaks
+- NEW: encryption in responses of httpmode
+- UPD: API supports GPX output
+- NEW: friends (locations, cards) in http mode
+- UPD: LMDB is no longer optional during build
+- UPD: remove Hosted mode (#86)
+- NEW: HTTP mode
+- UPD: remove support for /msg
 - UPD: startup log message includes version
 
 2016-02-18 version 0.5.1
