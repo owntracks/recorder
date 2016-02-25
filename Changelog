@@ -1,4 +1,7 @@
 
+2016-02-25 version 0.5.3
+- FIX: mqtt user/pass from config file
+
 2016-02-25 version 0.5.2
 - UPD: defaults file now contains most config settings
 - UPD: ocat -v explicitly shows yes/no for MQTT/HTTP
