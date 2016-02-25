@@ -101,7 +101,13 @@ void get_defaults(char *filename, struct udata *ud)
 {
 	config_t cfg, *cf;
 	const char *value;
+#if LIBCONFIG_VER_MAJOR == 1
+# if LIBCONFIG_VER_MINOR >= 5
 	int ival;
+# endif
+# else
+	long ival;
+#endif
 
 	if (access(filename, R_OK) == -1)
 		return;
