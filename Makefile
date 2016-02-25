@@ -110,7 +110,7 @@ install: ot-recorder ocat
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
-	test -r $(DESTDIR)/$(CONFIGFILE) || install -D -m 644 etc/ot-recorder.default $(DESTDIR)/$(CONFIGFILE)
+	test -r $(DESTDIR)/$(CONFIGFILE) || install -D -m 640 etc/ot-recorder.default $(DESTDIR)/$(CONFIGFILE)
 ifndef DESTDIR
 	$(INSTALLDIR)/sbin/ot-recorder --initialize
 endif
