@@ -102,7 +102,7 @@ void get_defaults(char *filename, struct udata *ud)
 	config_t cfg, *cf;
 	const char *value;
 #if LIBCONFIG_VER_MAJOR == 1
-# if LIBCONFIG_VER_MINOR >= 5
+# if LIBCONFIG_VER_MINOR >= 4
 	int ival;
 # endif
 # else
