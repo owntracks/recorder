@@ -1136,6 +1136,7 @@ int main(int argc, char **argv)
 	udata.password		= NULL;
 	udata.hostname		= strdup("localhost");
 	udata.port		= 1883;
+	udata.clientid		= NULL;
 	udata.topics		= NULL;
 #endif
 	udata.ignoreretained	= TRUE;
@@ -1160,6 +1161,15 @@ int main(int argc, char **argv)
 	udata.debug		= FALSE;
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
+
+	utstring_new(clientid);
+	utstring_printf(clientid, "ot-recorder");
+	if (uname(&uts) == 0) {
+		utstring_printf(clientid, "-%s", uts.nodename);
+	}
+	utstring_printf(clientid, "-%d", getpid());
+
+	ud->clientid = strdup(UB(clientid));
 
 	get_defaults(CONFIGFILE, &udata);
 
@@ -1190,12 +1200,6 @@ int main(int argc, char **argv)
 		ud->password = strdup(p);
 	}
 
-	utstring_new(clientid);
-	utstring_printf(clientid, "ot-recorder");
-	if (uname(&uts) == 0) {
-		utstring_printf(clientid, "-%s", uts.nodename);
-	}
-	utstring_printf(clientid, "-%d", getpid());
 #endif
 
 	while (1) {
@@ -1267,6 +1271,8 @@ int main(int argc, char **argv)
 			case 'i':
 				utstring_clear(clientid);
 				utstring_printf(clientid, "%s", optarg);
+				free(ud->clientid);
+				ud->clientid = strdup(UB(clientid));
 				break;
 			case 'P':
 				udata.pubprefix = strdup(optarg);	/* TODO: do we want this? */
@@ -1467,7 +1473,7 @@ int main(int argc, char **argv)
 #ifdef WITH_MQTT
 	mosquitto_lib_init();
 
-	mosq = mosquitto_new(UB(clientid), CLEAN_SESSION, (void *)&udata);
+	mosq = mosquitto_new(ud->clientid, CLEAN_SESSION, (void *)&udata);
 	if (!mosq) {
 		fprintf(stderr, "Error: Out of memory.\n");
 		mosquitto_lib_cleanup();
@@ -1515,7 +1521,7 @@ int main(int argc, char **argv)
 
 	olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
 		ud->hostname, ud->port,
-		UB(clientid),
+		ud->clientid,
 		(cafile) ? "with" : "without");
 
 	rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
@@ -1613,6 +1619,7 @@ int main(int argc, char **argv)
 	mosquitto_destroy(mosq);
 	mosquitto_lib_cleanup();
 	free(ud->hostname);
+	free(ud->clientid);
 #endif
 
 	return (0);

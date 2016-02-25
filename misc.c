@@ -125,6 +125,11 @@ void get_defaults(char *filename, struct udata *ud)
 
 	if (config_lookup_string(cf, "OTR_STORAGEDIR", &value) != CONFIG_FALSE)
 		strcpy(STORAGEDIR, value);
+
+	if (ud == NULL) {
+		/* being invoked by ocat; return */
+		return;
+	}
 #if WITH_MQTT
 	if (config_lookup_string(cf, "OTR_HOST", &value) != CONFIG_FALSE) {
 		if (ud->hostname) free(ud->hostname);
@@ -143,6 +148,10 @@ void get_defaults(char *filename, struct udata *ud)
 	}
 	if (config_lookup_int(cf, "OTR_QOS", &ival) != CONFIG_FALSE) {
 		ud->qos = ival;
+	}
+	if (config_lookup_string(cf, "OTR_CLIENTID", &value) != CONFIG_FALSE) {
+		if (ud->clientid) free(ud->clientid);
+		ud->clientid = strdup(value);
 	}
 
 	/* Topics is a blank-separated string of words; split and add to JSON array */

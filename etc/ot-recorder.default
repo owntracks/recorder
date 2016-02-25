@@ -41,6 +41,12 @@
 # OTR_QOS=2
 
 # -----------------------------------------------------
+# MQTT clientid (default is constant+hostname+pid)
+#
+
+# OTR_CLIENTID=""
+
+# -----------------------------------------------------
 # Address for the HTTP module to bind to (default: localhost)
 #
 

@@ -387,6 +387,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_USER`            |  Y    |               | MQTT username
 | `OTR_PASS`            |  Y    |               | MQTT password
 | `OTR_QOS`             |       | `2`           | MQTT QoS
+| `OTR_CLIENTID`        |       | hostname+pid  | MQTT ClientID (override with -i)
 | `OTR_HTTPHOST`        |       | `localhost`   | Address for the HTTP module to bind to
 | `OTR_HTTPPORT`        |       | `8083`        | Port number of the HTTP module to bind to
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script

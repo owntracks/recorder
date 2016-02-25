@@ -19,6 +19,7 @@ struct udata {
 	int port;			/* MQTT port */
 	char *username;			/* MQTT user */
 	char *password;			/* MQTT password */
+	char *clientid;			/* MQTT clientid */
 #endif
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
