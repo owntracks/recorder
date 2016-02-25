@@ -369,6 +369,33 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 You should definitely **not** modify or touch these files: they remain under the control of the _recorder_. You can of course, remove old `.rec` files if they consume too much space.
 
+## Configuration file
+
+The recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) on assignment:
+
+```
+OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
+```
+
+The following configuration settings may be applied (a `Y` in column `$` means an environment variable of the same name overrides a setting in the config file):
+
+| Variable              |  $    | Default       | Usage
+| --------------------- | :---  | :------------ | ---------------
+| `OTR_STORAGEDIR`      |  Y    | compiled in   | Pathname to the storage directory
+| `OTR_HOST`            |  Y    | `localhost`   | MQTT hostname/address to connect to
+| `OTR_PORT`            |  Y    | `1883`        | MQTT port number to connect to
+| `OTR_USER`            |  Y    |               | MQTT username
+| `OTR_PASS`            |  Y    |               | MQTT password
+| `OTR_QOS`             |       | `2`           | MQTT QoS
+| `OTR_HTTPHOST`        |       | `localhost`   | Address for the HTTP module to bind to
+| `OTR_HTTPPORT`        |       | `8083`        | Port number of the HTTP module to bind to
+| `OTR_LUASCRIPT`       |       |               | Path to the Lua script
+| `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
+| `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
+| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overrides command-line arguments)
+
+Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
+
 
 ## Reverse Geo
 
@@ -625,7 +652,8 @@ After running `otr_hook()`, the _recorder_ attempts to invoke a Lua function for
 
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
 
-#### Environment
+
+### Environment
 
 The following environment variables control _ocat_'s behaviour:
 

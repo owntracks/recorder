@@ -101,6 +101,7 @@ void get_defaults(char *filename, struct udata *ud)
 {
 	config_t cfg, *cf;
 	const char *value;
+	int ival;
 
 	if (access(filename, R_OK) == -1)
 		return;
@@ -118,6 +119,71 @@ void get_defaults(char *filename, struct udata *ud)
 
 	if (config_lookup_string(cf, "OTR_STORAGEDIR", &value) != CONFIG_FALSE)
 		strcpy(STORAGEDIR, value);
+#if WITH_MQTT
+	if (config_lookup_string(cf, "OTR_HOST", &value) != CONFIG_FALSE) {
+		if (ud->hostname) free(ud->hostname);
+		ud->hostname = strdup(value);
+	}
+	if (config_lookup_int(cf, "OTR_PORT", &ival) != CONFIG_FALSE) {
+		ud->port = ival;
+	}
+	if (config_lookup_string(cf, "OTR_USER", &value) != CONFIG_FALSE) {
+		if (ud->username) free(ud->username);
+		ud->username = strdup(value);
+	}
+	if (config_lookup_string(cf, "OTR_PASS", &value) != CONFIG_FALSE) {
+		if (ud->password) free(ud->password);
+		ud->password = strdup(value);
+	}
+	if (config_lookup_int(cf, "OTR_QOS", &ival) != CONFIG_FALSE) {
+		ud->qos = ival;
+	}
+
+	/* Topics is a blank-separated string of words; split and add to JSON array */
+	if (config_lookup_string(cf, "OTR_TOPICS", &value) != CONFIG_FALSE) {
+		char *parts[40];
+		int np, n;
+		if (ud->topics) json_delete(ud->topics);
+
+		if ((np = splitter((char *)value, " ", parts)) < 1) {
+			olog(LOG_ERR, "Illegal value in OTR_TOPICS");
+			exit(2);
+		}
+		ud->topics = json_mkarray();
+
+		for (n = 0; n < np; n++) {
+			json_append_element(ud->topics, json_mkstring(parts[n]));
+		}
+		splitterfree(parts);
+	}
+#endif /* WITH_MQTT */
+
+	if (config_lookup_string(cf, "OTR_GEOKEY", &value) != CONFIG_FALSE) {
+		if (ud->geokey) free(ud->geokey);
+		ud->geokey = strdup(value);
+	}
+
+	if (config_lookup_int(cf, "OTR_PRECISION", &ival) != CONFIG_FALSE) {
+		geohash_setprec(ival);
+		printf("PREC=%d\n", geohash_prec());
+	}
+
+#if WITH_HTTP
+	if (config_lookup_string(cf, "OTR_HTTPHOST", &value) != CONFIG_FALSE) {
+		if (ud->http_host) free(ud->http_host);
+		ud->http_host = strdup(value);
+	}
+	if (config_lookup_int(cf, "OTR_HTTPPORT", &ival) != CONFIG_FALSE) {
+		ud->http_port = ival;
+	}
+#endif /* WITH_HTTP */
+
+#if WITH_LUA
+	if (config_lookup_string(cf, "OTR_LUASCRIPT", &value) != CONFIG_FALSE) {
+		if (ud->luascript) free(ud->luascript);
+		ud->luascript = strdup(value);
+	}
+#endif
 
 	config_destroy(cf);
 }

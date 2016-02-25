@@ -1112,33 +1112,31 @@ int main(int argc, char **argv)
 {
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	char *username, *password, *cafile;
-	char *hostname = strdup("localhost");
-	int port = 1883;
+	char *cafile;
 	UT_string *clientid;
 	int rc, i;
 	struct utsname uts;
 #endif /* WITH_MQTT */
 	char err[1024], *p;
 	char *logfacility = "local0";
-#ifdef WITH_LUA
-	char *luascript = NULL;
-#endif
 #if WITH_MQTT
 	int loop_timeout = 1000;
 #endif
 	int ch, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
-	int http_port = 8083;
 	char *doc_root = DOCROOT;
-	char *http_host = strdup("localhost");
 #endif
 	char *progname = *argv;
 
 #if WITH_MQTT
 	udata.qos		= DEFAULT_QOS;
 	udata.pubprefix		= NULL;
+	udata.username		= NULL;
+	udata.password		= NULL;
+	udata.hostname		= strdup("localhost");
+	udata.port		= 1883;
+	udata.topics		= NULL;
 #endif
 	udata.ignoreretained	= TRUE;
 	udata.skipdemo		= TRUE;
@@ -1149,8 +1147,11 @@ int main(int argc, char **argv)
 	udata.t2t		= NULL;		/* Topic to TID */
 #ifdef WITH_HTTP
 	udata.mgserver		= NULL;
+	udata.http_host		= strdup("localhost");
+	udata.http_port		= 8083;
 #endif
 #ifdef WITH_LUA
+	udata.luascript		= NULL;
 	udata.luadata		= NULL;
 	udata.luadb		= NULL;
 #endif /* WITH_LUA */
@@ -1162,13 +1163,14 @@ int main(int argc, char **argv)
 
 	get_defaults(CONFIGFILE, &udata);
 
+
 #if WITH_MQTT
 	if ((p = getenv("OTR_HOST")) != NULL) {
-		hostname = strdup(p);
+		ud->hostname = strdup(p);
 	}
 
 	if ((p = getenv("OTR_PORT")) != NULL) {
-		port = atoi(p);
+		ud->port = atoi(p);
 	}
 #endif
 
@@ -1177,6 +1179,9 @@ int main(int argc, char **argv)
 	}
 
 #if WITH_MQTT
+	ud->username = getenv("OTR_USER");
+	ud->password = getenv("OTR_PASS");
+
 	utstring_new(clientid);
 	utstring_printf(clientid, "ot-recorder");
 	if (uname(&uts) == 0) {
@@ -1228,6 +1233,7 @@ int main(int argc, char **argv)
 				udata.debug = TRUE;
 				break;
 			case 12:
+				if (udata.geokey) free(udata.geokey);
 				udata.geokey = strdup(optarg);
 				break;
 			case 11:
@@ -1245,7 +1251,8 @@ int main(int argc, char **argv)
 				break;
 #ifdef WITH_LUA
 			case 7:
-				luascript = strdup(optarg);
+				if (ud->luascript) free(ud->luascript);
+				ud->luascript = strdup(optarg);
 				break;
 #endif
 #ifdef WITH_MQTT
@@ -1267,11 +1274,11 @@ int main(int argc, char **argv)
 				ud->ignoreretained = FALSE;
 				break;
 			case 'H':
-				free(hostname);
-				hostname = strdup(optarg);
+				free(ud->hostname);
+				ud->hostname = strdup(optarg);
 				break;
 			case 'p':
-				port = atoi(optarg);
+				ud->port = atoi(optarg);
 				break;
 #endif /* WITH_MQTT */
 			case 5:
@@ -1282,14 +1289,14 @@ int main(int argc, char **argv)
 				break;
 #ifdef WITH_HTTP
 			case 'A':	/* API */
-				http_port = atoi(optarg);
+				ud->http_port = atoi(optarg);
 				break;
 			case 2:		/* no short char */
 				doc_root = strdup(optarg);
 				break;
 			case 3:		/* no short char */
-				free(http_host);
-				http_host = strdup(optarg);
+				free(ud->http_host);
+				ud->http_host = strdup(optarg);
 				break;
 #endif
 			case 'D':
@@ -1369,19 +1376,27 @@ int main(int argc, char **argv)
 	argv += (optind);
 
 #ifdef WITH_MQTT
-	if (argc < 1) {
+	if (ud->topics == NULL && argc < 1) {	/* no topics set via config file */
 		usage(progname);
 		return (-1);
 	}
+
+	/*
+	 * Push list of topics into the array so that we can (re)subscribe
+	 * in on_connect()
+	 */
+
+	if (ud->topics == NULL) {
+		ud->topics = json_mkarray();
+
+		for (i = 0; i < argc; i++) {
+			json_append_element(ud->topics, json_mkstring(argv[i]));
+		}
+	}
 #endif
 
-#ifdef WITH_MQTT
-	username = getenv("OTR_USER");
-	password = getenv("OTR_PASS");
-#endif /* WITH_MQTT */
-
 #ifdef WITH_HTTP
-	if (http_port) {
+	if (ud->http_port) {
 		if (!is_directory(doc_root)) {
 			olog(LOG_ERR, "%s is not a directory", doc_root);
 			exit(1);
@@ -1423,9 +1438,9 @@ int main(int argc, char **argv)
 	 * If option for lua-script has not been given, ignore all hooks.
 	 */
 
-	if (luascript) {
-		if ((udata.luadata = hooks_init(ud, luascript)) == NULL) {
-			olog(LOG_ERR, "Stopping because Lua load failed");
+	if (ud->luascript) {
+		if ((udata.luadata = hooks_init(ud, ud->luascript)) == NULL) {
+			olog(LOG_ERR, "Stopping because loading of Lua script %s failed", ud->luascript);
 			exit(1);
 		}
 	}
@@ -1451,14 +1466,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	/*
-	 * Pushing list of topics into the array so that we can (re)subscribe on_connect()
-	 */
-
-	ud->topics = json_mkarray();
-	for (i = 0; i < argc; i++) {
-		json_append_element(ud->topics, json_mkstring(argv[i]));
-	}
 
 	mosquitto_reconnect_delay_set(mosq,
 			2, 	/* delay */
@@ -1469,8 +1476,8 @@ int main(int argc, char **argv)
 	mosquitto_connect_callback_set(mosq, on_connect);
 	mosquitto_disconnect_callback_set(mosq, on_disconnect);
 
-	if (username && password) {
-			mosquitto_username_pw_set(mosq, username, password);
+	if (ud->username && ud->password) {
+			mosquitto_username_pw_set(mosq, ud->username, ud->password);
 	}
 
 	cafile = getenv("OTR_CAFILE");
@@ -1499,11 +1506,11 @@ int main(int argc, char **argv)
 	}
 
 	olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
-		hostname, port,
+		ud->hostname, ud->port,
 		UB(clientid),
 		(cafile) ? "with" : "without");
 
-	rc = mosquitto_connect(mosq, hostname, port, 60);
+	rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
 	if (rc) {
 		if (rc == MOSQ_ERR_ERRNO) {
 			strerror_r(errno, err, 1024);
@@ -1518,11 +1525,11 @@ int main(int argc, char **argv)
 #endif /* WITH_MQTT */
 
 #ifdef WITH_HTTP
-	if (http_port) {
+	if (ud->http_port) {
 		char address[BUFSIZ];
 		const char *addressinfo;
 
-		sprintf(address, "%s:%d", http_host, http_port);
+		sprintf(address, "%s:%d", ud->http_host, ud->http_port);
 
 		mg_set_option(udata.mgserver, "listening_port", address);
 		// mg_set_option(udata.mgserver, "listening_port", "8090,ssl://8091:cert.pem");
@@ -1583,6 +1590,7 @@ int main(int argc, char **argv)
 
 #ifdef WITH_HTTP
 	mg_destroy_server(&udata.mgserver);
+	free(ud->http_host);
 #endif
 
 #if WITH_LUA
@@ -1596,9 +1604,8 @@ int main(int argc, char **argv)
 
 	mosquitto_destroy(mosq);
 	mosquitto_lib_cleanup();
-	free(hostname);
+	free(ud->hostname);
 #endif
-	free(http_host);
 
 	return (0);
 }

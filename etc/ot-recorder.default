@@ -4,4 +4,69 @@
 # and its associated utilities to override compiled-in defaults.
 # *** In libconfig versions < 1.4 a trailing semicolon is mandatory
 
+# -----------------------------------------------------
+# Storage directory
+#
+
 # OTR_STORAGEDIR = "/var/spool/owntracks/recorder/store"
+
+# -----------------------------------------------------
+# Address or hostname of the MQTT broker
+#
+
+# OTR_HOST="localhost"
+
+# -----------------------------------------------------
+# Port number of the MQTT broker
+#
+
+# OTR_PORT=1883
+
+# -----------------------------------------------------
+# Username for the MQTT connection
+#
+
+# OTR_USER=""
+
+# -----------------------------------------------------
+# Password for the MQTT connection
+#
+
+# OTR_PASS=""
+
+# -----------------------------------------------------
+# QoS for MQTT connection
+#
+
+# OTR_QOS=2
+
+# -----------------------------------------------------
+# Address for the HTTP module to bind to (default: localhost)
+#
+
+# OTR_HTTPHOST="localhost"
+
+# -----------------------------------------------------
+# Port number for the HTTP module to bind to (default: 8083)
+#
+
+# OTR_HTTPPORT=8083
+
+# -----------------------------------------------------
+# API key for reverse-geo lookups
+#
+
+# OTR_GEOKEY=""
+
+# -----------------------------------------------------
+# Reverse geo precision
+#
+
+# OTR_PRECISION=7
+
+# -----------------------------------------------------
+# List of topics for MQTT to subscribe to, blank separated in a string
+#
+
+# OTR_TOPICS="owntracks/+/+"
+
