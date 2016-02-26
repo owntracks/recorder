@@ -1,4 +1,11 @@
 
+
+2016-02-26 version 0.5.4
+- UPD: MQTT can be disabled even if compiled-in
+- UPD: ship README and service file in /usr/share/doc/ot-recorder/
+- UPD: ocat -v displays path to config file
+- FIX: ocat should process only part of config file
+
 2016-02-25 version 0.5.3
 - FIX: mqtt user/pass from config file
 
