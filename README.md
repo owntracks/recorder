@@ -1057,6 +1057,16 @@ apt-get update
 apt-get install ot-recorder
 ```
 
+#### sytemd service
+
+The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
+
+1. Ensure you have a configuration file with the settings you require
+2. Copy the `ot-recorder.service` file to `/etc/systemd/system/ot-recorder.service`
+3. Enable the service to run at startup: `systemctl enable ot-recorder`
+4. Launch the service `systemctl start ot-recorder`
+
+
 ## Docker
 
 We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the _Recorder_. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
