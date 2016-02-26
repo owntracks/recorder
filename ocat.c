@@ -111,6 +111,7 @@ void print_versioninfo()
 #ifdef WITH_KILL
 	printf("\tWITH_KILL = yes\n");
 #endif
+	printf("\tCONFIGFILE = \"%s\"\n", CONFIGFILE);
 	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
 	printf("\tSTORAGEDIR = \"%s\"\n", STORAGEDIR);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
