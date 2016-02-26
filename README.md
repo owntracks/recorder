@@ -941,6 +941,12 @@ location /owntracks/pub {
     proxy_http_version      1.1;
     proxy_set_header        Host $host;
     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    # Optionally force Recorder to use username from Basic
+    # authentication user. Whether or not client sets
+    # X-Limit-U and/or uses ?u= parameter, the user will
+    # be set to $remote_user.
+    proxy_set_header        X-Limit-U $remote_user;
 }
 ```
 
