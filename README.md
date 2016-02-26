@@ -394,6 +394,8 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
 | `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
 | `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overrides command-line arguments)
+| `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT
+
 
 Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
 

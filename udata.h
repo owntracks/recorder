@@ -20,6 +20,7 @@ struct udata {
 	char *username;			/* MQTT user */
 	char *password;			/* MQTT password */
 	char *clientid;			/* MQTT clientid */
+	char *cafile;			/* path to CA PEM for MQTT */
 #endif
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */

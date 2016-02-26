@@ -154,6 +154,11 @@ void get_defaults(char *filename, struct udata *ud)
 		ud->clientid = strdup(value);
 	}
 
+	if (config_lookup_string(cf, "OTR_CAFILE", &value) != CONFIG_FALSE) {
+		if (ud->cafile) free(ud->cafile);
+		ud->cafile = strdup(value);
+	}
+
 	/* Topics is a blank-separated string of words; split and add to JSON array */
 	if (config_lookup_string(cf, "OTR_TOPICS", &value) != CONFIG_FALSE) {
 		char *parts[40];

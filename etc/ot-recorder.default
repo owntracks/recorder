@@ -47,6 +47,11 @@
 # OTR_CLIENTID=""
 
 # -----------------------------------------------------
+# Path to PEM-encoded CA certificate file for MQTT (no default)
+
+# OTR_CAFILE=""
+
+# -----------------------------------------------------
 # Address for the HTTP module to bind to (default: localhost)
 #
 

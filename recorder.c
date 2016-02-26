@@ -1112,7 +1112,6 @@ int main(int argc, char **argv)
 {
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	char *cafile;
 	UT_string *clientid;
 	int rc, i;
 	struct utsname uts;
@@ -1138,6 +1137,7 @@ int main(int argc, char **argv)
 	udata.port		= 1883;
 	udata.clientid		= NULL;
 	udata.topics		= NULL;
+	udata.cafile		= NULL;
 #endif
 	udata.ignoreretained	= TRUE;
 	udata.skipdemo		= TRUE;
@@ -1162,6 +1162,7 @@ int main(int argc, char **argv)
 
 	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
 
+#if WITH_MQTT
 	utstring_new(clientid);
 	utstring_printf(clientid, "ot-recorder");
 	if (uname(&uts) == 0) {
@@ -1170,6 +1171,7 @@ int main(int argc, char **argv)
 	utstring_printf(clientid, "-%d", getpid());
 
 	ud->clientid = strdup(UB(clientid));
+#endif /* WITH_MQTT */
 
 	get_defaults(CONFIGFILE, &udata);
 
@@ -1198,6 +1200,12 @@ int main(int argc, char **argv)
 		if (ud->password)
 			free(ud->password);
 		ud->password = strdup(p);
+	}
+
+	if ((p = getenv("OTR_CAFILE")) != NULL) {
+		if (ud->cafile)
+			free(ud->cafile);
+		ud->cafile = strdup(p);
 	}
 
 #endif
@@ -1494,16 +1502,14 @@ int main(int argc, char **argv)
 			mosquitto_username_pw_set(mosq, ud->username, ud->password);
 	}
 
-	cafile = getenv("OTR_CAFILE");
-
-	if (cafile && *cafile) {
+	if (ud->cafile && *ud->cafile) {
 
                 rc = mosquitto_tls_set(mosq,
-                        cafile,                 /* cafile */
-                        NULL,                   /* capath */
-                        NULL,                   /* certfile */
-                        NULL,                   /* keyfile */
-                        NULL                    /* pw_callback() */
+                        ud->cafile,		/* cafile */
+                        NULL,			/* capath */
+                        NULL,			/* certfile */
+                        NULL,			/* keyfile */
+                        NULL			/* pw_callback() */
                         );
                 if (rc != MOSQ_ERR_SUCCESS) {
                         fprintf(stderr, "Cannot set TLS CA: %s (check path names)\n",
@@ -1522,7 +1528,7 @@ int main(int argc, char **argv)
 	olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
 		ud->hostname, ud->port,
 		ud->clientid,
-		(cafile) ? "with" : "without");
+		(ud->cafile) ? "with" : "without");
 
 	rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
 	if (rc) {
@@ -1619,7 +1625,8 @@ int main(int argc, char **argv)
 	mosquitto_destroy(mosq);
 	mosquitto_lib_cleanup();
 	free(ud->hostname);
-	free(ud->clientid);
+	if (ud->clientid) free(ud->clientid);
+	if (ud->cafile) free(ud->cafile);
 #endif
 
 	return (0);
