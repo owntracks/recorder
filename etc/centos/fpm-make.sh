@@ -6,6 +6,10 @@ tempdir=$(mktemp -d /tmp/ot-XXX)
 
 make install DESTDIR=$tempdir
 
+install -D README.md $tempdir/usr/share/doc/ot-recorder/README.md
+install -D etc/ot-recorder.service $tempdir/usr/share/doc/ot-recorder/ot-recorder.service
+
+
 name="ot-recorder"
 version=$(awk '{print $NF;}' version.h | sed -e 's/"//g' )
 arch=$(uname -m)
