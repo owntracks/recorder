@@ -1062,7 +1062,7 @@ apt-get install ot-recorder
 The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
 
 1. Ensure you have a configuration file with the settings you require
-2. Copy the `ot-recorder.service` file to `/etc/systemd/system/ot-recorder.service`
+2. `install -m444 /usr/share/doc/ot-recorder/ot-recorder.service/etc/systemd/system/ot-recorder.service`
 3. Enable the service to run at startup: `systemctl enable ot-recorder`
 4. Launch the service `systemctl start ot-recorder`
 
