@@ -1124,7 +1124,8 @@ int main(int argc, char **argv)
 	int ch, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
-	char *doc_root = DOCROOT;
+	char *doc_root		= DOCROOT;
+	int http_pollms		= 50;
 #endif
 	char *progname = *argv;
 
@@ -1398,21 +1399,23 @@ int main(int argc, char **argv)
 	argv += (optind);
 
 #ifdef WITH_MQTT
-	if (ud->topics == NULL && argc < 1) {	/* no topics set via config file */
-		usage(progname);
-		return (-1);
-	}
+	if (ud->port) {
+		if (ud->topics == NULL && argc < 1) {	/* no topics set via config file */
+			usage(progname);
+			return (-1);
+		}
 
-	/*
-	 * Push list of topics into the array so that we can (re)subscribe
-	 * in on_connect()
-	 */
+		/*
+		 * Push list of topics into the array so that we can
+		 * (re)subscribe in on_connect()
+		 */
 
-	if (ud->topics == NULL) {
-		ud->topics = json_mkarray();
+		if (ud->topics == NULL) {
+			ud->topics = json_mkarray();
 
-		for (i = 0; i < argc; i++) {
-			json_append_element(ud->topics, json_mkstring(argv[i]));
+			for (i = 0; i < argc; i++) {
+				json_append_element(ud->topics, json_mkstring(argv[i]));
+			}
 		}
 	}
 #endif
@@ -1481,66 +1484,70 @@ int main(int argc, char **argv)
 #ifdef WITH_MQTT
 	mosquitto_lib_init();
 
-	mosq = mosquitto_new(ud->clientid, CLEAN_SESSION, (void *)&udata);
-	if (!mosq) {
-		fprintf(stderr, "Error: Out of memory.\n");
-		mosquitto_lib_cleanup();
-		return 1;
-	}
+	if (ud->port) {
+		mosq = mosquitto_new(ud->clientid, CLEAN_SESSION, (void *)&udata);
+		if (!mosq) {
+			fprintf(stderr, "Error: Out of memory.\n");
+			mosquitto_lib_cleanup();
+			return 1;
+		}
 
 
-	mosquitto_reconnect_delay_set(mosq,
+		mosquitto_reconnect_delay_set(mosq,
 			2, 	/* delay */
 			20,	/* delay_max */
 			0);	/* exponential backoff */
 
-	mosquitto_message_callback_set(mosq, on_message);
-	mosquitto_connect_callback_set(mosq, on_connect);
-	mosquitto_disconnect_callback_set(mosq, on_disconnect);
+		mosquitto_message_callback_set(mosq, on_message);
+		mosquitto_connect_callback_set(mosq, on_connect);
+		mosquitto_disconnect_callback_set(mosq, on_disconnect);
 
-	if (ud->username && ud->password) {
+		if (ud->username && ud->password) {
 			mosquitto_username_pw_set(mosq, ud->username, ud->password);
-	}
-
-	if (ud->cafile && *ud->cafile) {
-
-                rc = mosquitto_tls_set(mosq,
-                        ud->cafile,		/* cafile */
-                        NULL,			/* capath */
-                        NULL,			/* certfile */
-                        NULL,			/* keyfile */
-                        NULL			/* pw_callback() */
-                        );
-                if (rc != MOSQ_ERR_SUCCESS) {
-                        fprintf(stderr, "Cannot set TLS CA: %s (check path names)\n",
-                                mosquitto_strerror(rc));
-                        exit(3);
-                }
-
-                mosquitto_tls_opts_set(mosq,
-                        SSL_VERIFY_PEER,
-                        NULL,                   /* tls_version: "tlsv1.2", "tlsv1" */
-                        NULL                    /* ciphers */
-                        );
-
-	}
-
-	olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
-		ud->hostname, ud->port,
-		ud->clientid,
-		(ud->cafile) ? "with" : "without");
-
-	rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
-	if (rc) {
-		if (rc == MOSQ_ERR_ERRNO) {
-			strerror_r(errno, err, 1024);
-			fprintf(stderr, "Error: %s\n", err);
-		} else {
-			fprintf(stderr, "Unable to connect (%d) [%s]: %s.\n",
-				rc, mosquitto_strerror(rc), mosquitto_reason(rc));
 		}
-		mosquitto_lib_cleanup();
-		return rc;
+
+		if (ud->cafile && *ud->cafile) {
+
+			rc = mosquitto_tls_set(mosq,
+				ud->cafile,		/* cafile */
+				NULL,			/* capath */
+				NULL,			/* certfile */
+				NULL,			/* keyfile */
+				NULL			/* pw_callback() */
+				);
+			if (rc != MOSQ_ERR_SUCCESS) {
+				fprintf(stderr, "Cannot set TLS CA: %s (check path names)\n",
+					mosquitto_strerror(rc));
+				exit(3);
+			}
+
+			mosquitto_tls_opts_set(mosq,
+				SSL_VERIFY_PEER,
+				NULL,                   /* tls_version: "tlsv1.2", "tlsv1" */
+				NULL                    /* ciphers */
+				);
+
+		}
+
+		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
+			ud->hostname, ud->port,
+			ud->clientid,
+			(ud->cafile) ? "with" : "without");
+
+		rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
+		if (rc) {
+			if (rc == MOSQ_ERR_ERRNO) {
+				strerror_r(errno, err, 1024);
+				fprintf(stderr, "Error: %s\n", err);
+			} else {
+				fprintf(stderr, "Unable to connect (%d) [%s]: %s.\n",
+					rc, mosquitto_strerror(rc), mosquitto_reason(rc));
+			}
+			mosquitto_lib_cleanup();
+			return rc;
+		}
+	} else {
+		olog(LOG_INFO, "Not using MQTT: disabled by port=0");
 	}
 #endif /* WITH_MQTT */
 
@@ -1577,23 +1584,25 @@ int main(int argc, char **argv)
 
 	while (run) {
 #ifdef WITH_MQTT
-		loop_timeout = 0;
-		rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
-		if (run && rc) {
-			olog(LOG_INFO, "MQTT connection: rc=%d [%s] (errno=%d; %s). Sleeping...", rc, mosquitto_strerror(rc), errno, strerror(errno));
-			sleep(10);
-			mosquitto_reconnect(mosq);
+		if (ud->port != 0) {
+			loop_timeout = 0;
+			rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
+			if (run && rc) {
+				olog(LOG_INFO, "MQTT connection: rc=%d [%s] (errno=%d; %s). Sleeping...", rc, mosquitto_strerror(rc), errno, strerror(errno));
+				sleep(10);
+				mosquitto_reconnect(mosq);
+			}
+		} else {
+			http_pollms = 10000;
 		}
 #endif
 #ifdef WITH_HTTP
 		if (udata.mgserver) {
-			// mg_poll_server(udata.mgserver, 100);
-			mg_poll_server(udata.mgserver, 50);
+			mg_poll_server(udata.mgserver, http_pollms);
 		}
 #endif
 	}
 
-	json_delete(ud->topics);
 
 	gcache_close(ud->gc);
 	gcache_close(ud->t2t);
@@ -1620,7 +1629,11 @@ int main(int argc, char **argv)
 	revgeo_free();
 
 #ifdef WITH_MQTT
-	mosquitto_disconnect(mosq);
+	if (ud->port) {
+		mosquitto_disconnect(mosq);
+		if (ud->topics)
+			json_delete(ud->topics);
+	}
 
 	mosquitto_destroy(mosq);
 	mosquitto_lib_cleanup();

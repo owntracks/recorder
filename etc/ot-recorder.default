@@ -17,7 +17,8 @@
 # OTR_HOST="localhost"
 
 # -----------------------------------------------------
-# Port number of the MQTT broker
+# Port number of the MQTT broker. Defaults to 1883.
+# MQTT can be disabled by setting this to 0.
 #
 
 # OTR_PORT=1883

@@ -77,7 +77,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--host` is the name or address of the MQTT broker and overrides `$OTR_HOST`. The default is "localhost". 
 
-`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. 
+`--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. Setting this to 0 disables MQTT even if it is compiled-in.
 
 `--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection.
 
