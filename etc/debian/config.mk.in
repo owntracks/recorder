@@ -9,6 +9,7 @@ WITH_LUA ?= yes
 WITH_PING ?= yes
 WITH_KILL ?= no
 WITH_ENCRYPT ?= yes
+WITH_GREENWICH ?= yes
 
 STORAGEDEFAULT = /var/spool/owntracks/recorder/store
 DOCROOT = /var/spool/owntracks/recorder/htdocs
