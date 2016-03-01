@@ -626,6 +626,99 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	return json_response(conn, jarray);
 }
 
+#if WITH_GREENWICH
+
+/*
+ # OLD
+ * username=XXX&password=YYY&tid=ZZ&nrecs=NNNN&topic=owntracks/gw/K2
+ *
+ * NEW
+ * user=XXX&device=YYYY&limit=NNNN
+ *
+ */
+
+static int ctrl_track(struct mg_connection *conn)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	int limit = 500;
+	char *p, *username = NULL, *device = NULL;
+	char *from = NULL, *to = NULL;
+	time_t s_lo, s_hi;
+	JsonNode *response, *obj, *track, *locs, *fields, *json, *arr;
+
+	if ((p = field(conn, "user")) != NULL) {
+		username = strdup(p);
+	}
+
+	if ((p = field(conn, "device")) != NULL) {
+		device = strdup(p);
+	}
+
+	if ((p = field(conn, "limit")) != NULL) {
+		limit = atoi(p);
+		free(p);
+	}
+
+	if (!username || !device) {
+		send_status(conn, 416, "user and/or device missing");
+		return (MG_TRUE);
+	}
+
+	if (make_times(from, &s_lo, to, &s_hi) != 1) {
+		send_status(conn, 416, "impossible date/time ranges");
+		return (MG_TRUE);
+	}
+
+	response = json_mkobject();
+	json_append_member(response, "message", json_mkstring("OK"));
+
+	track = json_mkarray();
+
+	fields = json_mkarray();
+	json_append_element(fields, json_mkstring("tst"));
+	json_append_element(fields, json_mkstring("lat"));
+	json_append_element(fields, json_mkstring("lon"));
+
+	/*
+	 * Obtain a list of .rec files from lister(), possibly limited
+	 * by s_lo/s_hi times, process each and build the JSON object
+	 * `obj` containing an array of locations.
+	 */
+
+	obj = json_mkobject();
+	locs = json_mkarray();
+
+	debug(ud, "ctrl_track u=%s, d=%s, f=%ld, t=%ld", username, device, s_lo, s_hi);
+
+	if ((json = lister(username, device, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
+		int i_have = 0;
+
+		if ((arr = json_find_member(json, "results")) != NULL) {
+			JsonNode *f;
+			json_foreach(f, arr) {
+				locations(f->string_, obj, locs, s_lo, s_hi, JSON, limit, fields, NULL, NULL);
+				if (limit) {
+					i_have += limit;
+					if (i_have >= limit) {
+						break;
+					}
+				}
+			}
+		}
+		json_delete(json);
+	}
+	json_delete(obj);
+	json_delete(fields);
+
+	json_append_member(response, "track", locs);
+
+	return (json_response(conn, response));
+
+}
+
+
+#endif /* WITH_GREENWICH */
+
 /*
  * Procure back-end data for a VIEW. `view' is the JSON view from which
  * we obtain who/what to get. This returns a JSON array of location
@@ -1010,6 +1103,12 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	/* /locations			[<username>[<device>]][[fields=a,b,c] */
 
 	if (nparts == 1 && !strcmp(uparts[0], "locations")) {
+		if (!u || !d) {
+			CLEANUP;
+			mg_send_status(conn, 416);
+			mg_printf_data(conn, "user and device are required\n");
+			return (MG_TRUE);
+		}
 		/*
 		 * Obtain a list of .rec files from lister(), possibly limited
 		 * by s_lo/s_hi times, process each and build the JSON `obj'
@@ -1297,6 +1396,11 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 			if (!strcmp(conn->request_method, "POST")) {
 
+#if WITH_GREENWICH
+				if (!strncmp(conn->uri, "/ctrl/track", strlen("/ctrl/track"))) {
+					return ctrl_track(conn);
+				}
+#endif /* WITH_GREENWICH */
 				if (!strcmp(conn->uri, "/block")) {
 					int blocked = TRUE;
 					char buf[BUFSIZ], *u;
