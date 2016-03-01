@@ -1,5 +1,8 @@
 
 
+2016-03-01 version 0.5.6
+- FIX: gwstorage lowercase username & device (#96)
+
 2016-03-01 version 0.5.5
 - FIX: MQTT topics on command line override those in config file
 - NEW: API supports track for CTRL
