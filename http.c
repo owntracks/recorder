@@ -669,6 +669,8 @@ static int ctrl_track(struct mg_connection *conn)
 		return (MG_TRUE);
 	}
 
+	s_lo -= (30 * 24 * 60 * 60);	/* move start point to a month prior */
+
 	response = json_mkobject();
 	json_append_member(response, "message", json_mkstring("OK"));
 
