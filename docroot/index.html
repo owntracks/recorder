@@ -67,6 +67,10 @@
 
 			for (var i = 0; i < data.length; i++) {
 				var d = data[i];
+				if (!d['_type']) {
+					console.log(d);
+					continue;
+				}
 				d['udev'] = "user=" + d['username'] + "&device=" + d['device'];
 				d['f12'] = f12;
 				d['f7'] = f7;
