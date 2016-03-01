@@ -1074,7 +1074,7 @@ void usage(char *prog)
 	printf("  --help		-h	this message\n");
 	printf("  --storage		-S     storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G     disable ghash to reverge-geo lookups\n");
-	printf("  --skipdemo 		-D     do handle objects with _demo (default: don't)\n");
+	printf("  --noskipdemo 		-D     do handle objects with _demo (default: don't)\n");
 #if WITH_MQTT
 	printf("  --useretained		-R     process retained messages (default: no)\n");
 	printf("  --clientid		-i     MQTT client-ID\n");
