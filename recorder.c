@@ -403,16 +403,22 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 
 void store_gwvalue(char *username, char *device, time_t tst, char *key, char *value)
 {
-	static UT_string *ts = NULL;
+	static UT_string *ts = NULL, *u = NULL, *d = NULL;
 	JsonNode *array, *o, *j;
 	int count = 0;
 	char *js;
 
 	utstring_renew(ts);
+	utstring_renew(u);
+	utstring_renew(d);
+	utstring_printf(u, "%s", username);
+	utstring_printf(d, "%s", device);
+	lowercase(UB(u));
+	lowercase(UB(d));
 	utstring_printf(ts, "%s/last/%s/%s",
 				STORAGEDIR,
-				username,
-				device);
+				UB(u),
+				UB(d));
 	if (mkpath(UB(ts)) < 0) {
 		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
 		return;
