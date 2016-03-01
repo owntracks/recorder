@@ -185,7 +185,6 @@ void get_defaults(char *filename, struct udata *ud)
 
 	if (config_lookup_int(cf, "OTR_PRECISION", &ival) != CONFIG_FALSE) {
 		geohash_setprec(ival);
-		printf("PREC=%d\n", geohash_prec());
 	}
 
 #if WITH_HTTP
