@@ -1405,12 +1405,18 @@ int main(int argc, char **argv)
 			return (-1);
 		}
 
-		/*
-		 * Push list of topics into the array so that we can
-		 * (re)subscribe in on_connect()
-		 */
+		if (argc >= 1) {			/* topics on command line override config */
 
-		if (ud->topics == NULL) {
+			/*
+			 * Push list of topics into the array so that we can
+			 * (re)subscribe in on_connect()
+			 */
+
+			if (ud->topics != NULL) {
+				json_delete(ud->topics);
+				ud->topics = NULL;
+			}
+
 			ud->topics = json_mkarray();
 
 			for (i = 0; i < argc; i++) {
