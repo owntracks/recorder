@@ -53,7 +53,7 @@ void storage_gcache_load(char *lmdbname);
 void xml_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param);
 void csv_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func)(char *s, void *param), void *param);
 char *storage_userphoto(char *username);
-void append_card_to_object(JsonNode *obj, char *user);
+void append_card_to_object(JsonNode *obj, char *user, char *device);
 void extra_http_json(JsonNode *array, char *user, char *device);
 
 #endif

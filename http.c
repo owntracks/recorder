@@ -286,8 +286,9 @@ static void send_last(struct mg_connection *conn)
 				json_copy_element_to_object(o, "topic", f);
 
 			if ((f = json_find_member(one, "username")) != NULL) {
+				JsonNode *d = json_find_member(one, "device");
 				/* Add CARD details */
-				append_card_to_object(o, f->string_);
+				append_card_to_object(o, f->string_, d->string_);
 			}
 
 			http_ws_push_json(ud->mgserver, o);
@@ -793,7 +794,7 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 					i_have += limit;
 					if (i_have >= limit) {
 						JsonNode *o, *c = json_mkobject();
-						append_card_to_object(c, ju->string_);
+						append_card_to_object(c, ju->string_, jd->string_);
 
 						/* Add card details to 0th locs element */
 						if ((o = json_find_element(locs, 0)) != NULL) {

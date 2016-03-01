@@ -207,6 +207,10 @@
 	
 	        var userdev = loc.label ? loc.label : loc.tid;
 
+		if (loc.name) {
+			userdev = loc.name;			/* override label/tid by name from CARD */
+		}
+
 	        var data = {
 	                userdev: userdev,
 	                ghash:  loc.ghash ? loc.ghash : '',

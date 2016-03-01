@@ -174,19 +174,30 @@ static void get_gw_data(char *username, char *device, JsonNode *last)
 
 #endif /* GREENWICH */
 
-void append_card_to_object(JsonNode *obj, char *user)
+void append_card_to_object(JsonNode *obj, char *user, char *device)
 {
-	char path[BUFSIZ];
+	char path[BUFSIZ], path1[BUFSIZ], *cardfile = NULL;
 	JsonNode *card;
 
 	if (!user || !*user)
 		return;
 
-	snprintf(path, BUFSIZ, "%s/cards/%s/%s.json",
-		STORAGEDIR, user, user);
+
+	snprintf(path, BUFSIZ, "%s/cards/%s/%s/%s-%s.json",
+		STORAGEDIR, user, device, user, device);
+	if (access(path, R_OK) == 0) {
+		cardfile = path;
+	} else {
+		snprintf(path1, BUFSIZ, "%s/cards/%s/%s.json",
+			STORAGEDIR, user, user);
+
+		if (access(path1, R_OK) == 0) {
+			cardfile = path1;
+		}
+	}
 
 	card = json_mkobject();
-	if (json_copy_from_file(card, path) == TRUE) {
+	if (cardfile && json_copy_from_file(card, cardfile) == TRUE) {
 		json_copy_to_object(obj, card, FALSE);
 	}
 	json_delete(card);
@@ -210,7 +221,7 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 		}
 	}
 
-	append_card_to_object(last, user);
+	append_card_to_object(last, user, device);
 
 
 	if ((node = json_find_member(last, "ghash")) != NULL) {
@@ -1152,8 +1163,20 @@ JsonNode *kill_datastore(char *user, char *device)
 		olog(LOG_NOTICE, "removed %s", UB(path));
 		json_append_member(obj, "card", json_mkstring(UB(path)));
 	}
+	utstring_renew(path);
+	utstring_printf(path, "%s/cards/%s/%s/%s-%s.json", STORAGEDIR, user, device, user, device);
+	if (remove(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+		json_append_member(obj, "card", json_mkstring(UB(path)));
+	}
 
-	/* ... and it's parent directory */
+	/* ... and it's parent directories */
+	utstring_renew(path);
+	utstring_printf(path, "%s/cards/%s/%s", STORAGEDIR, user, device);
+	if (rmdir(UB(path)) == 0) {
+		olog(LOG_NOTICE, "removed %s", UB(path));
+	}
+
 	utstring_renew(path);
 	utstring_printf(path, "%s/cards/%s", STORAGEDIR, user);
 	if (rmdir(UB(path)) == 0) {
