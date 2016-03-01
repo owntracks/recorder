@@ -1,5 +1,9 @@
 
 
+2016-03-01 version 0.5.5
+- FIX: MQTT topics on command line override those in config file
+- NEW: API supports track for CTRL
+
 2016-02-26 version 0.5.4
 - UPD: MQTT can be disabled even if compiled-in
 - UPD: ship README and service file in /usr/share/doc/ot-recorder/
