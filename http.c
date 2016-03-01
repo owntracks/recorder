@@ -644,7 +644,7 @@ static int ctrl_track(struct mg_connection *conn)
 	char *p, *username = NULL, *device = NULL;
 	char *from = NULL, *to = NULL;
 	time_t s_lo, s_hi;
-	JsonNode *response, *obj, *track, *locs, *fields, *json, *arr;
+	JsonNode *response, *obj, *locs, *fields, *json, *arr;
 
 	if ((p = field(conn, "user")) != NULL) {
 		username = strdup(p);
@@ -671,8 +671,6 @@ static int ctrl_track(struct mg_connection *conn)
 
 	response = json_mkobject();
 	json_append_member(response, "message", json_mkstring("OK"));
-
-	track = json_mkarray();
 
 	fields = json_mkarray();
 	json_append_element(fields, json_mkstring("tst"));
