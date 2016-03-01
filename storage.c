@@ -142,17 +142,24 @@ static void get_gw_data(char *username, char *device, JsonNode *last)
 	JsonNode *array;
 	static char *types[] = { "batt", "ext", "status", NULL };
 	char **t, *js;
-	static UT_string *ts = NULL;
+	static UT_string *ts = NULL, *u = NULL, *d = NULL;
 
 	if (last == NULL || last->tag != JSON_OBJECT)
 		return;
 
+
 	for (t = types; t && *t; t++) {
+		utstring_renew(u);
+		utstring_renew(d);
+		utstring_printf(u, "%s", username);
+		utstring_printf(d, "%s", device);
+		lowercase(UB(u));
+		lowercase(UB(d));
 		utstring_renew(ts);
 		utstring_printf(ts, "%s/last/%s/%s/%s.json",
 					STORAGEDIR,
-					username,
-					device,
+					UB(u),
+					UB(d),
 					*t);
 
 		/* Read file into JSON array and append to `last' object */
