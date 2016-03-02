@@ -83,6 +83,9 @@ function initialize() {
 		};
 
 		var t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> {{ fulldate }}";
+		if (typeof(tst) === 'undefined') {
+			t = "Position: {{lat}}, {{lon}}";
+		}
 
 		infowindow.setContent(Mustache.render(t, data));
 		infowindow.setPosition(event.latLng);
