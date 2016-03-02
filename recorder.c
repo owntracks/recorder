@@ -895,7 +895,14 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	 * of which device is being updated; use topic.
 	 */
 
+#if WITH_GREENWICH
+	if (strcmp(UB(reltopic), "alarm") == 0) {
+		json_append_member(json, "topic", json_mkstring(UB(basetopic)));
+		json_append_member(json, "_reltopic", json_mkstring("alarm"));
+	}
+#else
 	json_append_member(json, "topic", json_mkstring(topic));
+#endif
 
 	/*
 	 * We have to know which user/device this is for in order to
