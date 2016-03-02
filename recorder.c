@@ -899,6 +899,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if (strcmp(UB(reltopic), "alarm") == 0) {
 		json_append_member(json, "topic", json_mkstring(UB(basetopic)));
 		json_append_member(json, "_reltopic", json_mkstring("alarm"));
+	} else {
+		json_append_member(json, "topic", json_mkstring(topic));
 	}
 #else
 	json_append_member(json, "topic", json_mkstring(topic));
