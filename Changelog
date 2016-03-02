@@ -1,5 +1,11 @@
 
 
+2016-03-02 version 0.5.7
+- FIX: linestring map shows position only; no longer broken date (#97)
+- FIX: Greenwich alarms were stored in last/ as ../alarm
+- UPD: attempt CARD retrieval first from user/device/u-d.json (#94)
+- UPD: option --skipdemo renamed to --noskipdemo
+
 2016-03-01 version 0.5.6
 - FIX: gwstorage lowercase username & device (#96)
 
