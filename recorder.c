@@ -600,7 +600,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		int j;
 
 		for (j = 3 + skipslash; j < count; j++) {
-			utstring_printf(reltopic, "%s%c", topics[j], (j < count - 1) ? '/' : ' ');
+			utstring_printf(reltopic, "%s%c", topics[j], (j < count - 1) ? '/' : 0);
 		}
         } else {
 		utstring_printf(reltopic, "*");
