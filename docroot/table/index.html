@@ -168,6 +168,11 @@
                             title: config.column_titles.user,
                             visible: true,
                             data: null,
+			    createdCell: function(td, cellData, rowData, row, col) {
+				if (rowData._http) {
+					$(td).css('color', 'gray');
+				}
+			    },
                             render: function(data, type, row) {
 			    	var t = "{{username}}/{{device}}";
 				return Mustache.render(t, data);

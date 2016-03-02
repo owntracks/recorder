@@ -589,7 +589,7 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	debug(ud, "HTTPPUB clen=%zu, topic=%s", conn->content_len, UB(topic));
 
-	handle_message(ud, UB(topic), payload, conn->content_len, 0);
+	handle_message(ud, UB(topic), payload, conn->content_len, 0, TRUE);
 
 
 	jarray = populate_friends(conn, u, d);
