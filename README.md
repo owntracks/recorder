@@ -371,7 +371,7 @@ You should definitely **not** modify or touch these files: they remain under the
 
 ## Configuration file
 
-The recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`, and `ocat -v` will display the compiled-in default). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) on assignment:
+The recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`, and `ocat -v` will display the compiled-in default). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) at the end of a variable assignment):
 
 ```
 OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
@@ -393,7 +393,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
 | `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
-| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overrides command-line arguments)
+| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overriden by command-line arguments)
 | `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT
 
 
