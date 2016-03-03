@@ -1,4 +1,7 @@
 
+2016-03-03 version 0.5.9
+- UPD: messages received over http have _http:true added to JSON
+- UPD: http publishes are displayed with grey user in Table
 
 2016-03-02 version 0.5.8
 - FIX: topic missing in last/
