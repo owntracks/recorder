@@ -65,6 +65,12 @@
 # OTR_HTTPPORT=8083
 
 # -----------------------------------------------------
+# optional path to HTTP directory in which to store
+# access log. Default is to not log access
+
+# OTR_HTTPLOGDIR=""
+
+# -----------------------------------------------------
 # API key for reverse-geo lookups
 #
 

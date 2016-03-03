@@ -1104,6 +1104,7 @@ void usage(char *prog)
 	printf("  --http-host <host>	       HTTP addr to bind to (localhost)\n");
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
+	printf("  --http-logdir <directory>    directory in which to store access.log\n");
 #endif
 #ifdef WITH_LUA
 	printf("  --lua-script <script.lua>    path to Lua script. If unset, no Lua hooks\n");
@@ -1170,6 +1171,7 @@ int main(int argc, char **argv)
 	udata.mgserver		= NULL;
 	udata.http_host		= strdup("localhost");
 	udata.http_port		= 8083;
+	udata.http_logdir	= NULL;
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
@@ -1259,6 +1261,7 @@ int main(int argc, char **argv)
 			{ "http-host",	required_argument,	0, 	3},
 			{ "http-port",	required_argument,	0, 	'A'},
 			{ "doc-root",	required_argument,	0, 	2},
+			{ "http-logdir",	required_argument,	0, 	14},
 #endif
 			{0, 0, 0, 0}
 		  };
@@ -1340,6 +1343,9 @@ int main(int argc, char **argv)
 				free(ud->http_host);
 				ud->http_host = strdup(optarg);
 				break;
+			case 14:
+				if (ud->http_logdir) free(ud->http_logdir);
+				ud->http_logdir = strdup(optarg);
 #endif
 			case 'D':
 				ud->skipdemo = FALSE;
@@ -1578,7 +1584,7 @@ int main(int argc, char **argv)
 
 #ifdef WITH_HTTP
 	if (ud->http_port) {
-		char address[BUFSIZ];
+		char address[BUFSIZ], logdir[BUFSIZ];
 		const char *addressinfo;
 
 		sprintf(address, "%s:%d", ud->http_host, ud->http_port);
@@ -1592,7 +1598,12 @@ int main(int argc, char **argv)
 		mg_set_option(udata.mgserver, "document_root", doc_root);
 		mg_set_option(udata.mgserver, "enable_directory_listing", "yes");
 		mg_set_option(udata.mgserver, "auth_domain", "owntracks-recorder");
-		// mg_set_option(udata.mgserver, "access_log_file", "access.log");
+
+		if (ud->http_logdir) {
+			sprintf(logdir, "%s/access.log", ud->http_logdir);
+			mg_set_option(udata.mgserver, "access_log_file", logdir);
+			olog(LOG_INFO, "Using access log at %s", logdir);
+		}
 		// mg_set_option(udata.mgserver, "cgi_pattern", "**.cgi");
 
 		addressinfo = mg_get_option(udata.mgserver, "listening_port");
@@ -1645,6 +1656,7 @@ int main(int argc, char **argv)
 #ifdef WITH_HTTP
 	mg_destroy_server(&udata.mgserver);
 	free(ud->http_host);
+	if (ud->http_logdir) free(ud->http_logdir);
 #endif
 
 #if WITH_LUA

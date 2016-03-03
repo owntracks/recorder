@@ -195,6 +195,10 @@ void get_defaults(char *filename, struct udata *ud)
 	if (config_lookup_int(cf, "OTR_HTTPPORT", &ival) != CONFIG_FALSE) {
 		ud->http_port = ival;
 	}
+	if (config_lookup_string(cf, "OTR_HTTPLOGDIR", &value) != CONFIG_FALSE) {
+		if (ud->http_logdir) free(ud->http_logdir);
+		ud->http_logdir = strdup(value);
+	}
 #endif /* WITH_HTTP */
 
 #if WITH_LUA

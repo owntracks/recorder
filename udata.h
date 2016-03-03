@@ -32,6 +32,7 @@ struct udata {
 	struct mg_server *mgserver;	/* Mongoose */
 	char *http_host;		/* address of http bind */
 	int http_port;			/* port number for above */
+	char *http_logdir;		/* full path to http access log */
 #endif
 #ifdef WITH_LUA
 	char *luascript;		/* Path to Lua script */
