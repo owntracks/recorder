@@ -20,12 +20,18 @@ The _recorder_ serves two purposes:
 
 ## Installing
 
+We provide a ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image which bundles the Recorder and a Mosquitto broker [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/).
+
+## Building from source
+
 You will require:
 
-* [libmosquitto](http://mosquitto.org), but see below for platform instructions
+* [libmosquitto](http://mosquitto.org) unless you disable MQTT during building, but see below for platform instructions
 * [libCurl](http://curl.haxx.se/libcurl/)
 * [lmdb](http://symas.com/mdb) (included)
+* [libconfig](http://www.hyperrealm.com/libconfig/)
 * Optionally [Lua](http://lua.org)
+* Optionally [libsodium](https://github.com/jedisct1/libsodium) for secret-key encryption of payloads
 
 1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
 2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
@@ -1076,3 +1082,10 @@ The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/
 ## Docker
 
 We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the _Recorder_. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
+
+## Tips and Tricks
+
+### Gatewaying HTTP to MQTT
+
+It actually is possible to gateway location publishes arriving via HTTP into MQTT, though you should be careful not to create loops. You can accomplish this with one or more Lua hooks using MQTT from within Lua.
+
