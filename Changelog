@@ -1,4 +1,9 @@
 
+
+2016-03-04 version 0.6.0
+- UPD: view can specify hours instead of from/to (#99)
+- UPD: recorder and config option HTTPLOGDIR for access.log
+
 2016-03-03 version 0.5.9
 - UPD: messages received over http have _http:true added to JSON
 - UPD: http publishes are displayed with grey user in Table
