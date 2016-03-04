@@ -634,6 +634,7 @@ static JsonNode *line_to_location(char *line)
 	char tstamp[64], *bp;
 	double lat, lon;
 	long tst;
+	int geoprec = geohash_prec();
 
 	snprintf(tstamp, 21, "%s", line);
 
@@ -670,7 +671,11 @@ static JsonNode *line_to_location(char *line)
 		lon = j->number_;
 	}
 
-	if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
+	if ((j = json_find_member(o, "_geoprec")) != NULL) {
+		geoprec = j->number_;
+	}
+
+	if ((ghash = geohash_encode(lat, lon, geoprec)) != NULL) {
 		json_append_member(o, "ghash", json_mkstring(ghash));
 		get_geo(o, ghash);
 		free(ghash);

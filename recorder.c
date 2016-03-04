@@ -536,7 +536,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	static UT_string *reltopic = NULL, *filename = NULL;
 	char *jsonstring, *_typestr = NULL;
 	time_t now;
-	int pingping = FALSE, skipslash = 0;
+	int pingping = FALSE, skipslash = 0, geoprec = geohash_prec();
 	int r_ok = TRUE;			/* True if recording enabled for a publish */
 	payload_type _type;
 
@@ -777,6 +777,12 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		goto cleanup;
 	}
 
+/*
+	if (impossible_rule(ud, UB(username), UB(device), tst, lat, lon) == TRUE) {
+		goto cleanup;
+	}
+*/
+
 	if ((j = json_find_member(json, "acc")) != NULL) {
 		if (j->tag == JSON_STRING) {
 			acc = atof(j->string_);
@@ -795,6 +801,14 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if ((j = json_find_member(json, "t")) != NULL) {
 		if (j && j->tag == JSON_STRING) {
 			t = strdup(j->string_);
+		}
+	}
+
+	if ((j = json_find_member(json, "_geoprec")) != NULL) {
+		if (j->tag == JSON_STRING) {
+			geoprec = atoi(j->string_);
+		} else {
+			geoprec = j->number_;
 		}
 	}
 
@@ -833,7 +847,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	utstring_renew(ghash);
 	utstring_renew(addr);
 	utstring_renew(cc);
-        p = geohash_encode(lat, lon, geohash_prec());
+        p = geohash_encode(lat, lon, geoprec);
 	if (p != NULL) {
 		utstring_printf(ghash, "%s", p);
 		free(p);

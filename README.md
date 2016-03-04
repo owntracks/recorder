@@ -1091,3 +1091,6 @@ We also have a Docker image to create containers which integrate a [Mosquitto br
 
 It actually is possible to gateway location publishes arriving via HTTP into MQTT, though you should be careful not to create loops. You can accomplish this with one or more Lua hooks using MQTT from within Lua.
 
+### Override reverse-geo precision
+
+If a payload is received with an element called `_geoprec` it contains an ovveride for the Recorder's configured reverse-geo precision.
