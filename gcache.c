@@ -88,7 +88,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_dbi_open(txn, dbname, dbiflags, &gc->dbi);
 	if (rc != 0) {
-		olog(LOG_ERR, "gcache_open: mdb_dbi_open: %s", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_dbi_open for `%s': %s", dbname, mdb_strerror(rc));
 		mdb_txn_abort(txn);
 		mdb_env_close(gc->env);
 		free(gc);
