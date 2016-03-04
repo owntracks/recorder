@@ -761,6 +761,7 @@ The JSON in the view file (called `view.json` here) contains mandatory and optio
 | page            |      Y      | HTML page to be loaded from `docroot/views/` for this view |
 | from            |      N      | `from` timestamp for data, defaults to now - 6H |
 | to              |      N      | `to` timestamp for data, defaults to now  |
+| hours           |      N      | number of past hours (from "now") for which to show data; use instead of `from` and `to` 
 | auth            |      N      | array of digest authentication tokens described below |
 | label           |      N      | text to use in popup of default `vmap.html` instead of user/device |
 | zoom            |      N      | zoom level for map used in `vmap.html`, defaults to 9 |

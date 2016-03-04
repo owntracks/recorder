@@ -665,7 +665,7 @@ static int ctrl_track(struct mg_connection *conn)
 		return (MG_TRUE);
 	}
 
-	if (make_times(from, &s_lo, to, &s_hi) != 1) {
+	if (make_times(from, &s_lo, to, &s_hi, 0) != 1) {
 		send_status(conn, 416, "impossible date/time ranges");
 		return (MG_TRUE);
 	}
@@ -757,6 +757,7 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 	JsonNode *j, *json, *obj, *locs, *ju, *jd, *arr;
 	char *from = NULL, *to = NULL;
 	time_t s_lo, s_hi;
+	int hours = 0;
 
 	ju = json_find_member(view, "user");
 	jd = json_find_member(view, "device");
@@ -764,11 +765,14 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 		from = j->string_;
 	if ((j = json_find_member(view, "to")) != NULL)
 		to = j->string_;
+	if ((j = json_find_member(view, "hours")) != NULL) {
+		hours = j->number_;
+	}
 
 	if (!ju || !jd)
 		return (NULL);
 
-	if (make_times(from, &s_lo, to, &s_hi) != 1) {
+	if (make_times(from, &s_lo, to, &s_hi, hours) != 1) {
 		send_status(conn, 416, "impossible date/time ranges");
 		return (NULL);
 	}
@@ -1084,7 +1088,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		}
 	}
 
-	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
+	if (make_times(time_from, &s_lo, time_to, &s_hi, 0) != 1) {
 		mg_send_status(conn, 416);
 		mg_printf_data(conn, "impossible date/time ranges\n");
 		return (MG_TRUE);

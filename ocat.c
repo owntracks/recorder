@@ -384,7 +384,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (make_times(time_from, &s_lo, time_to, &s_hi) != 1) {
+	if (make_times(time_from, &s_lo, time_to, &s_hi, 0) != 1) {
 		fprintf(stderr, "%s: bad time(s) specified\n", progname);
 		return (-2);
 	}

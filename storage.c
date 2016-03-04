@@ -377,14 +377,13 @@ static int str_time_to_secs(char *s, time_t *secs)
  * Return 1 if the time conversion was successful and from <= to.
  */
 
-int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi)
+int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi, int hours)
 {
 	time_t now;
 
-
 	time(&now);
 	if (!time_from || !*time_from) {
-		*s_lo = now - (60 * 60 * DEFAULT_HISTORY_HOURS);
+		*s_lo = now - (60 * 60 * ((hours) ? hours : DEFAULT_HISTORY_HOURS));
 	} else {
 		if (str_time_to_secs(time_from, s_lo) == 0)
 			return (0);
