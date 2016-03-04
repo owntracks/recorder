@@ -886,6 +886,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			return send_status(conn, 404, "Cannot open view page");
 		}
 
+		mg_send_header(conn, "Content-type", "text/html");
 		utstring_renew(sbuf);
 		while (fgets(buf, sizeof(buf), fp) != NULL) {
 			if ((p = strstr(buf, "@@@GEO@@@")) != NULL) {
