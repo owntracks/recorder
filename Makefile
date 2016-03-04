@@ -100,7 +100,7 @@ clobber: clean
 	rm -f ot-recorder ocat
 
 mdb/liblmdb.a:
-	(cd mdb && make)
+	(cd mdb && make CC=$(CC) CFLAGS=$(MDBFLAGS) )
 
 install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin

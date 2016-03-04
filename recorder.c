@@ -772,7 +772,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		}
 	}
 
-	if (isnan(lat = number(json, "lat")) || isnan(lon = number(json, "lon"))) {
+	lat = number(json, "lat");
+	lon = number(json, "lon");
+	if (isnan(lat) || isnan(lon)) {
 		olog(LOG_ERR, "lat or lon for %s are NaN: %s", topic, bindump(payload, payloadlen));
 		goto cleanup;
 	}

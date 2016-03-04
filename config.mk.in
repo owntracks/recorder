@@ -1,5 +1,16 @@
 # Select features you want. Default is fine for most installations
 
+# Uncomment the following for FreeBSD; this assumes:
+#
+#       cd /usr/ports/ftp/curl; make config; make install clean
+#       cd /usr/ports/devel/libconfig; make config; make install clean
+#
+# CC      = clang
+# MDBFLAGS = -DMDB_DSYNC=O_SYNC
+# CFLAGS += $(MDBFLAGS) -I/usr/local/include
+# MORELIBS += -L /usr/local/lib
+# -- end FreeBSD
+
 INSTALLDIR = /usr/local
 
 # Do you want support for MQTT?
