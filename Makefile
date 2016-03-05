@@ -97,6 +97,7 @@ listsort.o: listsort.c listsort.h
 clean:
 	rm -f *.o
 clobber: clean
+	(cd mdb; $(MAKE) clean)
 	rm -f ot-recorder ocat
 
 mdb/liblmdb.a:
@@ -116,7 +117,3 @@ ifndef DESTDIR
 endif
 	# mkdir -p $(DESTDIR)/etc/systemd/system/
 	# install --mode 0644 etc/ot-recorder.service $(DESTDIR)/etc/systemd/system/ot-recorder.service
-
-clobber: clean
-	(cd mdb; $(MAKE) clean)
-	rm -f ot-recorder ocat
