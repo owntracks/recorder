@@ -100,7 +100,7 @@ clobber: clean
 	rm -f ot-recorder ocat
 
 mdb/liblmdb.a:
-	(cd mdb && make CC=$(CC) CFLAGS=$(MDBFLAGS) )
+	(cd mdb && $(MAKE) liblmdb.a CC=$(CC) CFLAGS=$(MDBFLAGS) )
 
 install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
@@ -116,3 +116,7 @@ ifndef DESTDIR
 endif
 	# mkdir -p $(DESTDIR)/etc/systemd/system/
 	# install --mode 0644 etc/ot-recorder.service $(DESTDIR)/etc/systemd/system/ot-recorder.service
+
+clobber: clean
+	(cd mdb; $(MAKE) clean)
+	rm -f ot-recorder ocat
