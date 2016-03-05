@@ -849,7 +849,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	utstring_renew(ghash);
 	utstring_renew(addr);
 	utstring_renew(cc);
-        p = geohash_encode(lat, lon, geoprec);
+        p = geohash_encode(lat, lon, abs(geoprec));
 	if (p != NULL) {
 		utstring_printf(ghash, "%s", p);
 		free(p);
@@ -870,19 +870,21 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				utstring_printf(addr, "%s", j->string_);
 			}
 		} else {
-			if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
-				gcache_json_put(ud->gc, UB(ghash), geo);
-			} else {
-				/* We didn't obtain reverse Geo, maybe because of over
-				 * quota; make a note of the missing geohash */
+			if (geoprec > 0) {
+				if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
+					gcache_json_put(ud->gc, UB(ghash), geo);
+				} else {
+					/* We didn't obtain reverse Geo, maybe because of over
+					 * quota; make a note of the missing geohash */
 
-				char gfile[BUFSIZ];
-				FILE *fp;
+					char gfile[BUFSIZ];
+					FILE *fp;
 
-				snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
-				if ((fp = fopen(gfile, "a")) != NULL) {
-					fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
-					fclose(fp);
+					snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
+					if ((fp = fopen(gfile, "a")) != NULL) {
+						fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
+						fclose(fp);
+					}
 				}
 			}
 		}

@@ -675,7 +675,7 @@ static JsonNode *line_to_location(char *line)
 		geoprec = j->number_;
 	}
 
-	if ((ghash = geohash_encode(lat, lon, geoprec)) != NULL) {
+	if ((ghash = geohash_encode(lat, lon, abs(geoprec))) != NULL) {
 		json_append_member(o, "ghash", json_mkstring(ghash));
 		get_geo(o, ghash);
 		free(ghash);
