@@ -1093,4 +1093,5 @@ It actually is possible to gateway location publishes arriving via HTTP into MQT
 
 ### Override reverse-geo precision
 
-If a payload is received with an element called `_geoprec` it contains an ovveride for the Recorder's configured reverse-geo precision.
+If a payload is received with an element called `_geoprec` it contains an ovveride for the Recorder's configured reverse-geo precision. So, for example, if Recorder is running with precision 7, say, and the received payload contains `"_geoprec" : 2` the 2 will be used for this particular publish. This is not used in the OwnTracks apps, but it can be used with payloads you generate otherwise.
+
