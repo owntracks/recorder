@@ -1,4 +1,9 @@
 
+2016-03-07 version 0.6.2
+- FIX: ocat CSV and XML output fixed
+- UPD: _geoprec may be < 0 to prevent new geo lookups
+- FIX: adapted build & recorder for FreeBSD 10.2 (isnan() macro)
+
 2016-03-04 version 0.6.1
 - NEW: received payload may contain _geoprec:N to override precision (#58)
 - FIX: view's page returns content-type
