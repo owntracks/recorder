@@ -349,19 +349,9 @@ int main(int argc, char **argv)
 				}
 				json_delete(user_array);
 			} else if (otype == CSV) {
-				JsonNode *o = json_mkobject();
-
-				json_append_member(o, "locations", user_array);
-				csv_output(o, CSV, fields, print_xml_line, xmlp);
-				json_delete(o);
-
+				csv_output(user_array, CSV, fields, print_xml_line, xmlp);
 			} else if (otype == XML) {
-				JsonNode *o = json_mkobject();
-
-				json_append_member(o, "locations", user_array);
-				xml_output(o, XML, fields, print_xml_line, xmlp);
-				json_delete(o);
-
+				xml_output(user_array, XML, fields, print_xml_line, xmlp);
 			} else {
 				fprintf(stderr, "%s: unsupported output type for LAST\n", progname);
 			}
@@ -483,9 +473,9 @@ int main(int argc, char **argv)
 		}
 
 	} else if (otype == CSV) {
-		csv_output(obj, CSV, fields, print_xml_line, xmlp);
+		csv_output(locs, CSV, fields, print_xml_line, xmlp);
 	} else if (otype == XML) {
-		xml_output(obj, XML, fields, print_xml_line, xmlp);
+		xml_output(locs, XML, fields, print_xml_line, xmlp);
 	} else if (otype == RAW || otype == RAWPAYLOAD) {
 		/* We've already done what we need to do in locations() */
 	} else if (otype == LINESTRING) {
