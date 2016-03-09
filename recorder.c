@@ -697,8 +697,21 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
 			}
 			goto cleanup;
-		case T_CMD:
 		case T_LWT:
+			/*
+			 * LWT gets a pseudo-reltopic called 'lwt'; reason: if we keep the
+			 * empty original reltopic, it would become '*' in the .rec file
+			 * which confuses the recorder when serving location data.
+			 * Also, this appears to be sensible, and it probably should have
+			 * been that way all along in the apps.
+			 */
+
+			utstring_clear(reltopic);
+			utstring_printf(reltopic, "lwt");
+
+			/* Fall through */
+
+		case T_CMD:
 		case T_STEPS:
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
