@@ -132,7 +132,7 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 
 void hooks_exit(struct luadata *ld, char *reason)
 {
-	if (ld) {
+	if (ld && ld->script) {
 		l_function(ld->L, "otr_exit");
 		olog(LOG_DEBUG, "unloading Lua: %s", reason);
 		free(ld->script);
@@ -146,6 +146,9 @@ static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *ful
 	struct luadata *ld = ud->luadata;
 	char *_type = "unknown";
 	JsonNode *j;
+
+	if (!ld || !ld->script)
+		return;
 
 	lua_settop(ld->L, 0);
 	lua_getglobal(ld->L, hookname);
@@ -165,7 +168,6 @@ static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *ful
 
 	lua_newtable(ld->L);				/* arg3: table */
 	json_foreach(j, fullo) {
-		lua_pushstring(ld->L, j->key);		/* table key */
 		if (j->tag == JSON_STRING) {
 			lua_pushstring(ld->L, j->string_);
 		} else if (j->tag == JSON_NUMBER) {
@@ -174,7 +176,10 @@ static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *ful
 			lua_pushnil(ld->L);
 		} else if (j->tag == JSON_BOOL) {
 			lua_pushboolean(ld->L, j->bool_);
+		} else {
+			continue;
 		}
+		lua_pushstring(ld->L, j->key);		/* table key */
 		lua_rawset(ld->L, -3);
 
 	}
@@ -195,6 +200,9 @@ static void hooks_hooklet(struct udata *ud, char *topic, JsonNode *fullo)
 	struct luadata *ld = ud->luadata;
 	char hookname[BUFSIZ];
 
+	if (!ud->luascript)
+		return;
+
 	json_foreach(j, fullo) {
 		snprintf(hookname, sizeof(hookname), "hooklet_%s", j->key);
 		lua_getglobal(ld->L, hookname);
@@ -214,7 +222,7 @@ int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
 	struct luadata *ld = ud->luadata;
 	int rc;
 
-	if (ld == NULL)
+	if (ld == NULL || !ld->script)
 		return (0);
 
 	lua_settop(ld->L, 0);
@@ -249,7 +257,7 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 	JsonNode *obj = NULL, *j, *fullo;
 
 	debug(ud, "in hooks_http()");
-	if (ld == NULL)
+	if (ld == NULL || !ld->script)
 		return (0);
 
 	fullo = json_decode(payload);
@@ -274,7 +282,6 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 
 	lua_newtable(ld->L);				/* arg4: table */
 	json_foreach(j, fullo) {
-		lua_pushstring(ld->L, j->key);		/* table key */
 		if (j->tag == JSON_STRING) {
 			lua_pushstring(ld->L, j->string_);
 		} else if (j->tag == JSON_NUMBER) {
@@ -283,7 +290,10 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 			lua_pushnil(ld->L);
 		} else if (j->tag == JSON_BOOL) {
 			lua_pushboolean(ld->L, j->bool_);
+		} else {
+			continue;
 		}
+		lua_pushstring(ld->L, j->key);		/* table key */
 		lua_rawset(ld->L, -3);
 
 	}
