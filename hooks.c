@@ -168,6 +168,9 @@ static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *ful
 
 	lua_newtable(ld->L);				/* arg3: table */
 	json_foreach(j, fullo) {
+		if (j->tag >= JSON_ARRAY)
+			continue;
+		lua_pushstring(ld->L, j->key);		/* table key */
 		if (j->tag == JSON_STRING) {
 			lua_pushstring(ld->L, j->string_);
 		} else if (j->tag == JSON_NUMBER) {
@@ -176,10 +179,7 @@ static void do_hook(char *hookname, struct udata *ud, char *topic, JsonNode *ful
 			lua_pushnil(ld->L);
 		} else if (j->tag == JSON_BOOL) {
 			lua_pushboolean(ld->L, j->bool_);
-		} else {
-			continue;
 		}
-		lua_pushstring(ld->L, j->key);		/* table key */
 		lua_rawset(ld->L, -3);
 
 	}
@@ -282,6 +282,9 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 
 	lua_newtable(ld->L);				/* arg4: table */
 	json_foreach(j, fullo) {
+		if (j->tag >= JSON_ARRAY)
+			continue;
+		lua_pushstring(ld->L, j->key);		/* table key */
 		if (j->tag == JSON_STRING) {
 			lua_pushstring(ld->L, j->string_);
 		} else if (j->tag == JSON_NUMBER) {
@@ -290,10 +293,7 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 			lua_pushnil(ld->L);
 		} else if (j->tag == JSON_BOOL) {
 			lua_pushboolean(ld->L, j->bool_);
-		} else {
-			continue;
 		}
-		lua_pushstring(ld->L, j->key);		/* table key */
 		lua_rawset(ld->L, -3);
 
 	}
