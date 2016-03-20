@@ -202,7 +202,7 @@ void republish(struct mosquitto *mosq, struct udata *userdata, char *username, c
  */
 
 //                TID          , TST           , T         , LAT        , LON        , COG        , VEL        , ALT        , DIST       , TRIP
-#define CSV_RE "^([[:alnum:]]+),([[:xdigit:]]+),[[:alnum:]],[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+$"
+#define CSV_RE "^([[:alnum:]]+),([[:xdigit:]]+),[[:alnum:]],-?[[:digit:]]+,-?[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+$"
 
 static int csv_looks_sane(char *payload)
 {
