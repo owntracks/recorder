@@ -37,6 +37,18 @@
         background-color: #305e9f;
 	color: white;
     }
+
+    #app {
+      margin-top: 3em;
+    }
+
+    #offer-iframe {
+      border: 1px solid #000 !important;
+      width: 100%;
+      height: 25px;
+      margin: 0;
+      border: 0;
+    }
     </style>
 
     <script type="text/javascript">
@@ -64,6 +76,10 @@
 		dataType: 'json',
 		success: function(data) {
 			// console.log(JSON.stringify(data));
+
+      if(!data.length) {
+        $("#usertable > tbody:last-child").append("<tr><td colspan=6>No data.</td></tr>");
+      }
 
 			for (var i = 0; i < data.length; i++) {
 				var d = data[i];
@@ -95,11 +111,33 @@
 			console.log(jqXHR.status + " " + jqXHR.responseText);
 		},
 	});
+  }
+
+    function fillIframe() {
+      var template = "https://s:$API_TOKEN@$API_HOST";
+      window.parent.postMessage({renderTemplate: {
+        rpcId: "0",
+        template: template,
+        clipboardButton: 'left'
+      }}, "*");
     }
+
+    var messageListener = function(event) {
+      if (event.data.rpcId === "0") {
+        if (event.data.error) {
+          console.log("ERROR: " + event.data.error);
+        } else {
+          var el = document.getElementById("offer-iframe");
+          el.setAttribute("src", event.data.uri);
+        }
+      }
+    };
+
+    window.addEventListener("message", messageListener);
 
     $(document).ready(function() {
 	getuserlist();
-
+  fillIframe();
     });
 
     </script>
@@ -120,6 +158,24 @@
       <tbody>
       </tbody>
     </table>
+    </div>
+
+    <div id='app'>
+      <h2>Connecting with the mobile app</h2>
+
+      <h3>Step 1: Get the app</h3>
+
+      <p>Download <a target="_blank" href="https://itunes.apple.com/us/app/mqttitude/id692424691?mt=8">OwnTracks for iOS</a> or <a target="_blank" href="https://play.google.com/store/apps/details?id=org.owntracks.android">OwnTracks for Android</a>.</p>
+
+      <h3>Step 2: Configure the app</h3>
+
+      <p>Tap the <b>i</b> icon in the top left and tap "Settings". In the URL field, enter:</p>
+
+      <iframe id="offer-iframe" border=0;>
+      </iframe>
+
+      <p>Tap "Status Info" to return and you should eventually see the status as "idle".</p>
+
     </div>
 
   </body>
