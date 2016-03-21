@@ -11,3 +11,4 @@ codesign.sh
 sundry/
 *.lua
 kick*.sh
+.sandstorm/builds
