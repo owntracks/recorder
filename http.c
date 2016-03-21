@@ -80,7 +80,14 @@ static char *field(struct mg_connection *conn, char *fieldname)
 	char buf[BUFSIZ], *p, *h;
 	int ret;
 
-	snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
+  if(strcmp(fieldname, "user") == 0 ||
+     strcmp(fieldname, "device") == 0 ||
+     strcmp(fieldname, "u") == 0 ||
+     strcmp(fieldname, "d") == 0) {
+    snprintf(buf, sizeof(buf), "X-Sandstorm-Username");
+  } else {
+    snprintf(buf, sizeof(buf), "X-Limit-%s", fieldname);
+  }
 
 	if ((h = (char *)mg_get_header(conn, buf)) != NULL) {
 		p = strdup(h);
@@ -1289,6 +1296,7 @@ static int authorize(struct mg_connection *conn)
 	const char *viewname;
 	JsonNode *view, *j;
 	int authorized = TRUE;
+  return (MG_TRUE);
 
 	if (strncmp(conn->uri, "/view/", strlen("/view/")) != 0) {
 		return (MG_TRUE);
