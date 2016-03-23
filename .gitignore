@@ -5,9 +5,10 @@ ocat
 .DS_Store
 store/
 jpm-test/
-config.mk
+/config.mk
 obsolete/
 codesign.sh
 sundry/
 *.lua
 kick*.sh
+.sandstorm/builds
