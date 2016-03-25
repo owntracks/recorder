@@ -1576,6 +1576,11 @@ int main(int argc, char **argv)
 
 		if (ud->cafile && *ud->cafile) {
 
+			if (access(ud->cafile, R_OK) != 0) {
+				olog(LOG_ERR, "cafile configured as `%s' can't be opened: %m", ud->cafile);
+				exit(2);
+			}
+
 			rc = mosquitto_tls_set(mosq,
 				ud->cafile,		/* cafile */
 				NULL,			/* capath */
@@ -1600,7 +1605,7 @@ int main(int argc, char **argv)
 		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
 			ud->hostname, ud->port,
 			ud->clientid,
-			(ud->cafile) ? "with" : "without");
+			(ud->cafile && *ud->cafile) ? "with" : "without");
 
 		rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
 		if (rc) {
