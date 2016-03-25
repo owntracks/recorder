@@ -38,7 +38,11 @@
 imagefile="$1"
 fullname="$2"
 
-imgdata=$(convert "${imagefile}" -resize '40x40!' - | base64 -w 0)
+base64switch=""
+base64check=$(echo "jj" | base64 -w 0 > /dev/null 2>&1)
+[ "$?" -eq "0" ] && base64switch="-w 0"
+imgdata=$(convert "${imagefile}" -resize '40x40!' - | base64 $base64switch)
+
 cat <<EndOfFile
 {"_type":"card","name":"${fullname}","face":"${imgdata}"}
 EndOfFile
