@@ -481,6 +481,12 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 	utstring_renew(userdev);
 	utstring_printf(userdev, "%s-%s", username, device);
 
+	lowercase(UB(userdev));
+	for (n = 0; n < strlen(UB(userdev)); n++) {
+		if (UB(userdev)[n] == ' ')
+			UB(userdev)[n] = '-';
+	}
+
 	memset(key, 0, sizeof(key));
 	klen = gcache_get(ud->keydb, (char *)UB(userdev), (char *)key, sizeof(key));
 	if (klen < 1) {

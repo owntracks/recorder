@@ -977,7 +977,7 @@ This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the
 
 #### `keys`
 
-If the _recorder_ was built with encryption support (see below), this named database contains the secret decryption keys for users/device pairs. The LMDB key is the username followed by a dash followed by the device name, all lower case. For example, if user Jjolie with device iPhone needs a secret entered, the database key will be `jjolie-iphone`. This can be entered into the database as follows:
+If the _recorder_ was built with encryption support (see below), this named database contains the secret decryption keys for users/device pairs. The LMDB key is the username followed by a dash followed by the device name, all lower case, with spaces translated to a single dash. For example, if user Jjolie with device iPhone needs a secret entered, the database key will be `jjolie-iphone`. This can be entered into the database as follows:
 
 ```bash
 echo "jjolie-iphone s3cr1t" | ocat --load=keys
