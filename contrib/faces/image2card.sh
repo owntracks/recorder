@@ -27,7 +27,7 @@
 # You probably want to do this:
 #
 # image2card.sh filename.jpg "Jane Jolie" > card.json
-# mosquitto_pub -t owntracks/jane/phone/info -f card.json
+# mosquitto_pub -t owntracks/jane/phone/info -f card.json -r
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
 # because of a bug in mosquitto_pub: https://bugs.eclipse.org/bugs/show_bug.cgi?id=478917
@@ -38,7 +38,7 @@
 imagefile="$1"
 fullname="$2"
 
-imgdata=$(convert "${imagefile}" -resize '40x40!' - | base64)
+imgdata=$(convert "${imagefile}" -resize '40x40!' - | base64 -w 0)
 cat <<EndOfFile
 {"_type":"card","name":"${fullname}","face":"${imgdata}"}
 EndOfFile
