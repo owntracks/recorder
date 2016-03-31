@@ -1,0 +1,11 @@
+[Unit]
+Description=OwnTracks Recorder
+After=network.target
+
+[Service]
+Type=simple
+User=owntracks
+ExecStart=/usr/sbin/ot-recorder
+
+[Install]
+WantedBy=multi-user.target

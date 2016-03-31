@@ -1,0 +1,3 @@
+#!/bin/sh
+
+adduser --system --home /var/spool/owntracks owntracks
