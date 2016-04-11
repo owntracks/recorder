@@ -1,7 +1,7 @@
 #(@)config.mk for Debian 8 (x86_64)
 
-INSTALLDIR = /usr/local
-CONFIGFILE = /etc/default/ot-recorder
+INSTALLDIR = /usr/
+CONFIGFILE = /etc/ot-recorder/ot-recorder.conf
 
 WITH_MQTT ?= yes
 WITH_HTTP ?= yes
@@ -12,7 +12,7 @@ WITH_ENCRYPT ?= yes
 WITH_GREENWICH ?= yes
 
 STORAGEDEFAULT = /var/spool/owntracks/recorder/store
-DOCROOT = /var/spool/owntracks/recorder/htdocs
+DOCROOT = /usr/share/owntracks/recorder/htdocs
 GHASHPREC = 7
 JSON_INDENT ?= no
 MOSQUITTO_INC = -I/usr/include

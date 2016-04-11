@@ -1,0 +1,3 @@
+d /var/spool/owntracks                - owntracks owntracks
+d /var/spool/owntracks/recorder       - owntracks owntracks
+d /var/spool/owntracks/recorder/store - owntracks owntracks
