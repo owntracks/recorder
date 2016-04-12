@@ -37,5 +37,6 @@ int geohash_prec(void);
 void lowercase(char *s);
 double haversine_dist(double th1, double ph1, double th2, double ph2);
 void debug(struct udata *, char *fmt, ...);
+void chomp(char *s);
 
 #endif

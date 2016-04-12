@@ -559,6 +559,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	time(&now);
 	monitorhook(ud, now, topic);
 
+	chomp(payload);
+
 	debug(ud, "%s (plen=%d, r=%d) [%s]", topic, payloadlen, retain, payload);
 	if (payloadlen == 0) {
 		return;

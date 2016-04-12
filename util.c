@@ -601,3 +601,16 @@ double haversine_dist(double th1, double ph1, double th2, double ph2)
 
 	return asin(sqrt(dx * dx + dy * dy + dz * dz) / 2) * 2 * R * 1000;
 }
+
+/*
+ * Chomp white space at end of string
+ */
+
+void chomp(char *s)
+{
+	char *p = s + strlen(s) - 1;
+
+	while (isspace(*p)) {
+		*p-- = 0;
+	}
+}
