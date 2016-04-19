@@ -909,7 +909,7 @@ Assuming the following content of the friends database
 
 ```
 $ ocat -S JP --dump=friends
-jane-phone ["john/android"]
+jane-phone ["john/android", "jane/phone"]
 ```
 
 when user `jane` and device `phone` POST a new location via HTTP, the Recorder will present John's data as the following payload to the device, assuming John has a card and last published this location:
@@ -932,7 +932,7 @@ when user `jane` and device `phone` POST a new location via HTTP, the Recorder w
 ]
 ```
 
-
+Note, that Jane's user/device tuple should also be returned in order to display Jane on the map or list of friends in the apps.
 
 ### Authentication
 
