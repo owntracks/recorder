@@ -10,6 +10,8 @@ config = {
 	batt:		"Battery",
 	tid:		"TID",
 	cc:		"CC",
-	addr:		"Address"
+	addr:		"Address",
+	vel:		"Vel",
+	cog:		"CoG"
   }
 };
