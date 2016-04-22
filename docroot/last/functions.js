@@ -142,13 +142,15 @@ function map_marker(loc)
 		lon:	loc.lon,
 		fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
 		facedata: loc.face,
+		vel:	loc.vel,
+		cog:	loc.cog,
 	};
 
 	if (loc.addr) {
-		htmldesc = "<b>{{userdev}}</b><br/>{{addr}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+		htmldesc = "<b>{{userdev}}</b><br/>{{addr}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}}) v={{vel}}, c={{cog}}</span> {{fulldate}}</span>";
 		shortdesc = "{{{userdev}}} {{addr}}";
 	} else {
-		htmldesc = "<b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}})</span> {{fulldate}}</span>";
+		htmldesc = "<b>{{userdev}}</b><br/>{{lat}}, {{lon}}<br/><span class='extrainfo'>{{ghash}} <span class='latlon'>({{lat}},{{lon}}) v={{vel}}, c={{cog}}</span> {{fulldate}}</span>";
 		shortdesc = "{{{userdev}}} {{lat}},{{lon}}";
 	}
 
