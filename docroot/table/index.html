@@ -68,7 +68,7 @@
 		d['fulldate']	= dt.format("DD MMM YYYY HH:mm:ss");
 		d['addr']	= d['addr'] || '(' + d['lat'] + ',' + d['lon'] + ')';
 		d['cc']		= d['cc'] || '__';
-		d['tid']	= d['tid'] || '__';
+		d['tid']	= d['tid'] || d.topic.substr(d.topic.length - 2, d.topic.length);
 
 		upsert(d);
 	}
