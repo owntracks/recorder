@@ -2,6 +2,7 @@
 #
 # Specify global configuration options for the OwnTracks Recorder
 # and its associated utilities to override compiled-in defaults.
+# Lines beginning with # are comments
 # *** In libconfig versions < 1.4 a trailing semicolon is mandatory
 
 # -----------------------------------------------------
