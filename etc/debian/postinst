@@ -16,9 +16,9 @@ case "$1" in
         chown -R owntracks:owntracks /var/spool/owntracks/recorder/store
 	chown owntracks:owntracks /etc/default/ot-recorder
         chgrp owntracks /var/spool/owntracks/recorder/store/ghash
-        chown owntracks:owntracks /usr/local/bin/ocat /usr/local/sbin/ot-recorder
-        chmod 4111 /usr/local/bin/ocat /usr/local/sbin/ot-recorder
-        /usr/local/sbin/ot-recorder --initialize
+        chown owntracks:owntracks /usr/bin/ocat /usr/sbin/ot-recorder
+        chmod 4111 /usr/bin/ocat /usr/sbin/ot-recorder
+        /usr/sbin/ot-recorder --initialize
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

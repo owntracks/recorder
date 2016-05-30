@@ -12,7 +12,7 @@ User=owntracks
 WorkingDirectory=/
 # deprecated: use config file
 # 	Environment='OTR_USER=xxx'
-ExecStart=/usr/local/sbin/ot-recorder
+ExecStart=/usr/sbin/ot-recorder
 Restart=always
 RestartSec=60
 StandardOutput=null
