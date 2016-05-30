@@ -1,3 +1,16 @@
+2016-05-30 version 0.6.3
+- FIX: views now have a favicon (#121)
+- NEW: Table and Map now have vel and cog (#117)
+- FIX: Table now correctly defaults to last 2 chars of topic for tid (#120)
+- FIX: views no longer accumulate devices; the list is cleared on reload (#107)
+- FIX: CSV publishes work in spite of CR at end of string (#119)
+- NEW: native Debian packaging (#114)
+- FIX: check whether $OTR_CAFILE can actually be opened (#109)
+- FIX: image2card fixed base64 wrapping (#111)
+- FIX: key for decrypting payload is now correctly lowercased from user/device
+- FIX: negative lat/lon in CSV payloads
+- FIX: nested object in payload no longer crashes in Lua hooks
+- UPD: LWT are now stored with reltopic == 'lwt' instead of '*' (#101)
 
 2016-03-07 version 0.6.2
 - FIX: ocat CSV and XML output fixed
