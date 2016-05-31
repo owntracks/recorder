@@ -19,6 +19,9 @@ case "$1" in
         chown owntracks:owntracks /usr/bin/ocat /usr/sbin/ot-recorder
         chmod 4111 /usr/bin/ocat /usr/sbin/ot-recorder
         /usr/sbin/ot-recorder --initialize
+
+	install -m644 /usr/share/doc/ot-recorder/ot-recorder.service /usr/lib/systemd/system/ot-recorder.service
+	systemctl --system daemon-reload
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
