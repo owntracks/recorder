@@ -1,6 +1,6 @@
 #(@)config.mk for Centos 7 (x86_64)
 
-INSTALLDIR = /usr/local
+INSTALLDIR = /usr/
 CONFIGFILE = /etc/default/ot-recorder
 
 WITH_MQTT ?= yes
