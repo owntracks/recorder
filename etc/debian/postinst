@@ -20,8 +20,11 @@ case "$1" in
         chmod 4111 /usr/bin/ocat /usr/sbin/ot-recorder
         /usr/sbin/ot-recorder --initialize
 
-	install -m644 /usr/share/doc/ot-recorder/ot-recorder.service /etc/systemd/system/ot-recorder.service
-	systemctl --system daemon-reload
+
+	if [ -x /bin/systemctl ]; then
+		install -m644 /usr/share/doc/ot-recorder/ot-recorder.service /etc/systemd/system/ot-recorder.service
+		systemctl --system daemon-reload
+	fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
