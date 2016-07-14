@@ -33,6 +33,8 @@ function initialize() {
 
 	buttonControlDiv.index = 1;
 	map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(buttonControlDiv);
+
+	ws_go(); 	// Connect to websocket and start listening
 }
 
 function ButtonControl(controlDiv, map) {
@@ -215,4 +217,4 @@ function map_marker(loc)
 	}
 }
 
-google.maps.event.addDomListener(window, 'load', initialize);
+// google.maps.event.addDomListener(window, 'load', initialize);

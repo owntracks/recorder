@@ -56,7 +56,7 @@ function ws_connect() {
 	};
 }
 
-window.onload = function() {
+function ws_go() {
 	// var url = 'ws://' + location.host + '/ws/last';
 	// console.log(JSON.stringify(location));
 
@@ -67,6 +67,7 @@ window.onload = function() {
 	}
 	url = url + "ws/last";
 	console.log("Websocket URI: " + url);
+
 
 	ws_url = url;
 	ws_connect();
