@@ -703,6 +703,7 @@ server {
     	proxy_http_version	1.1;
     	proxy_set_header	Host $host;
     	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header	X-Real-IP $remote_addr;
     }
 }
 ```
@@ -880,12 +881,14 @@ location /owntracks/view/ {
      proxy_http_version      1.1;
      proxy_set_header        Host $host;
      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+     proxy_set_header        X-Real-IP $remote_addr;
 }
 location /owntracks/static/ {
      proxy_pass              http://127.0.0.1:8085/static/;
      proxy_http_version      1.1;
      proxy_set_header        Host $host;
      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+     proxy_set_header        X-Real-IP $remote_addr;
 }
 ```
 
@@ -951,6 +954,7 @@ location /owntracks/pub {
     proxy_http_version      1.1;
     proxy_set_header        Host $host;
     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Real-IP $remote_addr;
 
     # Optionally force Recorder to use username from Basic
     # authentication user. Whether or not client sets
