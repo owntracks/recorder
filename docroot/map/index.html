@@ -16,10 +16,27 @@
       body {  font-size: 80%; padding: 0; margin: 0px; }
 
     </style>
-     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+
     <script src="../static/js/mustache.js"></script>
     <script src="../static/js/moment.min.js"></script>
     <script src="functions.js"></script>
+    <script src="../static/apikey.js"></script>
+    <script>
+        function loadMapsAPI() {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
+              '&signed_in=true&key=' + apiKey +'&callback=initialize';
+          document.body.appendChild(script);
+
+
+        }
+
+        document.addEventListener("DOMContentLoaded", function(event) {
+                loadMapsAPI();
+        });
+
+    </script>
   </head>
   <body>
       <div id="map-canvas"></div>
