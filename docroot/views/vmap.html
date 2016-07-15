@@ -20,11 +20,11 @@
       .block2 { border 1px solid; background-color: white; width: 40px; height: 40px; float: right; margin-left: 20px; margin-right: 0px; padding-right: 0; }
       .img-circle { border-radius: 50%; border: 1px solid #CACACA; }
     </style>
-     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
      <script src="../static/js/jquery-1.12.0.min.js"></script>
      <script src="../static/js/jquery-migrate-1.2.1.min.js"></script>
      <script src="../static/js/moment.min.js"></script>
      <script src="../static/js/mustache.js"></script>
+     <script src="../static/apikey.js"></script>
     <script>
 	var map;
 	var markers = {};
@@ -294,8 +294,18 @@
 	        }
 	}
 
+	function loadMapsAPI() {
+		var script = document.createElement('script');
+		script.type = 'text/javascript';
+		script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
+			'&signed_in=true&key=' + apiKey +'&callback=initialize';
+		document.body.appendChild(script);
+        }
 
-	google.maps.event.addDomListener(window, 'load', initialize);
+        document.addEventListener("DOMContentLoaded", function(event) {
+                loadMapsAPI();
+        });
+
     </script>
   </head>
   <body>
