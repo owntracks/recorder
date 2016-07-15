@@ -22,6 +22,8 @@ The _recorder_ serves two purposes:
 
 We provide a ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image which bundles the Recorder and a Mosquitto broker [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/).
 
+You will, however, need to acquire and configure apikeys for the maps. (See below.)
+
 ## Building from source
 
 You will require:
@@ -959,6 +961,16 @@ location /owntracks/pub {
 ```
 
 ## Advanced topics
+
+### Browser API keys
+
+In order to use the Recorder's maps and views, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then add this key to your _docroot_ directory so that the Recorder can find it. (You should already have a file called `apikey.js.sample` in that directory; copy or rename the file to `apikey.js` and ensure its content is valid JavaScript:
+
+```bash
+$ cat .../static/apikey.js
+var apiKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+```
+
 
 ### The LMDB database
 
