@@ -2,12 +2,12 @@
 
 # Uncomment the following for FreeBSD; this assumes:
 #
+#	cd /usr/ports/databases/lmdb; make config; make install clean
 #       cd /usr/ports/ftp/curl; make config; make install clean
 #       cd /usr/ports/devel/libconfig; make config; make install clean
 #
 # CC      = clang
-# MDBFLAGS = -DMDB_DSYNC=O_SYNC -Dfdatasync=fsync
-# CFLAGS += $(MDBFLAGS) -I/usr/local/include
+# CFLAGS += -I/usr/local/include
 # MORELIBS += -L /usr/local/lib
 # -- end FreeBSD
 
