@@ -1,6 +1,7 @@
 #ifndef _HTTP_H_INCLUDED_
 # define _HTTP_H_INCLUDED_
 
+#include <stdarg.h>
 #include "mongoose.h"
 #include "storage.h"
 #include "json.h"

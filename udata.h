@@ -4,6 +4,7 @@
 #include "json.h"
 
 #ifdef WITH_HTTP
+# include <stdarg.h>
 # include "mongoose.h"
 #endif
 #include "gcache.h"
