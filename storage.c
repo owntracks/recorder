@@ -732,6 +732,10 @@ static int candidate_line(char *line, void *param)
 			fprintf(stderr, "no strptime on %s", line);
 			return (0);
 		}
+		tmline.tm_isdst = -1; 		/* A negative value for tm_isdst causes
+						 * the mktime() function to attempt to
+						 * divine whether summer time is in
+						 * effect for the specified time. */
 		secs = mktime(&tmline);
 
 		if (secs <= s_lo || secs >= s_hi) {
@@ -763,6 +767,7 @@ static int candidate_line(char *line, void *param)
 			fprintf(stderr, "no strptime on %s", line);
 			return (0);
 		}
+		tmline.tm_isdst = -1;
 		secs = mktime(&tmline);
 
 		if (secs <= s_lo || secs >= s_hi) {
