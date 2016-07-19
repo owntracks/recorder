@@ -1028,7 +1028,7 @@ You need a current version of the Mosquitto library (and you probably require th
 ### Debian
 
 ```
-apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev
+apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
 ```
 
 ### Centos 7
@@ -1047,6 +1047,7 @@ sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
 sudo apt-get update
 sudo apt-get install libmosquitto-dev
 sudo apt-get install libcurl3 libcurl4-openssl-dev
+sudo apt-get install libconfig-dev
 ```
 
 [![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
