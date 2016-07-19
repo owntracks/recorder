@@ -1,4 +1,11 @@
 
+2016-07-19 version 0.6.6
+- FIX: FreeBSD locations api: reset isdst for mktime(3) (#125)
+- FIX: apikey support for last/, map/, and views/ (#124)
+- FIX: don't clobber CFLAGS from config.mk
+- FIX: debian/centos package now automatically installs systemd service (thanks Tomas Lastovick for making us do this :)
+- FIX: centos packages now also install binaries to /usr
+
 2016-05-30 version 0.6.5
 - FIX: paths to binaries
 
