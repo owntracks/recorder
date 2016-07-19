@@ -11,14 +11,14 @@ install -D etc/ot-recorder.service $tempdir/usr/share/doc/ot-recorder/ot-recorde
 
 name="ot-recorder"
 # add -0 to indicate "not in Debian" as per Roger's suggestion
-version="$(awk '{print $NF;}' version.h | sed -e 's/"//g' )-0"
+version="deb$(cat /etc/debian_version)_$(awk '{print $NF;}' version.h | sed -e 's/"//g' )-0"
 arch=$(uname -m)
 
 case $arch in
 	armv7l) arch=armhf;;
 esac
 
-debfile="${name}_${version}_deb$(cat /etc/debian_version)_${arch}.deb"
+debfile="${name}_${version}_${arch}.deb"
 
 rm -f "${debfile}"
 
