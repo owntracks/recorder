@@ -78,7 +78,7 @@ def pingping(tics):
         "tst"       : tics,
     }
 
-    topic = "nop/ping/ping"
+    topic = "owntracks/ping/ping"
     payload = json.dumps(location)
 
     try:
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         print "%s ot-recorder pingping failed: %s" % (codes[status], msg)
         sys.exit(status)
 
-    status, msg = check_response('http://127.0.0.1:8085', tics)
+    status, msg = check_response('http://127.0.0.1:8083', tics)
 
     print "%s %s" % (codes[status], msg)
     sys.exit(status)
