@@ -608,7 +608,12 @@ double haversine_dist(double th1, double ph1, double th2, double ph2)
 
 void chomp(char *s)
 {
-	char *p = s + strlen(s) - 1;
+	char *p;
+	
+	if (!s || *s == 0)
+		return;
+
+	p = s + strlen(s) - 1;
 
 	while (isspace(*p)) {
 		*p-- = 0;
