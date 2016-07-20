@@ -1,4 +1,7 @@
 
+2016-07-20 version 0.6.7
+- FIX: don't crash on null payloads
+
 2016-07-19 version 0.6.6
 - FIX: FreeBSD locations api: reset isdst for mktime(3) (#125)
 - FIX: apikey support for last/, map/, and views/ (#124)
