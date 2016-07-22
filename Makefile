@@ -68,6 +68,9 @@ CFLAGS += -DCONFIGFILE=\"$(CONFIGFILE)\"
 
 TARGETS += ot-recorder ocat
 
+GIT_VERSION := $(shell git describe --long --abbrev=10 --dirty --tags 2>/dev/null || echo "tarball")
+CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+
 all: $(TARGETS)
 
 ot-recorder: recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS)

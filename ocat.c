@@ -128,6 +128,7 @@ void print_versioninfo()
 #ifdef WITH_ENCRYPT
 	printf("\tSODIUM VERSION = %s\n", SODIUM_VERSION_STRING);
 #endif
+	printf("\tGIT VERSION = %s\n", GIT_VERSION);
 
 	exit(0);
 }
