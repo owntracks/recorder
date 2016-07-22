@@ -1042,6 +1042,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		JsonNode *json = json_mkobject();
 
 		json_append_member(json, "version", json_mkstring(VERSION));
+		json_append_member(json, "git", json_mkstring(GIT_VERSION));
 		CLEANUP;
 		return (json_response(conn, json));
 	}
