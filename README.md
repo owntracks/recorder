@@ -207,7 +207,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--initialize` creates the a structure within the storage directory and initializes the LMDB database. It is safe to use this even if such a database exists -- the database is not wiped. After initialization, _recorder_ exits.
 
-`--label` specifies a label (default: "Recorder") to be shown in the websocket live map.
+`--label` specifies a label (default: "Recorder") to be shown in the WebSocket live map.
 
 `--http-host` and `--http-port` define the listen address and port number for the API. If `--http-port` is 0, the Web server is disabled.
 
