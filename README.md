@@ -8,9 +8,9 @@ The _OwnTracks Recorder_ is a lightweight program for storing and accessing loca
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
 
-There are two main components: the _recorder_ obtains data via MQTT subscribes or HTTP POST, stores the data in plain files and serve it via its built-in REST API, and the _ocat_ command-line utility reads stored data in a variety of formats.
+There are two main components: the _Recorder_ obtains data via MQTT subscribes or HTTP POST, stores the data in plain files and serve it via its built-in REST API, and the _ocat_ command-line utility reads stored data in a variety of formats.
 
-We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. 
+We developed the Recorder as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the Recorder is best suited to most environments.
 
 ## Table of Contents
 
@@ -86,10 +86,10 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 
 ## `recorder`
 
-The _recorder_ serves two purposes:
+The Recorder serves two purposes:
 
 1. It subscribes to an MQTT broker and reads messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of plain files on the file system. Alternatively the Recorder can listen on HTTP for OwnTracks-type JSON messages POSTed to its HTTP server.
-2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a WebSocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s WebSocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
+2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a WebSocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the Recorder's WebSocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the Recorder.
 
 
 ## Installing
@@ -139,10 +139,10 @@ sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-de
 ### Building
 
 1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
-2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
+2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the Recorder will store its files. `DOCROOT` is the root of the directory from which the Recorder's HTTP server will serve files.
 3. Type `make` and watch the fun.
 
-When _make_ finishes, you should have at least two executable programs called `ot-recorder` which is the _recorder_ proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the _recorder_ options.
+When _make_ finishes, you should have at least two executable programs called `ot-recorder` which is the Recorder proper, and `ocat`. If you want you can install these using `make install`, but this is not necessary: the programs will run from whichever directory you like if you add `--doc-root ./docroot` to the Recorder options.
 
 Ensure the LMDB databases are initialized by running the following command which is safe to do, also after an upgrade. (This initialization is non-destructive -- it will not delete any data.)
 
@@ -152,11 +152,11 @@ ot-recorder --initialize
 
 ## Getting started
 
-The _recorder_ has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
+The Recorder has, like _ocat_, a daunting number of options, most of which you will not require. Running either utility with the `-h` or `--help` switch will summarize their meanings. You can, for example launch with a specific storage directory, disable the HTTP server, change its port, etc.
 
 If you require authentication or TLS to connect to your MQTT broker, pay attention to the `$OTR_` environment variables listed in the help.
 
-Launch the recorder:
+Launch the Recorder:
 
 ```
 $ ./ot-recorder 'owntracks/#'
@@ -164,24 +164,24 @@ $ ./ot-recorder 'owntracks/#'
 
 (In httpmode, you do not have to specify a topic.)
 
-Publish a location from your OwnTracks app and you should see the _recorder_ receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
+Publish a location from your OwnTracks app and you should see the Recorder receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
 
-The location message received by the _recorder_ will be written to storage. In particular you should verify that your _storage_ directory contains:
+The location message received by the Recorder will be written to storage. In particular you should verify that your _storage_ directory contains:
 
 1. a directory called `ghash/`
 2. a directory called `rec/` with several subdirectories and a `.rec` file therein.
 3. a directory called `last/` which contains subdirectories and a `.json` file therein.
 
-When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083` or the address / port configured with the `--http-host` and `--http-port` options respectively.
+When the Recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083` or the address / port configured with the `--http-host` and `--http-port` options respectively.
 
-Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
+Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the Recorder. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the Recorder (e.g. for distinct brokers) as long as you ensure:
 
 * that each instance uses a distinct `--storage`
 * that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
 
 ### `ot-recorder` options
 
-This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
+This section lists the most important options of the Recorder with their long names; check the usage (`recorder -h`) for the short versions.
 
 `--clientid` specifies the MQTT client identifier to use upon connecting to the broker, thus overriding a constructed default. 
 
@@ -205,7 +205,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 `--quiet` disables printing of messages to _stdout_.
 
-`--initialize` creates the a structure within the storage directory and initializes the LMDB database. It is safe to use this even if such a database exists -- the database is not wiped. After initialization, _recorder_ exits.
+`--initialize` creates the a structure within the storage directory and initializes the LMDB database. It is safe to use this even if such a database exists -- the database is not wiped. After initialization, Recorder exits.
 
 `--label` specifies a label (default: "Recorder") to be shown in the WebSocket live map.
 
@@ -223,7 +223,7 @@ This section lists the most important options of the _recorder_ with their long 
 
 ## The HTTP server
 
-The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
+The Recorder has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
 
 The API basically serves the same data as _ocat_ is able to produce. The server also accepts OwnTracks app data via HTTP POST to the `/pub` endpoint.
 
@@ -291,19 +291,19 @@ If we change the `format` parameter of the previous URL to `linestring`, the res
 
 #### Tabular display
 
-The _recorder_'s Web server also provides a tabular display which shows the last position of devices, their address, country, etc. Some of the columns are sortable, you can search for users/devices and click on the address to have a map opened at the device's last location.
+The Recorder's Web server also provides a tabular display which shows the last position of devices, their address, country, etc. Some of the columns are sortable, you can search for users/devices and click on the address to have a map opened at the device's last location.
 
 ![Table](assets/demo-table.png)
 
 #### Live map
 
-The _recorder_'s built-in WebSocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
+The Recorder's built-in WebSocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
 
 ![Live map](assets/demo-live-map.png)
 
 ### API
 
-The _recorder_'s API provides most of the functions that are surfaced by _ocat_. GET and POST requests are supported, and if a username and device are needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters. (From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
+The Recorder's API provides most of the functions that are surfaced by _ocat_. GET and POST requests are supported, and if a username and device are needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters. (From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
 respectively.)
 
 The API endpoint is at `/api/0` and is followed by the verb.
@@ -370,7 +370,7 @@ Requires GET method and _user_, and will return the `image/png` 40x40px photogra
 
 #### `kill`
 
-If support for this is compiled in, this API endpoint allows a client to remove data from _storage_. (Warning: *any* client can do this, as there is no authentication/authorization in the _recorder_!)
+If support for this is compiled in, this API endpoint allows a client to remove data from _storage_. (Warning: *any* client can do this, as there is no authentication/authorization in the Recorder!)
 
 ```
 curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
@@ -396,7 +396,7 @@ Returns a JSON object which contains the Recorder's version string, such as
 
 ## `ocat`
 
-_ocat_ is a CLI query program for data stored by _recorder_: it prints data from storage in a variety of output formats:
+_ocat_ is a CLI query program for data stored by Recorder: it prints data from storage in a variety of output formats:
 
 * JSON
 * GeoJSON (points)
@@ -407,7 +407,7 @@ _ocat_ is a CLI query program for data stored by _recorder_: it prints data from
 * raw (the lines contained in the REC file with ISO timestamp)
 * payload (basically just the payload part from RAW)
 
-The _ocat_ utility accesses _storage_ directly — it doesn’t use the _recorder_’s REST interface. _ocat_ has a daunting number of options, some combinations of which make no sense at all.
+The _ocat_ utility accesses _storage_ directly — it doesn’t use the Recorder’s REST interface. _ocat_ has a daunting number of options, some combinations of which make no sense at all.
 
 Some example uses we consider useful:
 
@@ -477,7 +477,7 @@ The following environment variables control _ocat_'s behaviour:
 
 ### Examples
 
-The _recorder_ has been running for a while, and the OwnTracks apps have published data. Let us have a look at some of this data.
+The Recorder has been running for a while, and the OwnTracks apps have published data. Let us have a look at some of this data.
 
 #### List users and devices
 
@@ -537,7 +537,7 @@ $ ocat --last --user demo --device iphone
 Several things worth mentioning:
 
 * The returned data structure is an array of JSON objects; had we omitted specifying a particular device or even a particular user we would have obtained the last position of all this user's devices or all users' devices respectively.
-* If you are familiar with the [JSON data reported by the OwnTracks apps](http://owntracks.org/booklet/tech/json/) you'll notice that this JSON contains more information: this is provided on the fly by _ocat_ and the REST API, e.g. from the reverse-geo cache the _recorder_ maintains.
+* If you are familiar with the [JSON data reported by the OwnTracks apps](http://owntracks.org/booklet/tech/json/) you'll notice that this JSON contains more information: this is provided on the fly by _ocat_ and the REST API, e.g. from the reverse-geo cache the Recorder maintains.
 
 #### What were the last 4 positions reported?
 
@@ -555,35 +555,35 @@ isotst,vel,addr
 
 ## Design decisions
 
-We took a number of decisions when designing the _recorder_ and its utilities:
+We took a number of decisions when designing the Recorder and its utilities:
 
-* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast geo-lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the _recorder_ send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
+* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast geo-lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the Recorder send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
 * We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below. (In the particular case of the OwnTracks firmware for Greenwich devices which can publish in CSV mode, we convert the CSV into OwnTracks JSON for storage.)
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
 * All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
-* The _recorder_ does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the `recorder` to control access to it. Or use views (see below).
-* `ocat`, the _cat_ program for the _recorder_ uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
-* The _recorder_ supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".) Publishes via HTTP POST construct a ficticious topic internally using the provided user (`u`) and device (`d`) parameters.
+* The Recorder does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the Recorder to control access to it. Or use views (see below).
+* `ocat`, the _cat_ program for the Recorder uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
+* The Recorder supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".) Publishes via HTTP POST construct a ficticious topic internally using the provided user (`u`) and device (`d`) parameters.
 
 ## Storage
 
-As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the _recorder_:
+As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the Recorder:
 
-* `cards/`, optional, may contains user cards. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar. User cards are typically stored in a subdirectory called _username_, and therein a JSON file _username_.json. When reading cards, the recorder will first attempt to open _username_/_device_/_username_.json and then _username_/_username_.json.
+* `cards/`, optional, may contains user cards. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar. User cards are typically stored in a subdirectory called _username_, and therein a JSON file _username_.json. When reading cards, the Recorder will first attempt to open _username_/_device_/_username_.json and then _username_/_username_.json.
 * `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data. You can use this `.otrc` file to restore the OwnTracks configuration on your device by copying to the device and opening it in OwnTracks.
 * `ghash/`, unless disabled, reverse Geo data (using a Google service) is collected into an LMDB database located in this directory. This LMDB database also contains named databases which are used by your optional Lua hooks, as well as a `topic2tid` database which can be used for TID re-mapping.
-* `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`. If a device's `last/` directory contains a file called `extra.json` (i.e. matching the example, this would be `last/jjolie/iphone/extra.json`), the content of this file is merged into the existing JSON for this user and returned by the API. Note, that you cannot overwrite existing values. So, an `extra.json` containing `{ "tst" : 11 }` will do nothing because the `tst` element we obtain from location data overrules, but adding `{ "beverage" : "water" }` will do what you want. If _recorder_ is built with support for our Greenwich firmware, this directory might contain `batt.json`, `ext.json`, and/or `status.json` each of which hold an array of the last 100 reports for internal battery voltage, external voltage, and status respectively. These values are returned via the API in the LAST object. A file `http.json` which should contain either a single JSON object or an array of JSON objects is returned to clients in HTTPmode.
+* `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`. If a device's `last/` directory contains a file called `extra.json` (i.e. matching the example, this would be `last/jjolie/iphone/extra.json`), the content of this file is merged into the existing JSON for this user and returned by the API. Note, that you cannot overwrite existing values. So, an `extra.json` containing `{ "tst" : 11 }` will do nothing because the `tst` element we obtain from location data overrules, but adding `{ "beverage" : "water" }` will do what you want. If Recorder is built with support for our Greenwich firmware, this directory might contain `batt.json`, `ext.json`, and/or `status.json` each of which hold an array of the last 100 reports for internal battery voltage, external voltage, and status respectively. These values are returned via the API in the LAST object. A file `http.json` which should contain either a single JSON object or an array of JSON objects is returned to clients in HTTPmode.
 * `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
 * `msg/` contains messages received by the Messaging system.
 * `photos/` optional; contains the binary photos from a _card_.
-* `rec/` the recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
+* `rec/` the Recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
 * `waypoints/` contains a directory per user and device. Therein are individual files named by a timestamp with the JSON payload of published (i.e. shared) waypoints. The file names are timestamps because the `tst` of a waypoint is its key. If a user publishes all waypoints from a device (Publish Waypoints), the payload is stored in this directory as `username-device.otrw`. (Note, that this is the JSON [waypoints import format](http://owntracks.org/booklet/tech/json/#_typewaypoints).) You can use this `.otrw` file to restore the waypoints on your device by copying to the device and opening it in OwnTracks.
 
-You should definitely **not** modify or touch these files: they remain under the control of the _recorder_. You can of course, remove old `.rec` files if they consume too much space.
+You should definitely **not** modify or touch these files: they remain under the control of the Recorder. You can of course, remove old `.rec` files if they consume too much space.
 
 ## Configuration file
 
-The recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`, and `ocat -v` will display the compiled-in default). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) at the end of a variable assignment):
+The Recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`, and `ocat -v` will display the compiled-in default). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) at the end of a variable assignment):
 
 ```
 OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
@@ -615,7 +615,7 @@ Note that options passed to `ot-recorder` override both configuration file setti
 
 ## Reverse Geo
 
-If not disabled with option `--norevgeo`, the _recorder_ will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., _recorder_ keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
+If not disabled with option `--norevgeo`, the Recorder will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., Recorder keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
 
 ```
 $ cat store/ghash/missing
@@ -626,11 +626,11 @@ u0m97hc 46.652733 7.868803
 
 This can be used to subsequently obtain missed lookups.
 
-We recommend you keep reverse-geo lookups enabled, this data (country code `cc`, and the locations address `addr`) is used by the example Web apps provided by the _recorder_ to show where a particular device is. In addition, this cached data is used the the API (also _ocat_) when printing location data.
+We recommend you keep reverse-geo lookups enabled, this data (country code `cc`, and the locations address `addr`) is used by the example Web apps provided by the Recorder to show where a particular device is. In addition, this cached data is used the the API (also _ocat_) when printing location data.
 
 ### Precision
 
-The precision with which reverse-geo lookups are performed is controlled with the `--precison` option to _recorder_ (and with the `--precision` option to _ocat_ when you query for data). The default precision is compiled into the code (from `config.mk`). The higher the number, the more frequently lookups are performed; conversely, the lower the number, the fewer lookups are performed. For example, a precision of 1 means that points within an area of approximately 5000 km^2 would resolve to a single address, whereas a precision of 7 means that points within an area of approximately 150 m^2 resolve to one address. The _recorder_ obtains a location publish, extracts the latitude and longitude, and then calculates the [geohash](https://en.wikipedia.org/wiki/Geohash) string and truncates it to _precision_. If the calculated geohash string can be found in our local LMDB cache, we consider the point cached; otherwise an actual reverse geo lookup (via HTTP) is performed and the result is cached in LMDB at the key of the geohash.
+The precision with which reverse-geo lookups are performed is controlled with the `--precison` option to Recorder (and with the `--precision` option to _ocat_ when you query for data). The default precision is compiled into the code (from `config.mk`). The higher the number, the more frequently lookups are performed; conversely, the lower the number, the fewer lookups are performed. For example, a precision of 1 means that points within an area of approximately 5000 km^2 would resolve to a single address, whereas a precision of 7 means that points within an area of approximately 150 m^2 resolve to one address. The Recorder obtains a location publish, extracts the latitude and longitude, and then calculates the [geohash](https://en.wikipedia.org/wiki/Geohash) string and truncates it to _precision_. If the calculated geohash string can be found in our local LMDB cache, we consider the point cached; otherwise an actual reverse geo lookup (via HTTP) is performed and the result is cached in LMDB at the key of the geohash.
 
 As an example, let's assume Jane's device is at position (lat, lon) `48.879840, 2.323522`, which resolves to a geohash string of length 7 `u09whf7`. We can [visualize this](http://www.movable-type.co.uk/scripts/geohash.html) and show what this looks like. (See also: [visualizing geohash](http://www.bigdatamodeling.org/2013/01/intuitive-geohash.html).)
 
@@ -644,7 +644,7 @@ and a precision of 2 would mean that a very large part of France resolves to a s
 
 ![geohash2](assets/geohash-2.png)
 
-The bottom line: if you run the _recorder_ with just a few devices and want to know quite exactly where you've been, use a high precision (7 is probably good). If you, on the other hand, run _recorder_ with many devices and are only interested in where a device was approximately, lower the precision; this also has the effect that fewer reverse-geo lookups will be performed in the Google infrastructure. (Also: respect their quotas!)
+The bottom line: if you run the Recorder with just a few devices and want to know quite exactly where you've been, use a high precision (7 is probably good). If you, on the other hand, run Recorder with many devices and are only interested in where a device was approximately, lower the precision; this also has the effect that fewer reverse-geo lookups will be performed in the Google infrastructure. (Also: respect their quotas!)
 
 ### The geo cache
 
@@ -660,14 +660,14 @@ The key to this data is the geohash string (here with an example of precision 2)
 
 ## Monitoring
 
-In order to monitor the _recorder_, whenever an MQTT message is received, a `monitor` file located relative to STORAGEDEFAULT is maintained. It contains a single line of text: the epoch timestamp and the last received topic separated from each other by a space.
+In order to monitor the Recorder, whenever an MQTT message is received, a `monitor` file located relative to STORAGEDEFAULT is maintained. It contains a single line of text: the epoch timestamp and the last received topic separated from each other by a space.
 
 ```
 1439738692 owntracks/jjolie/ipad
 ```
 
 
-If _recorder_ is built with `WITH_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be  used to round-trip-test the recorder. For this particular username/device combination, _recorder_ will store LAST position, but it will not keep a `.REC` file for it. This can be used to verify, say, via your favorite monitoring system, that the _recorder_ is still operational.
+If Recorder is built with `WITH_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be used to round-trip-test the ecorder. For this particular username/device combination, Recorder will store LAST position, but it will not keep a `.REC` file for it. This can be used to verify, say, via your favorite monitoring system, that the Recorder is still operational.
 
 After sending a _pingping_, you can query the REST interface to determine the difference in time. The `contrib/` directory has an example Python program (`ot-ping.py`) which you can adapt as needed for use by Icinga or Nagios.
 
@@ -677,18 +677,18 @@ OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 
 ## Lua hooks
 
-If _recorder_ is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:
+If Recorder is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:
 
 * insert publishes into a database of your choice
 * switch on the coffee machine when your OwnTracks device reports you're entering home (but see also [mqttwarn](http://jpmens.net/2014/02/17/introducing-mqttwarn-a-pluggable-mqtt-notifier/))
 * write a file with data in a format of your choice (see `etc/example.lua`)
 
-Run the _recorder_ with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the _recorder_ unloads Lua and continues *without* your script.
+Run the Recorder with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the Recorder unloads Lua and continues *without* your script.
 
 If the Lua script can be loaded, it is automatically provided with a table variable called `otr` which contains the following members:
 
-* `otr.version` is a read-only string with the _recorder_ version (example: `"0.3.2"`)
-* `otr.log(s)` is a function which takes a string `s` which is logged to syslog at the _recorder_'s facility and log level INFO.
+* `otr.version` is a read-only string with the Recorder version (example: `"0.3.2"`)
+* `otr.log(s)` is a function which takes a string `s` which is logged to syslog at the Recorder's facility and log level INFO.
 * `otr.strftime(fmt, t)` is a function which takes a format string `fmt` (see `strftime(3)`) and an integer number of seconds `t` and returns a string with the formatted UTC time. If `t` is 0 or negative, the current system time is used.
 * `otr.putdb(key, value)` is a function which takes two strings `k` and `v` and stores them in the named LMDB database called `luadb`. This can be viewed with
 * `otr.getdb(key)` is a function which takes a single string `key` and returns the database value associated with that key or `nil` if the key isn't stored.
@@ -701,20 +701,20 @@ Your Lua script *must* provide the following functions:
 
 ### `otr_init`
 
-This is invoked at start of _recorder_. If the function returns a non-zero value, _recorder_ unloads Lua and disables its processing; i.e. the `hook()` will *not* be invoked on location publishes.
+This is invoked at start of Recorder. If the function returns a non-zero value, Recorder unloads Lua and disables its processing; i.e. the `hook()` will *not* be invoked on location publishes.
 
 ### `otr_exit`
 
-This is invoked when the _recorder_ stops, which it doesn't really do unless you CTRL-C it or send it a SIGTERM signal.
+This is invoked when the Recorder stops, which it doesn't really do unless you CTRL-C it or send it a SIGTERM signal.
 
 
 ### `otr_hook`
 
-This function is invoked at every location publish processed by the _recorder_. Your function is passed three arguments:
+This function is invoked at every location publish processed by the Recorder. Your function is passed three arguments:
 
 1. _topic_ is the topic published to (e.g. `owntracks/jane/phone`)
 2. _type_ is the type of MQTT message. This is the `_type` in our JSON messages (e.g. `location`, `cmd`, `transition`, ...) or `"unknown"`.
-3. _location_ is a [Lua table](http://www.lua.org/pil/2.5.html) (associative array) with all the elements obtained in the JSON message. In the case of _type_ being `location`, we also add country code (`cc`) and the location's address (`addr`) unless reverse-geo lookups have been disabled in _recorder_.
+3. _location_ is a [Lua table](http://www.lua.org/pil/2.5.html) (associative array) with all the elements obtained in the JSON message. In the case of _type_ being `location`, we also add country code (`cc`) and the location's address (`addr`) unless reverse-geo lookups have been disabled in Recorder.
 
 Assume the following small example Lua script in `example.lua`:
 
@@ -737,7 +737,7 @@ function otr_exit()
 end
 ```
 
-When _recorder_ is launched with `--lua-script example.lua` it invokes `otr_init()` which opens a file. Then, for each location received, it calls `otr_hook()` which updates the file.
+When Recorder is launched with `--lua-script example.lua` it invokes `otr_init()` which opens a file. Then, for each location received, it calls `otr_hook()` which updates the file.
 
 Assuming an OwnTracks device publishes this payload
 
@@ -757,7 +757,7 @@ It is 14:10:01 in the year 2015 owntracks/jane/phone lat=48.858339 Avenue Anatol
 An optional function you provide is called `otr_putrec(u, d, s)`. If it exists,
 it is called with the current user in `u`, the device in `d` and the payload
 (which for OwnTracks apps is JSON but for, eg Greenwich devices might not be) in the string `s`. If your function returns a
-non-zero value, the _recorder_ will *not* write the REC file for this publish.
+non-zero value, the Recorder will *not* write the REC file for this publish.
 
 ### `otr_httpobject`
 
@@ -765,13 +765,13 @@ An optional function you provide is called `otr_httpobject(u, d, t, data)` where
 
 ### Hooklets
 
-After running `otr_hook()`, the _recorder_ attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
+After running `otr_hook()`, the Recorder attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
 
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
 
 ## Reverse proxy
 
-Running the _recorder_ protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
+Running the Recorder protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
 
 ### nginx
 
@@ -808,7 +808,7 @@ server {
 
 ### Apache
 
-This will hand URIs which begin with `/otr/` to the _recorder_.
+This will hand URIs which begin with `/otr/` to the Recorder.
 
 ```
 
@@ -1090,7 +1090,7 @@ This named lmdb database is keyed on topic name (`owntracks/jane/phone`). If the
 
 #### `keys`
 
-If the _recorder_ was built with encryption support (see below), this named database contains the secret decryption keys for users/device pairs. The LMDB key is the username followed by a dash followed by the device name, all lower case, with spaces translated to a single dash. For example, if user Jjolie with device iPhone needs a secret entered, the database key will be `jjolie-iphone`. This can be entered into the database as follows:
+If the Recorder was built with encryption support (see below), this named database contains the secret decryption keys for users/device pairs. The LMDB key is the username followed by a dash followed by the device name, all lower case, with spaces translated to a single dash. For example, if user Jjolie with device iPhone needs a secret entered, the database key will be `jjolie-iphone`. This can be entered into the database as follows:
 
 ```bash
 echo "jjolie-iphone s3cr1t" | ocat --load=keys
@@ -1164,7 +1164,7 @@ The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/
 
 ## Docker
 
-We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the _Recorder_. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
+We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
 
 ## Tips and Tricks
 
