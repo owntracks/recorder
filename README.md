@@ -10,6 +10,80 @@ There are two main components: the _recorder_ obtains data via MQTT subscribes o
 
 We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. 
 
+## Table of Contents
+
+* `recorder`
+* Installing
+* Building from source
+* Getting started
+* `ot-recorder` options and variables
+* The HTTP Server
+ * Last position of a particular user
+ * Display map with points starting at a particular date
+ * Display a track (a.k.a. linestring)
+ * Tabular display
+ * Live map
+* `ocat`
+* `ocat` examples
+ * List users and devices
+ * Show the last position reported by a user
+ * What were the last 4 positions reported?
+* Design decisions
+* Storage
+* Configuration file
+* Reverse Geo
+ * Precision
+ * The geo cache
+* Monitoring
+* HTTP server
+ * API
+  * `monitor`
+  * `last`
+  * `list`
+  * `locations`
+  * `q`
+  * `photo`
+  * `kill`
+  * `version`
+* Lua hooks
+ * `otr_init`
+ * `otr_exit`
+ * `otr_hook`
+ * `otr_putrec`
+ * `otr_httpobject`
+ * Hooklets
+* Environment
+* Reverse proxy
+ * nginx
+ * Apache
+* Views
+ * view JSON
+ * Authentication
+ * HTTP proxy
+* HTTP mode
+ * Friends in HTTP mode
+ * Authentication
+* Advanced topics
+ * Browser API keys
+ * The LMDB database
+  * `topic2tid`
+  * `keys`
+  * `friends`
+* Encryption (*experimental!*)
+* Prerequisites for building
+ * Debian
+ * CentOS 7
+ * Ubuntu
+* Packages
+ * Installing on CentOS 7
+ * Installing on Raspian (Wheezy)
+ * Installing on Debian 8 (Jessie)
+  * systemd service
+* Docker
+* Tips and Tricks
+ * Gatewaying HTTP to MQTT
+ * Override reverse-geo precision
+
 ## `recorder`
 
 The _recorder_ serves two purposes:
