@@ -12,77 +12,77 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 
 ## Table of Contents
 
-* `recorder`
-* Installing
-* Building from source
-* Getting started
-* `ot-recorder` options and variables
-* The HTTP Server
-  * Last position of a particular user
-  * Display map with points starting at a particular date
-  * Display a track (a.k.a. linestring)
-  * Tabular display
-  * Live map
-* `ocat`
-* `ocat` examples
-  * List users and devices
-  * Show the last position reported by a user
-  * What were the last 4 positions reported?
-* Design decisions
-* Storage
-* Configuration file
-* Reverse Geo
-  * Precision
-  * The geo cache
-* Monitoring
-* HTTP server
-  * API
-    * `monitor`
-	* `last`
-	* `list`
-	* `locations`
-	* `q`
-	* `photo`
-	* `kill`
-	* `version`
-* Lua hooks
-  * `otr_init`
-  * `otr_exit`
-  * `otr_hook`
-  * `otr_putrec`
-  * `otr_httpobject`
-  * Hooklets
-* Environment
-* Reverse proxy
-  * nginx
-  * Apache
-* Views
-  * view JSON
-  * Authentication
-  * HTTP proxy
-* HTTP mode
-  * Friends in HTTP mode
-  * Authentication
-* Advanced topics
-  * Browser API keys
-  * The LMDB database
-    * `topic2tid`
-	* `keys`
-	* `friends`
-* Encryption (*experimental!*)
-* Prerequisites for building
-  * Debian
-  * CentOS 7
-  * Ubuntu
-* Packages
-  * Installing on CentOS 7
-  * Installing on Raspian (Wheezy)
-  * Installing on Debian 8 (Jessie)
-  * systemd service
-* Docker
-* Tips and Tricks
-  * Gatewaying HTTP to MQTT
-  * Override reverse-geo precision
+* [`recorder`](#recorder)
+* [Installing](#installing)
+* [Building from source](#building-from-source)
+* [Getting started](#building-from-source)
+* [`ot-recorder` options and variables](#ot-recorder-options-and-variables)
+* [The HTTP Server](#the-http-server)
+  * [Last position of a particular user](#last-position-of-a-particular-user)
+  * [Display map with points starting at a particular date](#last-position-of-a-particular-user)
+  * [Display a track (a.k.a. linestring)](#display-a-track-aka-linestring)
+  * [Tabular display](#tabular-display)
+  * [Live map](#live-map)
+* [`ocat`](#live-map)
+* [`ocat` examples](#ocat-examples)
+  * [List users and devices](#list-users-and-devices)
+  * [Show the last position reported by a user](#show-the-last-position-reported-by-a-user)
+  * [What were the last 4 positions reported?](#what-were-the-last-4-positions-reported)
+* [Design decisions](#design-decisions)
+* [Storage](#storage)
+* [Configuration file](#configuration-file)
+* [Reverse Geo](#reverse-geo)
+  * [Precision](#reverse-geo)
+  * [The geo cache](#the-geo-cache)
+* [Monitoring](#monitoring)
+* [HTTP server](#monitoring)
+  * [API](#monitoring)
+    * [`monitor`](#monitor)
+	* [`last`](#last)
+	* [`list`](#list)
+	* [`locations`](#locations)
+	* [`q`](#q)
+	* [`photo`](#photo)
+	* [`kill`](#kill)
+	* [`version`](#version)
+* [Lua hooks](#lua-hooks)
+  * [`otr_init`](#otr_init)
+  * [`otr_exit`](#otr_exit)
+  * [`otr_hook`](#otr_hook)
+  * [`otr_putrec`](#otr_putrec)
+  * [`otr_httpobject`](#otr_httpobject)
+  * [Hooklets](#hooklets)
+* [Environment](#environment)
+* [Reverse proxy](#environment)
+  * [nginx](#environment)
+  * [Apache](#apache)
+* [Views](#views)
+  * [view JSON](#view-json)
+  * [Authentication](#authentication)
+  * [HTTP proxy](#http-proxy)
+* [HTTP mode](#http-mode)
+  * [Friends in HTTP mode](#friends-in-http-mode)
+  * [Authentication](#authentication-1)
+* [Advanced topics](#advanced-topics)
+  * [Browser API keys](#browser-api-keys)
+  * [The LMDB database](#the-lmdb-database)
+    * [`topic2tid`](#topic2tid)
+	* [`keys`](#keys)
+	* [`friends`](#friends)
+* [Encryption (*experimental!*)](#encryption-experimental)
+* [Prerequisites for building](#prerequisites-for-building)
+  * [Debian](#debian)
+  * [CentOS 7](#centos-7)
+  * [Ubuntu](#ubuntu)
+* [Packages](#packages)
+  * [Installing on CentOS 7](#installing-on-centos-7)
+  * [Installing on Raspian (Wheezy)](#installing-on-raspian-wheezy)
+  * [Installing on Debian 8 (Jessie)](#installing-on-debian-8-jessie)
+  * [systemd service](#systemd-service)
+* [Docker](#docker)
+* [Tips and Tricks](#tips-and-tricks)
+  * [Gatewaying HTTP to MQTT](#gatewaying-http-to-mqtt)
+  * [Override reverse-geo precision](#override-reverse-geo-precision)
 
 ## `recorder`
 
