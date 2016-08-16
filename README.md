@@ -18,71 +18,71 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 * Getting started
 * `ot-recorder` options and variables
 * The HTTP Server
- * Last position of a particular user
- * Display map with points starting at a particular date
- * Display a track (a.k.a. linestring)
- * Tabular display
- * Live map
+  * Last position of a particular user
+  * Display map with points starting at a particular date
+  * Display a track (a.k.a. linestring)
+  * Tabular display
+  * Live map
 * `ocat`
 * `ocat` examples
- * List users and devices
- * Show the last position reported by a user
- * What were the last 4 positions reported?
+  * List users and devices
+  * Show the last position reported by a user
+  * What were the last 4 positions reported?
 * Design decisions
 * Storage
 * Configuration file
 * Reverse Geo
- * Precision
- * The geo cache
+  * Precision
+  * The geo cache
 * Monitoring
 * HTTP server
- * API
-  * `monitor`
-  * `last`
-  * `list`
-  * `locations`
-  * `q`
-  * `photo`
-  * `kill`
-  * `version`
+  * API
+    * `monitor`
+	* `last`
+	* `list`
+	* `locations`
+	* `q`
+	* `photo`
+	* `kill`
+	* `version`
 * Lua hooks
- * `otr_init`
- * `otr_exit`
- * `otr_hook`
- * `otr_putrec`
- * `otr_httpobject`
- * Hooklets
+  * `otr_init`
+  * `otr_exit`
+  * `otr_hook`
+  * `otr_putrec`
+  * `otr_httpobject`
+  * Hooklets
 * Environment
 * Reverse proxy
- * nginx
- * Apache
+  * nginx
+  * Apache
 * Views
- * view JSON
- * Authentication
- * HTTP proxy
+  * view JSON
+  * Authentication
+  * HTTP proxy
 * HTTP mode
- * Friends in HTTP mode
- * Authentication
+  * Friends in HTTP mode
+  * Authentication
 * Advanced topics
- * Browser API keys
- * The LMDB database
-  * `topic2tid`
-  * `keys`
-  * `friends`
+  * Browser API keys
+  * The LMDB database
+    * `topic2tid`
+	* `keys`
+	* `friends`
 * Encryption (*experimental!*)
 * Prerequisites for building
- * Debian
- * CentOS 7
- * Ubuntu
+  * Debian
+  * CentOS 7
+  * Ubuntu
 * Packages
- * Installing on CentOS 7
- * Installing on Raspian (Wheezy)
- * Installing on Debian 8 (Jessie)
- * systemd service
+  * Installing on CentOS 7
+  * Installing on Raspian (Wheezy)
+  * Installing on Debian 8 (Jessie)
+  * systemd service
 * Docker
 * Tips and Tricks
- * Gatewaying HTTP to MQTT
- * Override reverse-geo precision
+  * Gatewaying HTTP to MQTT
+  * Override reverse-geo precision
 
 ## `recorder`
 
