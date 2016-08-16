@@ -89,7 +89,7 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 The _recorder_ serves two purposes:
 
 1. It subscribes to an MQTT broker and reads messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of plain files on the file system. Alternatively the Recorder can listen on HTTP for OwnTracks-type JSON messages POSTed to its HTTP server.
-2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a Websocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
+2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a WebSocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s WebSocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
 
 
 ## Installing
@@ -267,7 +267,7 @@ The _recorder_'s Web server also provides a tabular display which shows the last
 
 #### Live map
 
-The _recorder_'s built-in Websocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
+The _recorder_'s built-in WebSocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
 
 ![Live map](assets/demo-live-map.png)
 
@@ -547,7 +547,7 @@ OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 
 ## HTTP server
 
-The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in Websocket server for the live map.
+The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
 
 The API basically serves the same data as _ocat_ is able to produce.
 
@@ -763,7 +763,7 @@ server {
         index  index.html index.htm;
     }
 
-    # Proxy and upgrade Websocket connection
+    # Proxy and upgrade WebSocket connection
     location /otr/ws {
     	rewrite ^/otr/(.*)	/$1 break;
     	proxy_pass		http://127.0.0.1:8083;
@@ -790,7 +790,7 @@ This will hand URIs which begin with `/otr/` to the _recorder_.
 
 ```
 
-# Websocket URL endpoint
+# WebSocket URL endpoint
 # a2enmod proxy_wstunnel
 ProxyPass        /otr/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
 ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
@@ -978,7 +978,7 @@ curl --data "${payload}" 'http://127.0.0.1:8085/pub?u=jane&d=3s'
 curl -H 'X-Limit-U: jane' -H 'X-Limit-D: 3s' --data "${payload}" 'http://127.0.0.1:8085/pub'
 ```
 
-The content of the request is used by the Recorder as though it had arrived as an MQTT message; Lua hooks and Websocket pushes are handled accordingly.
+The content of the request is used by the Recorder as though it had arrived as an MQTT message; Lua hooks and WebSocket pushes are handled accordingly.
 
 If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
 
