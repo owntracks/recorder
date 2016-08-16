@@ -16,9 +16,15 @@ We developed the Recorder as a one-stop solution to storing location data publis
 
 * [`recorder`](#recorder)
 * [Installing](#installing)
-* [Building from source](#building-from-source)
-  * [Prerequisites](#prerequisites)
-  * [Building](#building)
+  * [Packages](#packages)
+	* [Installing on CentOS 7](#installing-on-centos-7)
+	* [Installing on Raspian (Wheezy)](#installing-on-raspian-wheezy)
+	* [Installing on Debian 8 (Jessie)](#installing-on-debian-8-jessie)
+    * [systemd service](#systemd-service)
+  * [Docker](#docker)
+  * [Building from source](#building-from-source)
+    * [Prerequisites](#prerequisites)
+    * [Building](#building)
 * [Getting started](#getting-started)
 * [`ot-recorder` options](#ot-recorder-options)
 * [The HTTP Server](#the-http-server)
@@ -74,12 +80,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
 	* [`keys`](#keys)
 	* [`friends`](#friends)
 * [Encryption (*experimental!*)](#encryption-experimental)
-* [Packages](#packages)
-  * [Installing on CentOS 7](#installing-on-centos-7)
-  * [Installing on Raspian (Wheezy)](#installing-on-raspian-wheezy)
-  * [Installing on Debian 8 (Jessie)](#installing-on-debian-8-jessie)
-  * [systemd service](#systemd-service)
-* [Docker](#docker)
 * [Tips and Tricks](#tips-and-tricks)
   * [Gatewaying HTTP to MQTT](#gatewaying-http-to-mqtt)
   * [Override reverse-geo precision](#override-reverse-geo-precision)
@@ -96,11 +96,61 @@ The Recorder serves two purposes:
 
 We provide a ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image which bundles the Recorder and a Mosquitto broker [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/).
 
-You will, however, need to acquire and configure apikeys for the maps. (See below.)
+If those don't work for you, you can build from source.
 
-## Building from source
+### Packages
 
-### Prerequisites
+We create packages for releases for a few distributions. Please note that these packages depend on libmosquitto1 from the [Mosquitto project](http://mosquitto.org/downloads).
+
+Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
+
+#### Installing on CentOS 7
+
+```
+curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
+
+curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntracks.repo
+
+yum install ot-recorder
+```
+
+#### Installing on Raspian (Wheezy)
+
+```
+wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
+apt-key add repo.owntracks.org.gpg.key
+echo "deb  http://repo.owntracks.org/debian wheezy main" > /etc/apt/sources.list.d/owntracks.list
+apt-get update
+apt-get install ot-recorder
+```
+
+#### Installing on Debian 8 (Jessie)
+
+```
+wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
+apt-key add repo.owntracks.org.gpg.key
+echo "deb  http://repo.owntracks.org/debian jessie main" > /etc/apt/sources.list.d/owntracks.list
+apt-get update
+apt-get install ot-recorder
+```
+
+#### systemd service
+
+The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
+
+1. Ensure you have a configuration file with the settings you require
+2. `install -m444 /usr/share/doc/ot-recorder/ot-recorder.service /etc/systemd/system/ot-recorder.service`
+3. Enable the service to run at startup: `systemctl enable ot-recorder`
+4. Launch the service `systemctl start ot-recorder`
+
+
+### Docker
+
+We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
+
+### Building from source
+
+#### Prerequisites
 
 You will require:
 
@@ -136,7 +186,7 @@ sudo apt-get update
 sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-dev
 ```
 
-### Building
+#### Building
 
 1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
 2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the Recorder will store its files. `DOCROOT` is the root of the directory from which the Recorder's HTTP server will serve files.
@@ -178,6 +228,8 @@ Unless already provided by the package you installed, we recommend you create a 
 
 * that each instance uses a distinct `--storage`
 * that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
+
+You also need to provide API keys for the maps.
 
 ### `ot-recorder` options
 
@@ -1115,56 +1167,6 @@ The user/device separator in the array's strings may be a slash (`/`), a dash (`
 If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the Recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
 Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
-
-## Packages
-
-We create packages for releases for a few distributions. Please note that these packages depend on libmosquitto1 from the [Mosquitto project](http://mosquitto.org/downloads).
-
-Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
-
-### Installing on CentOS 7
-
-```
-curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
-
-curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntracks.repo
-
-yum install ot-recorder
-```
-
-### Installing on Raspian (Wheezy)
-
-```
-wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
-apt-key add repo.owntracks.org.gpg.key
-echo "deb  http://repo.owntracks.org/debian wheezy main" > /etc/apt/sources.list.d/owntracks.list
-apt-get update
-apt-get install ot-recorder
-```
-
-### Installing on Debian 8 (Jessie)
-
-```
-wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
-apt-key add repo.owntracks.org.gpg.key
-echo "deb  http://repo.owntracks.org/debian jessie main" > /etc/apt/sources.list.d/owntracks.list
-apt-get update
-apt-get install ot-recorder
-```
-
-### systemd service
-
-The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
-
-1. Ensure you have a configuration file with the settings you require
-2. `install -m444 /usr/share/doc/ot-recorder/ot-recorder.service /etc/systemd/system/ot-recorder.service`
-3. Enable the service to run at startup: `systemctl enable ot-recorder`
-4. Launch the service `systemctl start ot-recorder`
-
-
-## Docker
-
-We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
 
 ## Tips and Tricks
 
