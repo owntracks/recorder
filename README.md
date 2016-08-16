@@ -2,6 +2,8 @@
 
 ![Recorder logo](assets/recorder-logo-192.png)
 
+[![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
+
 The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT (or HTTP) by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require an external database.
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
@@ -1117,8 +1119,6 @@ The user/device separator in the array's strings may be a slash (`/`), a dash (`
 If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
 Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
-
-[![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
 
 ## Packages
 
