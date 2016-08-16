@@ -947,8 +947,6 @@ curl -H 'X-Limit-U: jane' -H 'X-Limit-D: 3s' --data "${payload}" 'http://127.0.0
 
 The content of the request is used by the Recorder as though it had arrived as an MQTT message; Lua hooks and WebSocket pushes are handled accordingly.
 
-If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
-
 ### Friends in HTTP mode
 
 When a device posts a location request in HTTP mode, the endpoint may return a JSON array of OwnTracks objects of which `_type`s `cmd`, `location` and `card` may be supported by the device. This allows the device to see, say, friends. The Recorder has built-in support for this with the named "friends" lmdb database.
