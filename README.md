@@ -17,9 +17,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
 * [`recorder`](#recorder)
 * [Installing](#installing)
   * [Packages](#packages)
-	* [Installing on CentOS 7](#installing-on-centos-7)
-	* [Installing on Raspian (Wheezy)](#installing-on-raspian-wheezy)
-	* [Installing on Debian 8 (Jessie)](#installing-on-debian-8-jessie)
     * [systemd service](#systemd-service)
   * [Docker](#docker)
   * [Building from source](#building-from-source)
@@ -104,7 +101,7 @@ We create packages for releases for a few distributions. Please note that these 
 
 Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
 
-#### Installing on CentOS 7
+If you're on CentOS 7, you can install with:
 
 ```
 curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
@@ -114,7 +111,7 @@ curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntrac
 yum install ot-recorder
 ```
 
-#### Installing on Raspian (Wheezy)
+Debian 7 "Wheezy" (including Rasbian):
 
 ```
 wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
@@ -124,7 +121,7 @@ apt-get update
 apt-get install ot-recorder
 ```
 
-#### Installing on Debian 8 (Jessie)
+Debian 8 "Jessie":
 
 ```
 wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
