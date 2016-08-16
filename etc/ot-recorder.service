@@ -1,14 +1,5 @@
 # /etc/systemd/system/ot-recorder.service
-#	systemctl enable ot-recorder
-#	systemctl start ot-recorder
-#	systemctl --system daemon-reload
-#	journalctl -f
-#
-# Centos
-#       install -m644 /usr/share/doc/ot-recorder/ot-recorder.service \
-#			/usr/lib/systemd/system/ot-recorder.service
-#       systemctl --system daemon-reload
-#
+
 [Unit]
 Description=OwnTracks Recorder
 
