@@ -667,7 +667,7 @@ In order to monitor the Recorder, whenever an MQTT message is received, a `monit
 ```
 
 
-If Recorder is built with `WITH_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be used to round-trip-test the ecorder. For this particular username/device combination, Recorder will store LAST position, but it will not keep a `.REC` file for it. This can be used to verify, say, via your favorite monitoring system, that the Recorder is still operational.
+If Recorder is built with `WITH_PING` (default), a location publish to `owntracks/ping/ping` (i.e. username is `ping` and device is `ping`) can be used to round-trip-test the Recorder. For this particular username/device combination, Recorder will store LAST position, but it will not keep a `.REC` file for it. This can be used to verify, say, via your favorite monitoring system, that the Recorder is still operational.
 
 After sending a _pingping_, you can query the REST interface to determine the difference in time. The `contrib/` directory has an example Python program (`ot-ping.py`) which you can adapt as needed for use by Icinga or Nagios.
 
@@ -1112,7 +1112,7 @@ The user/device separator in the array's strings may be a slash (`/`), a dash (`
 
 ## Encryption (*experimental!*)
 
-If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
+If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the Recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
 Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
 
