@@ -20,7 +20,7 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
   * [Prerequisites](#prerequisites)
   * [Building](#building)
 * [Getting started](#getting-started)
-* [`ot-recorder` options and variables](#ot-recorder-options-and-variables)
+* [`ot-recorder` options](#ot-recorder-options)
 * [The HTTP Server](#the-http-server)
   * [Example functionality](#example-functionality)
 	* [Last position of a particular user](#last-position-of-a-particular-user)
@@ -179,7 +179,7 @@ Unless already provided by the package you installed, we recommend you create a 
 * that each instance uses a distinct `--storage`
 * that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
 
-### `ot-recorder` options and variables
+### `ot-recorder` options
 
 This section lists the most important options of the _recorder_ with their long names; check the usage (`recorder -h`) for the short versions.
 
@@ -190,10 +190,6 @@ This section lists the most important options of the _recorder_ with their long 
 `--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. Setting this to 0 disables MQTT even if it is compiled-in.
 
 `--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection.
-
-`$OTR_PASS` is the password for the MQTT connection.
-
-`$OTR_CAFILE` specifies the path to a readable PEM-formatted file containing the CA certificate chain to be used for the MQTT TLS connection. If this environment variable is set, a TLS connection is assumed (and the port number should probably be adjusted accordingly).
 
 `--qos` specifies the MQTT QoS to use; it defaults to 2.
 
@@ -611,7 +607,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
 | `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
 | `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overriden by command-line arguments)
-| `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT
+| `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
 
 
 Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
