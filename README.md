@@ -104,31 +104,29 @@ Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntrac
 If you're on CentOS 7, you can install with:
 
 ```
-curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
+sudo curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
 
-curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntracks.repo
+sudo curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntracks.repo
 
-yum install ot-recorder
+sudo yum install ot-recorder
 ```
 
 Debian 7 "Wheezy" (including Rasbian):
 
 ```
-wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
-apt-key add repo.owntracks.org.gpg.key
-echo "deb  http://repo.owntracks.org/debian wheezy main" > /etc/apt/sources.list.d/owntracks.list
-apt-get update
-apt-get install ot-recorder
+curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
+echo "deb  http://repo.owntracks.org/debian wheezy main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+sudo apt-get update
+sudo apt-get install ot-recorder
 ```
 
 Debian 8 "Jessie":
 
 ```
-wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
-apt-key add repo.owntracks.org.gpg.key
-echo "deb  http://repo.owntracks.org/debian jessie main" > /etc/apt/sources.list.d/owntracks.list
-apt-get update
-apt-get install ot-recorder
+curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
+echo "deb  http://repo.owntracks.org/debian jessie main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+sudo apt-get update
+sudo apt-get install ot-recorder
 ```
 
 #### systemd service
