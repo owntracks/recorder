@@ -19,9 +19,6 @@ WorkingDirectory=/
 # deprecated: use config file
 # 	Environment='OTR_USER=xxx'
 ExecStart=/usr/sbin/ot-recorder
-StandardOutput=null
-StandardError=syslog
-SyslogIdentifier=ot-recorder
 
 [Install]
 WantedBy=multi-user.target
