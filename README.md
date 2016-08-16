@@ -15,6 +15,8 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 * [`recorder`](#recorder)
 * [Installing](#installing)
 * [Building from source](#building-from-source)
+  * [Prerequisites](#prerequisites)
+  * [Building](#building)
 * [Getting started](#getting-started)
 * [`ot-recorder` options and variables](#ot-recorder-options-and-variables)
 * [The HTTP Server](#the-http-server)
@@ -70,10 +72,6 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 	* [`keys`](#keys)
 	* [`friends`](#friends)
 * [Encryption (*experimental!*)](#encryption-experimental)
-* [Prerequisites for building](#prerequisites-for-building)
-  * [Debian](#debian)
-  * [CentOS 7](#centos-7)
-  * [Ubuntu](#ubuntu)
 * [Packages](#packages)
   * [Installing on CentOS 7](#installing-on-centos-7)
   * [Installing on Raspian (Wheezy)](#installing-on-raspian-wheezy)
@@ -100,6 +98,8 @@ You will, however, need to acquire and configure apikeys for the maps. (See belo
 
 ## Building from source
 
+### Prerequisites
+
 You will require:
 
 * [libmosquitto](http://mosquitto.org) unless you disable MQTT during building, but see below for platform instructions
@@ -108,6 +108,33 @@ You will require:
 * [libconfig](http://www.hyperrealm.com/libconfig/)
 * Optionally [Lua](http://lua.org)
 * Optionally [libsodium](https://github.com/jedisct1/libsodium) for secret-key encryption of payloads
+
+You need a current version of libmosquitto (and you probably require the Mosquitto broker as well for OwnTracks). We strongly recommend installing Mosquitto either from [source](http://mosquitto.org/download/) or from a [binary package](http://mosquitto.org/download/), both of which are provided by the [Mosquitto project](http://mosquitto.org/). In particular, older or LTS OS versions profit from this.
+
+On Debian, you can install the needed packages with:
+
+```
+apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
+```
+
+On CentOS 7:
+
+```
+yum groupinstall 'Development Tools'
+yum install libmosquitto-devel libcurl-devel lua-devel libsodium-devel libconfig-devel
+```
+
+(libsodium is in epel-stable)
+
+On Ubuntu:
+
+```
+sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+sudo apt-get update
+sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-dev
+```
+
+### Building
 
 1. Obtain and download the software, via [our Homebrew Tap](https://github.com/owntracks/homebrew-recorder) on Mac OS X, directly as a clone of the repository, or as a [tar ball](https://github.com/owntracks/recorder/releases) which you unpack.
 2. Copy the included `config.mk.in` file to `config.mk` and edit that. You specify the features or tweaks you need. (The file is commented.) Pay particular attention to the installation directory and the value of the _store_ (`STORAGEDEFAULT`): that is where the recorder will store its files. `DOCROOT` is the root of the directory from which the _recorder_'s HTTP server will serve files.
@@ -120,11 +147,6 @@ Ensure the LMDB databases are initialized by running the following command which
 ```
 ot-recorder --initialize
 ```
-
-Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
-
-* that each instance uses a distinct `--storage`
-* that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
 
 ## Getting started
 
@@ -148,8 +170,12 @@ The location message received by the _recorder_ will be written to storage. In p
 2. a directory called `rec/` with several subdirectories and a `.rec` file therein.
 3. a directory called `last/` which contains subdirectories and a `.json` file therein.
 
-
 When the recorder has received a publish or two, visit it with your favorite Web browser by pointing your browser at `http://127.0.0.1:8083` or the address / port configured with the `--http-host` and `--http-port` options respectively.
+
+Unless already provided by the package you installed, we recommend you create a shell script with which you hence-force launch the _recorder_. Note that you can have it subscribe to multiple topics, and you can launch sundry instances of the recorder (e.g. for distinct brokers) as long as you ensure:
+
+* that each instance uses a distinct `--storage`
+* that each instance uses a distinct `--http-port` (or `0` if you don't wish to provide HTTP support for a particular instance)
 
 ### `ot-recorder` options and variables
 
@@ -1091,37 +1117,6 @@ The user/device separator in the array's strings may be a slash (`/`), a dash (`
 If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
 Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
-
-
-
-## Prerequisites for building
-
-You need a current version of the Mosquitto library (and you probably require the Mosquitto broker as well for OwnTracks). We strongly recommend installing Mosquitto either from [source](http://mosquitto.org/download/) or from a [binary package](http://mosquitto.org/download/), both of which are provided by the [Mosquitto project](http://mosquitto.org/). In particular, older or LTS OS versions profit from this.
-
-### Debian
-
-```
-apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
-```
-
-### CentOS 7
-
-```
-yum groupinstall 'Development Tools'
-yum install libmosquitto-devel libcurl-devel lua-devel libsodium-devel libconfig-devel
-```
-
-libsodium is in epel-stable
-
-### Ubuntu
-
-```
-sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
-sudo apt-get update
-sudo apt-get install libmosquitto-dev
-sudo apt-get install libcurl3 libcurl4-openssl-dev
-sudo apt-get install libconfig-dev
-```
 
 [![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
 
