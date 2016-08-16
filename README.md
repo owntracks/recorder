@@ -78,7 +78,7 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
  * Installing on CentOS 7
  * Installing on Raspian (Wheezy)
  * Installing on Debian 8 (Jessie)
-  * systemd service
+ * systemd service
 * Docker
 * Tips and Tricks
  * Gatewaying HTTP to MQTT
@@ -1163,7 +1163,7 @@ apt-get update
 apt-get install ot-recorder
 ```
 
-#### systemd service
+### systemd service
 
 The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
 
