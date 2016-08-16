@@ -10,12 +10,86 @@ There are two main components: the _recorder_ obtains data via MQTT subscribes o
 
 We developed the _recorder_ as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the _recorder_ is best suited to most environments. 
 
+## Table of Contents
+
+* [`recorder`](#recorder)
+* [Installing](#installing)
+* [Building from source](#building-from-source)
+* [Getting started](#getting-started)
+* [`ot-recorder` options and variables](#ot-recorder-options-and-variables)
+* [The HTTP Server](#the-http-server)
+  * [Last position of a particular user](#last-position-of-a-particular-user)
+  * [Display map with points starting at a particular date](#display-map-with-points-starting-at-a-particular-date)
+  * [Display a track (a.k.a. linestring)](#display-a-track-aka-linestring)
+  * [Tabular display](#tabular-display)
+  * [Live map](#live-map)
+* [`ocat`](#ocat)
+* [`ocat` examples](#ocat-examples)
+  * [List users and devices](#list-users-and-devices)
+  * [Show the last position reported by a user](#show-the-last-position-reported-by-a-user)
+  * [What were the last 4 positions reported?](#what-were-the-last-4-positions-reported)
+* [Design decisions](#design-decisions)
+* [Storage](#storage)
+* [Configuration file](#configuration-file)
+* [Reverse Geo](#reverse-geo)
+  * [Precision](#precisioin)
+  * [The geo cache](#the-geo-cache)
+* [Monitoring](#monitoring)
+* [HTTP server](#http-server)
+  * [API](#api)
+    * [`monitor`](#monitor)
+	* [`last`](#last)
+	* [`list`](#list)
+	* [`locations`](#locations)
+	* [`q`](#q)
+	* [`photo`](#photo)
+	* [`kill`](#kill)
+	* [`version`](#version)
+* [Lua hooks](#lua-hooks)
+  * [`otr_init`](#otr_init)
+  * [`otr_exit`](#otr_exit)
+  * [`otr_hook`](#otr_hook)
+  * [`otr_putrec`](#otr_putrec)
+  * [`otr_httpobject`](#otr_httpobject)
+  * [Hooklets](#hooklets)
+* [Environment](#environment)
+* [Reverse proxy](#reverse-proxy)
+  * [nginx](#nginx)
+  * [Apache](#apache)
+* [Views](#views)
+  * [view JSON](#view-json)
+  * [Authentication](#authentication)
+  * [HTTP proxy](#http-proxy)
+* [HTTP mode](#http-mode)
+  * [Friends in HTTP mode](#friends-in-http-mode)
+  * [Authentication](#authentication-1)
+* [Advanced topics](#advanced-topics)
+  * [Browser API keys](#browser-api-keys)
+  * [The LMDB database](#the-lmdb-database)
+    * [`topic2tid`](#topic2tid)
+	* [`keys`](#keys)
+	* [`friends`](#friends)
+* [Encryption (*experimental!*)](#encryption-experimental)
+* [Prerequisites for building](#prerequisites-for-building)
+  * [Debian](#debian)
+  * [CentOS 7](#centos-7)
+  * [Ubuntu](#ubuntu)
+* [Packages](#packages)
+  * [Installing on CentOS 7](#installing-on-centos-7)
+  * [Installing on Raspian (Wheezy)](#installing-on-raspian-wheezy)
+  * [Installing on Debian 8 (Jessie)](#installing-on-debian-8-jessie)
+  * [systemd service](#systemd-service)
+* [Docker](#docker)
+* [Tips and Tricks](#tips-and-tricks)
+  * [Gatewaying HTTP to MQTT](#gatewaying-http-to-mqtt)
+  * [Override reverse-geo precision](#override-reverse-geo-precision)
+
 ## `recorder`
 
 The _recorder_ serves two purposes:
 
 1. It subscribes to an MQTT broker and reads messages published from the OwnTracks apps, storing these in a particular fashion into what we call the _store_ which is basically a bunch of plain files on the file system. Alternatively the Recorder can listen on HTTP for OwnTracks-type JSON messages POSTed to its HTTP server.
-2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a Websocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s Websocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
+2. It provides a Web server which serves static pages, a REST API you use to request data from the _store_, and a WebSocket server. The distribution comes with a few examples of how to access the data through its HTTP interface (REST API). In particular a _table_ of last locations has been made available as well as a _live map_ which updates via the _recorder_'s WebSocket interface when location publishes are received. In addition we provide maps with last points or tracks using the GeoJSON produced by the _recorder_.
 
 
 ## Installing
@@ -193,7 +267,7 @@ The _recorder_'s Web server also provides a tabular display which shows the last
 
 #### Live map
 
-The _recorder_'s built-in Websocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
+The _recorder_'s built-in WebSocket server updates a map as it receives publishes from the OwnTracks devices. Here's an example:
 
 ![Live map](assets/demo-live-map.png)
 
@@ -473,7 +547,7 @@ OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 
 ## HTTP server
 
-The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in Websocket server for the live map.
+The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
 
 The API basically serves the same data as _ocat_ is able to produce.
 
@@ -665,7 +739,7 @@ After running `otr_hook()`, the _recorder_ attempts to invoke a Lua function for
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
 
 
-### Environment
+## Environment
 
 The following environment variables control _ocat_'s behaviour:
 
@@ -673,9 +747,11 @@ The following environment variables control _ocat_'s behaviour:
 * `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
 * `OCAT_DEVICE` can be set to the preferred device name. The `--device` option overrides this environment variable.
 
-### nginx
+## Reverse proxy
 
-Running the _recorder_ protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. This snippet shows how to do it, but you would also add authentication to that.
+Running the _recorder_ protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
+
+### nginx
 
 ```
 server {
@@ -687,7 +763,7 @@ server {
         index  index.html index.htm;
     }
 
-    # Proxy and upgrade Websocket connection
+    # Proxy and upgrade WebSocket connection
     location /otr/ws {
     	rewrite ^/otr/(.*)	/$1 break;
     	proxy_pass		http://127.0.0.1:8083;
@@ -710,12 +786,11 @@ server {
 
 ### Apache
 
-Assuming you want to use Apache as a reverse proxy to the recorder, the following
-may get you started. This will hand URIs which begin with `/otr/` to the _Recorder_.
+This will hand URIs which begin with `/otr/` to the _recorder_.
 
 ```
 
-# Websocket URL endpoint
+# WebSocket URL endpoint
 # a2enmod proxy_wstunnel
 ProxyPass        /otr/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
 ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
@@ -903,7 +978,7 @@ curl --data "${payload}" 'http://127.0.0.1:8085/pub?u=jane&d=3s'
 curl -H 'X-Limit-U: jane' -H 'X-Limit-D: 3s' --data "${payload}" 'http://127.0.0.1:8085/pub'
 ```
 
-The content of the request is used by the Recorder as though it had arrived as an MQTT message; Lua hooks and Websocket pushes are handled accordingly.
+The content of the request is used by the Recorder as though it had arrived as an MQTT message; Lua hooks and WebSocket pushes are handled accordingly.
 
 If the Recorder is compiled without specifying `WITH_MQTT` at build time, support for MQTT is disabled completely.
 
@@ -1031,7 +1106,7 @@ You need a current version of the Mosquitto library (and you probably require th
 apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
 ```
 
-### Centos 7
+### CentOS 7
 
 ```
 yum groupinstall 'Development Tools'
@@ -1058,7 +1133,7 @@ We create packages for releases for a few distributions. Please note that these 
 
 Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
 
-### Installing on Centos 7
+### Installing on CentOS 7
 
 ```
 curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
@@ -1068,7 +1143,7 @@ curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntrac
 yum install ot-recorder
 ```
 
-### Installing on Raspian (wheezy)
+### Installing on Raspian (Wheezy)
 
 ```
 wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
@@ -1088,7 +1163,7 @@ apt-get update
 apt-get install ot-recorder
 ```
 
-#### sytemd service
+### systemd service
 
 The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
 
