@@ -665,7 +665,7 @@ After running `otr_hook()`, the _recorder_ attempts to invoke a Lua function for
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
 
 
-### Environment
+## Environment
 
 The following environment variables control _ocat_'s behaviour:
 
@@ -1031,7 +1031,7 @@ You need a current version of the Mosquitto library (and you probably require th
 apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
 ```
 
-### Centos 7
+### CentOS 7
 
 ```
 yum groupinstall 'Development Tools'
@@ -1058,7 +1058,7 @@ We create packages for releases for a few distributions. Please note that these 
 
 Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
 
-### Installing on Centos 7
+### Installing on CentOS 7
 
 ```
 curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
@@ -1068,7 +1068,7 @@ curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntrac
 yum install ot-recorder
 ```
 
-### Installing on Raspian (wheezy)
+### Installing on Raspian (Wheezy)
 
 ```
 wget http://repo.owntracks.org/repo.owntracks.org.gpg.key
@@ -1088,7 +1088,7 @@ apt-get update
 apt-get install ot-recorder
 ```
 
-#### sytemd service
+#### systemd service
 
 The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
 
