@@ -24,6 +24,10 @@ We developed the Recorder as a one-stop solution to storing location data publis
     * [Building](#building)
 * [Getting started](#getting-started)
 * [`ot-recorder` options](#ot-recorder-options)
+* [Configuration file](#configuration-file)
+* [Reverse proxy](#reverse-proxy)
+  * [nginx](#nginx)
+  * [Apache](#apache)
 * [The HTTP Server](#the-http-server)
   * [Example functionality](#example-functionality)
 	* [Last position of a particular user](#last-position-of-a-particular-user)
@@ -39,7 +43,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
 	* [What were the last 4 positions reported?](#what-were-the-last-4-positions-reported)
 * [Design decisions](#design-decisions)
 * [Storage](#storage)
-* [Configuration file](#configuration-file)
 * [Reverse Geo](#reverse-geo)
   * [Precision](#precisioin)
   * [The geo cache](#the-geo-cache)
@@ -51,9 +54,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
   * [`otr_putrec`](#otr_putrec)
   * [`otr_httpobject`](#otr_httpobject)
   * [Hooklets](#hooklets)
-* [Reverse proxy](#reverse-proxy)
-  * [nginx](#nginx)
-  * [Apache](#apache)
 * [Views](#views)
   * [view JSON](#view-json)
   * [Authentication](#authentication)
@@ -258,6 +258,90 @@ This section lists the most important options of the Recorder with their long na
 `--geokey` sets the Google API key for reverse geo lookups.  If you do more than 2500 (currently) reverse-geo requests per day, you'll need an API key for Google's geocoding service. Specify that here.
 
 `--debug` enables a bit of additional debugging on stderr.
+
+## Configuration file
+
+The Recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`, and `ocat -v` will display the compiled-in default). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) at the end of a variable assignment):
+
+```
+OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
+```
+
+The following configuration settings may be applied (a `Y` in column `$` means an environment variable of the same name overrides a setting in the config file):
+
+| Variable              |  $    | Default       | Usage
+| --------------------- | :---  | :------------ | ---------------
+| `OTR_STORAGEDIR`      |  Y    | compiled in   | Pathname to the storage directory
+| `OTR_HOST`            |  Y    | `localhost`   | MQTT hostname/address to connect to
+| `OTR_PORT`            |  Y    | `1883`        | MQTT port number to connect to
+| `OTR_USER`            |  Y    |               | MQTT username
+| `OTR_PASS`            |  Y    |               | MQTT password
+| `OTR_QOS`             |       | `2`           | MQTT QoS
+| `OTR_CLIENTID`        |       | hostname+pid  | MQTT ClientID (override with -i)
+| `OTR_HTTPHOST`        |       | `localhost`   | Address for the HTTP module to bind to
+| `OTR_HTTPPORT`        |       | `8083`        | Port number of the HTTP module to bind to
+| `OTR_HTTPLOGDIR`      |       |               | Directory in which to store access.log. Override with --http-logdir
+| `OTR_LUASCRIPT`       |       |               | Path to the Lua script
+| `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
+| `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
+| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overriden by command-line arguments)
+| `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
+
+
+Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
+
+## Reverse proxy
+
+Running the Recorder protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
+
+### nginx
+
+```
+server {
+    listen       8080;
+    server_name  192.168.1.130;
+
+    location / {
+        root   html;
+        index  index.html index.htm;
+    }
+
+    # Proxy and upgrade WebSocket connection
+    location /otr/ws {
+    	rewrite ^/otr/(.*)	/$1 break;
+    	proxy_pass		http://127.0.0.1:8083;
+    	proxy_http_version	1.1;
+    	proxy_set_header	Upgrade $http_upgrade;
+    	proxy_set_header	Connection "upgrade";
+    	proxy_set_header	Host $host;
+    	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /otr/ {
+    	proxy_pass		http://127.0.0.1:8083/;
+    	proxy_http_version	1.1;
+    	proxy_set_header	Host $host;
+    	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header	X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Apache
+
+This will hand URIs which begin with `/otr/` to the Recorder.
+
+```
+
+# WebSocket URL endpoint
+# a2enmod proxy_wstunnel
+ProxyPass        /otr/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
+ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
+
+# Static files
+ProxyPass /otr                  http://127.0.0.1:8083/
+ProxyPassReverse /otr           http://127.0.0.1:8083/
+```
 
 ## The HTTP server
 
@@ -526,38 +610,6 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 
 You should definitely **not** modify or touch these files: they remain under the control of the Recorder. You can of course, remove old `.rec` files if they consume too much space.
 
-## Configuration file
-
-The Recorder attempts to read its startup configuration from a configuration file; the path to this is compiled into the Recorder (typically `/etc/defaults/ot-recorder`, and `ocat -v` will display the compiled-in default). The format of this file approximates that of a shell script with variables to be exported (the intention is so that it can be sourced by a shell script). Lines beginning with an octothorp (`#`) are ignored as are blank lines. Configuration settings proper are set as follows (note that some older versions of _libconfig_ require a trailing semicolon (`;`) at the end of a variable assignment):
-
-```
-OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
-```
-
-The following configuration settings may be applied (a `Y` in column `$` means an environment variable of the same name overrides a setting in the config file):
-
-| Variable              |  $    | Default       | Usage
-| --------------------- | :---  | :------------ | ---------------
-| `OTR_STORAGEDIR`      |  Y    | compiled in   | Pathname to the storage directory
-| `OTR_HOST`            |  Y    | `localhost`   | MQTT hostname/address to connect to
-| `OTR_PORT`            |  Y    | `1883`        | MQTT port number to connect to
-| `OTR_USER`            |  Y    |               | MQTT username
-| `OTR_PASS`            |  Y    |               | MQTT password
-| `OTR_QOS`             |       | `2`           | MQTT QoS
-| `OTR_CLIENTID`        |       | hostname+pid  | MQTT ClientID (override with -i)
-| `OTR_HTTPHOST`        |       | `localhost`   | Address for the HTTP module to bind to
-| `OTR_HTTPPORT`        |       | `8083`        | Port number of the HTTP module to bind to
-| `OTR_HTTPLOGDIR`      |       |               | Directory in which to store access.log. Override with --http-logdir
-| `OTR_LUASCRIPT`       |       |               | Path to the Lua script
-| `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
-| `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
-| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overriden by command-line arguments)
-| `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
-
-
-Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
-
-
 ## Reverse Geo
 
 If not disabled with option `--norevgeo`, the Recorder will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., Recorder keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
@@ -713,59 +765,6 @@ An optional function you provide is called `otr_httpobject(u, d, t, data)` where
 After running `otr_hook()`, the Recorder attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
 
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
-
-## Reverse proxy
-
-Running the Recorder protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
-
-### nginx
-
-```
-server {
-    listen       8080;
-    server_name  192.168.1.130;
-
-    location / {
-        root   html;
-        index  index.html index.htm;
-    }
-
-    # Proxy and upgrade WebSocket connection
-    location /otr/ws {
-    	rewrite ^/otr/(.*)	/$1 break;
-    	proxy_pass		http://127.0.0.1:8083;
-    	proxy_http_version	1.1;
-    	proxy_set_header	Upgrade $http_upgrade;
-    	proxy_set_header	Connection "upgrade";
-    	proxy_set_header	Host $host;
-    	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /otr/ {
-    	proxy_pass		http://127.0.0.1:8083/;
-    	proxy_http_version	1.1;
-    	proxy_set_header	Host $host;
-    	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
-	proxy_set_header	X-Real-IP $remote_addr;
-    }
-}
-```
-
-### Apache
-
-This will hand URIs which begin with `/otr/` to the Recorder.
-
-```
-
-# WebSocket URL endpoint
-# a2enmod proxy_wstunnel
-ProxyPass        /otr/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
-ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
-
-# Static files
-ProxyPass /otr                  http://127.0.0.1:8083/
-ProxyPassReverse /otr           http://127.0.0.1:8083/
-```
 
 ## Views
 
