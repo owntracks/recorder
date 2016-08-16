@@ -673,9 +673,11 @@ The following environment variables control _ocat_'s behaviour:
 * `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
 * `OCAT_DEVICE` can be set to the preferred device name. The `--device` option overrides this environment variable.
 
-### nginx
+## Reverse proxy
 
-Running the _recorder_ protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. This snippet shows how to do it, but you would also add authentication to that.
+Running the _recorder_ protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
+
+### nginx
 
 ```
 server {
@@ -710,8 +712,7 @@ server {
 
 ### Apache
 
-Assuming you want to use Apache as a reverse proxy to the recorder, the following
-may get you started. This will hand URIs which begin with `/otr/` to the _Recorder_.
+This will hand URIs which begin with `/otr/` to the _recorder_.
 
 ```
 
