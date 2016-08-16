@@ -18,24 +18,12 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 * [Getting started](#getting-started)
 * [`ot-recorder` options and variables](#ot-recorder-options-and-variables)
 * [The HTTP Server](#the-http-server)
-  * [Last position of a particular user](#last-position-of-a-particular-user)
-  * [Display map with points starting at a particular date](#display-map-with-points-starting-at-a-particular-date)
-  * [Display a track (a.k.a. linestring)](#display-a-track-aka-linestring)
-  * [Tabular display](#tabular-display)
-  * [Live map](#live-map)
-* [`ocat`](#ocat)
-* [`ocat` examples](#ocat-examples)
-  * [List users and devices](#list-users-and-devices)
-  * [Show the last position reported by a user](#show-the-last-position-reported-by-a-user)
-  * [What were the last 4 positions reported?](#what-were-the-last-4-positions-reported)
-* [Design decisions](#design-decisions)
-* [Storage](#storage)
-* [Configuration file](#configuration-file)
-* [Reverse Geo](#reverse-geo)
-  * [Precision](#precisioin)
-  * [The geo cache](#the-geo-cache)
-* [Monitoring](#monitoring)
-* [HTTP server](#http-server)
+  * [Example functionality](#example-functionality)
+	* [Last position of a particular user](#last-position-of-a-particular-user)
+	* [Display map with points starting at a particular date](#display-map-with-points-starting-at-a-particular-date)
+	* [Display a track (a.k.a. linestring)](#display-a-track-aka-linestring)
+	* [Tabular display](#tabular-display)
+	* [Live map](#live-map)
   * [API](#api)
     * [`monitor`](#monitor)
 	* [`last`](#last)
@@ -45,6 +33,19 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
 	* [`photo`](#photo)
 	* [`kill`](#kill)
 	* [`version`](#version)
+* [`ocat`](#ocat)
+  * [Environment](#environment)
+  * [Examples](#examples)
+	* [List users and devices](#list-users-and-devices)
+	* [Show the last position reported by a user](#show-the-last-position-reported-by-a-user)
+	* [What were the last 4 positions reported?](#what-were-the-last-4-positions-reported)
+* [Design decisions](#design-decisions)
+* [Storage](#storage)
+* [Configuration file](#configuration-file)
+* [Reverse Geo](#reverse-geo)
+  * [Precision](#precisioin)
+  * [The geo cache](#the-geo-cache)
+* [Monitoring](#monitoring)
 * [Lua hooks](#lua-hooks)
   * [`otr_init`](#otr_init)
   * [`otr_exit`](#otr_exit)
@@ -52,7 +53,6 @@ We developed the _recorder_ as a one-stop solution to storing location data publ
   * [`otr_putrec`](#otr_putrec)
   * [`otr_httpobject`](#otr_httpobject)
   * [Hooklets](#hooklets)
-* [Environment](#environment)
 * [Reverse proxy](#reverse-proxy)
   * [nginx](#nginx)
   * [Apache](#apache)
@@ -199,7 +199,13 @@ This section lists the most important options of the _recorder_ with their long 
 
 ## The HTTP server
 
-Some examples of what the _recorder_'s built-in HTTP server is capable of, in addition to obtaining OwnTracks app data via HTTP POST to the `/pub` endpoint.
+The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
+
+The API basically serves the same data as _ocat_ is able to produce. The server also accepts OwnTracks app data via HTTP POST to the `/pub` endpoint.
+
+### Example functionality
+
+Some examples of what the server can do:
 
 #### Last position of a particular user
 
@@ -271,6 +277,98 @@ The _recorder_'s built-in WebSocket server updates a map as it receives publishe
 
 ![Live map](assets/demo-live-map.png)
 
+### API
+
+The _recorder_'s API provides most of the functions that are surfaced by _ocat_. GET and POST requests are supported, and if a username and device are needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters. (From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
+respectively.)
+
+The API endpoint is at `/api/0` and is followed by the verb.
+
+#### `monitor`
+
+Returns the content of the `monitor` file as plain text.
+
+```
+curl 'http://127.0.0.1:8083/api/0/monitor'
+1441962082 owntracks/jjolie/phone
+```
+
+#### `last`
+
+Returns a list of last users' positions. (Can be limited by _user_, _device_, and _fields_, a comma-separated list of fields which should be returned instead of the default of all fields.)
+
+```
+curl http://127.0.0.1:8083/api/0/last [-d user=jjolie [-d device=phone]]
+```
+
+```
+curl 'http://127.0.0.1:8083/api/0/last?fields=tst,tid,addr,topic,isotst'
+```
+
+#### `list`
+
+List users. If _user_ is specified, lists that user's devices. If both _user_ and _device_ are specified, lists that device's `.rec` files.
+
+#### `locations`
+
+Here comes the actual data. This lists users' locations and requires both _user_ and _device_. Output format is JSON unless a different _format_ is given (`csv`, `json`, `geojson`, `xml`, and `linestring` are supported).
+
+In order to limit the number of records returned, use _limit_ which causes a reverse search through the `.rec` files; this can be used to find the last N positions.
+
+Date/time ranges may be specified as _from_ and _to_ with dates/times specified as described for _ocat_ above.
+
+```
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d limit=1
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d format=geojson
+curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d from=2014-08-03
+curl 'http://127.0.0.1:8083/api/0/locations?from=2015-09-01&user=jpm&device=5s&fields=tst,tid,addr,isotst'
+```
+
+#### `q`
+
+Query the geo cache for a particular _lat_ and _lon_.
+
+```
+curl 'http://127.0.0.1:8083/api/0/q?lat=48.85833&lon=2.295'
+{
+ "cc": "FR",
+ "addr": "9 Avenue Anatole France, 75007 Paris, France",
+ "tst": 1441984405
+}
+```
+
+The reported timestamp was the time at which this cache entry was made. Note that this interface queries only -- it does not populate the cache.
+
+#### `photo`
+
+Requires GET method and _user_, and will return the `image/png` 40x40px photograph of a user if available in `STORAGEDIR/photos/` or a transparent 40x40png with a black border otherwise.
+
+#### `kill`
+
+If support for this is compiled in, this API endpoint allows a client to remove data from _storage_. (Warning: *any* client can do this, as there is no authentication/authorization in the _recorder_!)
+
+```
+curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
+
+{
+ "path": "s0/rec/ngin/ojo",
+ "status": "OK",
+ "last": "s0/last/ngin/ojo/ngin-ojo.json",
+ "killed": [
+  "2015-09.rec",
+ ]
+}
+```
+The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
+
+#### `version`
+
+Returns a JSON object which contains the Recorder's version string, such as
+
+```json
+{ "version": "0.4.7" }
+```
 
 ## `ocat`
 
@@ -345,7 +443,15 @@ The `--from` and `--to` options allow you to specify a UTC date and/or timestamp
 
 The `--limit` option limits the output to the last specified number of records. This is a bit of an "expensive" operation because we search the `.rec` files backwards (i.e. from end to beginning). When using `--limit` the 6 hours mentioned earlier do not apply.
 
-## `ocat` examples
+### Environment
+
+The following environment variables control _ocat_'s behaviour:
+
+* `OCAT_FORMAT` can be set to the preferred output format. If unset, JSON is used. The `--format` option overrides this setting.
+* `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
+* `OCAT_DEVICE` can be set to the preferred device name. The `--device` option overrides this environment variable.
+
+### Examples
 
 The _recorder_ has been running for a while, and the OwnTracks apps have published data. Let us have a look at some of this data.
 
@@ -545,105 +651,6 @@ After sending a _pingping_, you can query the REST interface to determine the di
 OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 ```
 
-## HTTP server
-
-The _recorder_ has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
-
-The API basically serves the same data as _ocat_ is able to produce.
-
-### API
-
-The _recorder_'s API provides most of the functions that are surfaced by _ocat_. GET and POST requests are supported, and if a username and device are needed, these can be passed in via `X-Limit-User` and `X-Limit-Device` headers alternatively to GET or POST parameters. (From and To dates may also be specified as `X-Limit-From` and `X-Limit-To`
-respectively.)
-
-The API endpoint is at `/api/0` and is followed by the verb.
-
-#### `monitor`
-
-Returns the content of the `monitor` file as plain text.
-
-```
-curl 'http://127.0.0.1:8083/api/0/monitor'
-1441962082 owntracks/jjolie/phone
-```
-
-#### `last`
-
-Returns a list of last users' positions. (Can be limited by _user_, _device_, and _fields_, a comma-separated list of fields which should be returned instead of the default of all fields.)
-
-```
-curl http://127.0.0.1:8083/api/0/last [-d user=jjolie [-d device=phone]]
-```
-
-```
-curl 'http://127.0.0.1:8083/api/0/last?fields=tst,tid,addr,topic,isotst'
-```
-
-#### `list`
-
-List users. If _user_ is specified, lists that user's devices. If both _user_ and _device_ are specified, lists that device's `.rec` files.
-
-#### `locations`
-
-Here comes the actual data. This lists users' locations and requires both _user_ and _device_. Output format is JSON unless a different _format_ is given (`csv`, `json`, `geojson`, `xml`, and `linestring` are supported).
-
-In order to limit the number of records returned, use _limit_ which causes a reverse search through the `.rec` files; this can be used to find the last N positions.
-
-Date/time ranges may be specified as _from_ and _to_ with dates/times specified as described for _ocat_ above.
-
-```
-curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s
-curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d limit=1
-curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d format=geojson
-curl http://127.0.0.1:8083/api/0/locations -d user=jpm -d device=5s -d from=2014-08-03
-curl 'http://127.0.0.1:8083/api/0/locations?from=2015-09-01&user=jpm&device=5s&fields=tst,tid,addr,isotst'
-```
-
-#### `q`
-
-Query the geo cache for a particular _lat_ and _lon_.
-
-```
-curl 'http://127.0.0.1:8083/api/0/q?lat=48.85833&lon=2.295'
-{
- "cc": "FR",
- "addr": "9 Avenue Anatole France, 75007 Paris, France",
- "tst": 1441984405
-}
-```
-
-The reported timestamp was the time at which this cache entry was made. Note that this interface queries only -- it does not populate the cache.
-
-#### `photo`
-
-Requires GET method and _user_, and will return the `image/png` 40x40px photograph of a user if available in `STORAGEDIR/photos/` or a transparent 40x40png with a black border otherwise.
-
-#### `kill`
-
-If support for this is compiled in, this API endpoint allows a client to remove data from _storage_. (Warning: *any* client can do this, as there is no authentication/authorization in the _recorder_!)
-
-```
-curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
-
-{
- "path": "s0/rec/ngin/ojo",
- "status": "OK",
- "last": "s0/last/ngin/ojo/ngin-ojo.json",
- "killed": [
-  "2015-09.rec",
- ]
-}
-```
-The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
-
-#### `version`
-
-Returns a JSON object which contains the Recorder's version string, such as
-
-```json
-{ "version": "0.4.7" }
-```
-
 ## Lua hooks
 
 If _recorder_ is compiled with Lua support, a Lua script you provide is launched at startup. Lua is _a powerful, fast, lightweight, embeddable scripting language_. You can use this to process location publishes in any way you desire: your imagination (and Lua-scripting knowhow) set the limits. Some examples:
@@ -737,15 +744,6 @@ An optional function you provide is called `otr_httpobject(u, d, t, data)` where
 After running `otr_hook()`, the _recorder_ attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
 
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
-
-
-## Environment
-
-The following environment variables control _ocat_'s behaviour:
-
-* `OCAT_FORMAT` can be set to the preferred output format. If unset, JSON is used. The `--format` option overrides this setting.
-* `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
-* `OCAT_DEVICE` can be set to the preferred device name. The `--device` option overrides this environment variable.
 
 ## Reverse proxy
 
