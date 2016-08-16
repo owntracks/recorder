@@ -16,8 +16,6 @@ Description=OwnTracks Recorder
 Type=simple
 User=owntracks
 WorkingDirectory=/
-# deprecated: use config file
-# 	Environment='OTR_USER=xxx'
 ExecStart=/usr/sbin/ot-recorder
 
 [Install]
