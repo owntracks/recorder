@@ -51,7 +51,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
 * [Views](#views)
   * [view JSON](#view-json)
   * [Authentication](#authentication)
-  * [HTTP proxy](#http-proxy)
 * [HTTP mode](#http-mode)
   * [Friends in HTTP mode](#friends-in-http-mode)
   * [Authentication](#authentication-1)
@@ -301,8 +300,8 @@ server {
     }
 
     # Proxy and upgrade WebSocket connection
-    location /otr/ws {
-    	rewrite ^/otr/(.*)	/$1 break;
+    location /owntracks/ws {
+    	rewrite ^/owntracks/(.*)	/$1 break;
     	proxy_pass		http://127.0.0.1:8083;
     	proxy_http_version	1.1;
     	proxy_set_header	Upgrade $http_upgrade;
@@ -311,30 +310,50 @@ server {
     	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    location /otr/ {
+    location /owntracks/ {
     	proxy_pass		http://127.0.0.1:8083/;
     	proxy_http_version	1.1;
     	proxy_set_header	Host $host;
     	proxy_set_header	X-Forwarded-For $proxy_add_x_forwarded_for;
 	proxy_set_header	X-Real-IP $remote_addr;
     }
+
+    # OwnTracks Recorder Views
+    location /owntracks/view/ {
+         proxy_buffering         off;            # Chrome
+         proxy_pass              http://127.0.0.1:8085/view/;
+         proxy_http_version      1.1;
+         proxy_set_header        Host $host;
+         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header        X-Real-IP $remote_addr;
+    }
+    location /owntracks/static/ {
+         proxy_pass              http://127.0.0.1:8085/static/;
+         proxy_http_version      1.1;
+         proxy_set_header        Host $host;
+         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header        X-Real-IP $remote_addr;
+    }
+
 }
 ```
 
 ### Apache
 
-This will hand URIs which begin with `/otr/` to the Recorder.
+This will hand URIs which begin with `/owntracks/` to the Recorder.
 
 ```
 
 # WebSocket URL endpoint
 # a2enmod proxy_wstunnel
-ProxyPass        /otr/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
-ProxyPassReverse /otr/ws        ws://127.0.0.1:8083/ws keepalive=on
+ProxyPass        /owntracks/ws        ws://127.0.0.1:8083/ws keepalive=on retry=60
+ProxyPassReverse /owntracks/ws        ws://127.0.0.1:8083/ws keepalive=on
 
 # Static files
-ProxyPass /otr                  http://127.0.0.1:8083/
-ProxyPassReverse /otr           http://127.0.0.1:8083/
+ProxyPass /owntracks                  http://127.0.0.1:8083/
+ProxyPassReverse /owntracks           http://127.0.0.1:8083/
+
+# TODO: add views
 ```
 
 ## The HTTP server
@@ -698,6 +717,8 @@ Jane's friends can now visit the URL `/view/loire` (note the missing `.json` ext
 
 ![Jane's vacation](assets/view-map.png)
 
+It's recommended that you configure your reverse proxy to show views. You can find an example of this for nginx in the [reverse proxy](#reverse-proxy) section.
+
 ### view JSON
 
 The JSON in the view file (called `view.json` here) contains mandatory and optional elements:
@@ -813,31 +834,6 @@ Re-enter password:
 "auth" : [ "225544f9acf99d18a8880c5ce844f303" ]
 ```
 
-
-### HTTP proxy
-
-We recommend you have the Recorder listening to a loopback interface (e.g. 127.0.0.1) as it does by default, and set up a reverse proxy to its views. Using _nginx_ the following configuration shows how we proxy the `view/` and the required `static/` URIs into the Recorder:
-
-```
-# OwnTracks Recorder Views
-location /owntracks/view/ {
-     proxy_buffering         off;            # Chrome
-     proxy_pass              http://127.0.0.1:8085/view/;
-     proxy_http_version      1.1;
-     proxy_set_header        Host $host;
-     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-     proxy_set_header        X-Real-IP $remote_addr;
-}
-location /owntracks/static/ {
-     proxy_pass              http://127.0.0.1:8085/static/;
-     proxy_http_version      1.1;
-     proxy_set_header        Host $host;
-     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-     proxy_set_header        X-Real-IP $remote_addr;
-}
-```
-
-You would then visit `http://example.com/owntracks/view/loire` to see the `loire` view, assuming `example.com` is your proxy.
 
 ## HTTP mode
 
