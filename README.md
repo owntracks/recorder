@@ -44,7 +44,7 @@ We developed the Recorder as a one-stop solution to storing location data publis
 * [Design decisions](#design-decisions)
 * [Storage](#storage)
 * [Reverse Geo](#reverse-geo)
-  * [Precision](#precisioin)
+  * [Precision](#precision)
   * [The geo cache](#the-geo-cache)
 * [Monitoring](#monitoring)
 * [Lua hooks](#lua-hooks)
@@ -190,7 +190,7 @@ Launch the Recorder:
 $ ./ot-recorder 'owntracks/#'
 ```
 
-(In httpmode, you do not have to specify a topic.)
+(In HTTP mode, you do not have to specify a topic.)
 
 Publish a location from your OwnTracks app and you should see the Recorder receive that on the console. If you haven't disabled Geo-lookups, you'll also see the address from which the publish originated.
 
@@ -276,7 +276,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
 | `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
-| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overriden by command-line arguments)
+| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overridden by command-line arguments)
 | `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
 
 
@@ -464,12 +464,12 @@ The Recorder's built-in WebSocket server updates a map as it receives publishes 
 * raw (the lines contained in the REC file with ISO timestamp)
 * payload (basically just the payload part from RAW)
 
-The `ocat` utility accesses the store directly — it doesn’t use the Recorder’s REST interface. `ocat` has a daunting number of options, some combinations of which make no sense at all.
+The `ocat` utility accesses the store directly — it doesn't use the Recorder’s REST interface. `ocat` has a daunting number of options, some combinations of which make no sense at all.
 
 Some example uses we consider useful:
 
 * `ocat --list`
-   show which uers are in the store.
+   show which users are in the store.
 * `ocat --list --user jjolie`
    show devices for the specified user
 * `ocat --user jjolie --device ipad`
@@ -526,7 +526,7 @@ The `--limit` option limits the output to the last specified number of records. 
 
 ### Environment
 
-The following environment variables control `ocat`'s behaviour:
+The following environment variables control `ocat`'s behavior:
 
 * `OCAT_FORMAT` can be set to the preferred output format. If unset, JSON is used. The `--format` option overrides this setting.
 * `OCAT_USERNAME` can be set to the preferred username. The `--user` option overrides this environment variable.
@@ -617,10 +617,10 @@ We took a number of decisions when designing the Recorder and its utilities:
 * Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast geo-lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the Recorder send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
 * We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below. (In the particular case of the OwnTracks firmware for Greenwich devices which can publish in CSV mode, we convert the CSV into OwnTracks JSON for storage.)
 * File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
-* All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to localtime if need be.
+* All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to local time if need be.
 * The Recorder does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the Recorder to control access to it. Or use views (see below).
 * `ocat`, the `cat` program for the Recorder, uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
-* The Recorder supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".) Publishes via HTTP POST construct a ficticious topic internally using the provided user (`u`) and device (`d`) parameters.
+* The Recorder supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".) Publishes via HTTP POST construct a fictitious topic internally using the provided user (`u`) and device (`d`) parameters.
 
 ## Storage
 
@@ -629,7 +629,7 @@ As mentioned earlier, data is stored in files, and these files are relative to `
 * `cards/`, optional, may contains user cards. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar. User cards are typically stored in a subdirectory called `username`, and therein a JSON file `[username].json`. When reading cards, the Recorder will first attempt to open `[username]/[device]/[username].json` and then `[username]/[username].json`.
 * `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data. You can use this `.otrc` file to restore the OwnTracks configuration on your device by copying to the device and opening it in OwnTracks.
 * `ghash/`, unless disabled, reverse Geo data (using a Google service) is collected into an LMDB database located in this directory. This LMDB database also contains named databases which are used by your optional Lua hooks, as well as a `topic2tid` database which can be used for TID re-mapping.
-* `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`. If a device's `last/` directory contains a file called `extra.json` (i.e. matching the example, this would be `last/jjolie/iphone/extra.json`), the content of this file is merged into the existing JSON for this user and returned by the API. Note, that you cannot overwrite existing values. So, an `extra.json` containing `{ "tst" : 11 }` will do nothing because the `tst` element we obtain from location data overrules, but adding `{ "beverage" : "water" }` will do what you want. If Recorder is built with support for our Greenwich firmware, this directory might contain `batt.json`, `ext.json`, and/or `status.json` each of which hold an array of the last 100 reports for internal battery voltage, external voltage, and status respectively. These values are returned via the API in the LAST object. A file `http.json` which should contain either a single JSON object or an array of JSON objects is returned to clients in HTTPmode.
+* `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`. If a device's `last/` directory contains a file called `extra.json` (i.e. matching the example, this would be `last/jjolie/iphone/extra.json`), the content of this file is merged into the existing JSON for this user and returned by the API. Note, that you cannot overwrite existing values. So, an `extra.json` containing `{ "tst" : 11 }` will do nothing because the `tst` element we obtain from location data overrules, but adding `{ "beverage" : "water" }` will do what you want. If Recorder is built with support for our Greenwich firmware, this directory might contain `batt.json`, `ext.json`, and/or `status.json` each of which hold an array of the last 100 reports for internal battery voltage, external voltage, and status respectively. These values are returned via the API in the LAST object. A file `http.json` which should contain either a single JSON object or an array of JSON objects is returned to clients in HTTP mode.
 * `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
 * `msg/` contains messages received by the Messaging system.
 * `photos/` optional; contains the binary photos from a card.
@@ -655,7 +655,7 @@ We recommend you keep reverse-geo lookups enabled, this data (country code `cc`,
 
 ### Precision
 
-The precision with which reverse-geo lookups are performed is controlled with the `--precison` option to Recorder (and with the `--precision` option to `ocat` when you query for data). The default precision is compiled into the code (from `config.mk`). The higher the number, the more frequently lookups are performed; conversely, the lower the number, the fewer lookups are performed. For example, a precision of 1 means that points within an area of approximately 5000 km^2 would resolve to a single address, whereas a precision of 7 means that points within an area of approximately 150 m^2 resolve to one address. The Recorder obtains a location publish, extracts the latitude and longitude, and then calculates the [geohash](https://en.wikipedia.org/wiki/Geohash) string and truncates it to `precision`. If the calculated geohash string can be found in our local LMDB cache, we consider the point cached; otherwise an actual reverse geo lookup (via HTTP) is performed and the result is cached in LMDB at the key of the geohash.
+The precision with which reverse-geo lookups are performed is controlled with the `--precision` option to Recorder (and with the `--precision` option to `ocat` when you query for data). The default precision is compiled into the code (from `config.mk`). The higher the number, the more frequently lookups are performed; conversely, the lower the number, the fewer lookups are performed. For example, a precision of 1 means that points within an area of approximately 5000 km^2 would resolve to a single address, whereas a precision of 7 means that points within an area of approximately 150 m^2 resolve to one address. The Recorder obtains a location publish, extracts the latitude and longitude, and then calculates the [geohash](https://en.wikipedia.org/wiki/Geohash) string and truncates it to `precision`. If the calculated geohash string can be found in our local LMDB cache, we consider the point cached; otherwise an actual reverse geo lookup (via HTTP) is performed and the result is cached in LMDB at the key of the geohash.
 
 As an example, let's assume Jane's device is at position (lat, lon) `48.879840, 2.323522`, which resolves to a geohash string of length 7 `u09whf7`. We can [visualize this](http://www.movable-type.co.uk/scripts/geohash.html) and show what this looks like. (See also: [visualizing geohash](http://www.bigdatamodeling.org/2013/01/intuitive-geohash.html).)
 
@@ -716,7 +716,7 @@ The view then provides three URLs:
 * `views/viewname?lastpos=1` serves a JSON array of objects with the last position recorded
 * `views/viewname?geodata=1` serves a GeoJSON object containing recorded track data
 
-Suppose Jane wishes to have her acqaintances see where she is whilst on vacation. Jane knows she'll be en-route between 2015-06-29 and 2015-07-15. She creates a file called, say, `loire.json` in the `views/` directory of the Recorder's document root:
+Suppose Jane wishes to have her acquaintances see where she is while on vacation. Jane knows she'll be en-route between 2015-06-29 and 2015-07-15. She creates a file called, say, `loire.json` in the `views/` directory of the Recorder's document root:
 
 ```json
 {
@@ -728,7 +728,7 @@ Suppose Jane wishes to have her acqaintances see where she is whilst on vacation
 }
 ```
 
-Jane's friends can now visit the URL `/view/loire` (note the missing `.json` extension) to be served a map showing Jane's progress along the Loire valley (if that is where she's actually travelling through). Jane can keep that view up even after she returns because the view will not serve data after the 15th of July, in other words, her location at any other time before or after the from/to dates is hidden.
+Jane's friends can now visit the URL `/view/loire` (note the missing `.json` extension) to be served a map showing Jane's progress along the Loire valley (if that is where she's actually traveling through). Jane can keep that view up even after she returns because the view will not serve data after the 15th of July, in other words, her location at any other time before or after the from/to dates is hidden.
 
 ![Jane's vacation](assets/view-map.png)
 
@@ -956,5 +956,5 @@ It actually is possible to gateway location publishes arriving via HTTP into MQT
 
 ### Override reverse-geo precision
 
-If a payload is received with an element called `_geoprec` it contains an overide for the Recorder's configured reverse-geo precision. So, for example, if Recorder is running with precision 7, say, and the received payload contains `"_geoprec" : 2` the 2 will be used for this particular publish. This is not used in the OwnTracks apps, but it can be used with payloads you generate otherwise. If `_geoprec` is negative, new reverse geo lookups will not be performed, but cached entries of `abs(_geoprec)` will be used.
+If a payload is received with an element called `_geoprec` it contains an override for the Recorder's configured reverse-geo precision. So, for example, if Recorder is running with precision 7, say, and the received payload contains `"_geoprec" : 2` the 2 will be used for this particular publish. This is not used in the OwnTracks apps, but it can be used with payloads you generate otherwise. If `_geoprec` is negative, new reverse geo lookups will not be performed, but cached entries of `abs(_geoprec)` will be used.
 
