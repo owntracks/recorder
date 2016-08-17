@@ -53,7 +53,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
   * [Authentication](#authentication)
 * [HTTP mode](#http-mode)
   * [Friends in HTTP mode](#friends-in-http-mode)
-  * [Authentication](#authentication-1)
 * [Advanced topics](#advanced-topics)
   * [Browser API keys](#browser-api-keys)
   * [The LMDB database](#the-lmdb-database)
@@ -285,7 +284,7 @@ Note that options passed to `ot-recorder` override both configuration file setti
 
 ## Reverse proxy
 
-Running the Recorder protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them.
+Running the Recorder protected by an _nginx_ or _Apache_ server is possible and is the only recommended method if you want to server data behind _localhost_. The snippets below show how to do it, but you would also add authentication to them - or at least, to everything but the views. The snippet for HTTP mode shows an example of how to do this.
 
 ### nginx
 
@@ -335,6 +334,22 @@ server {
          proxy_set_header        X-Real-IP $remote_addr;
     }
 
+    # HTTP Mode
+    location /owntracks/pub {
+        auth_basic              "OwnTracks pub";
+        auth_basic_user_file    /usr/local/etc/nginx/owntracks.htpasswd;
+        proxy_pass              http://127.0.0.1:8083/pub;
+        proxy_http_version      1.1;
+        proxy_set_header        Host $host;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header        X-Real-IP $remote_addr;
+
+        # Optionally force Recorder to use username from Basic
+        # authentication user. Whether or not client sets
+        # X-Limit-U and/or uses ?u= parameter, the user will
+        # be set to $remote_user.
+        proxy_set_header        X-Limit-U $remote_user;
+    }
 }
 ```
 
@@ -877,31 +892,6 @@ when user `jane` and device `phone` POST a new location via HTTP, the Recorder w
 ```
 
 Note, that Jane's user/device tuple should also be returned in order to display Jane on the map or list of friends in the apps.
-
-### Authentication
-
-In HTTP mode, the Recorder provides no form of authentication; anybody who "stumbles" over the correct endpoint will be able to post location data to your Recorder! You do not want this to happen.
-
-Install, say, an _nginx_ proxy before it and ensure it's configured for HTTP basic authentication:
-
-```
-# - Recorder PUB -----------------------------------------------------------
-location /owntracks/pub {
-    auth_basic              "OwnTracks pub";
-    auth_basic_user_file    /usr/local/etc/nginx/owntracks.htpasswd;
-    proxy_pass              http://127.0.0.1:8083/pub;
-    proxy_http_version      1.1;
-    proxy_set_header        Host $host;
-    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header        X-Real-IP $remote_addr;
-
-    # Optionally force Recorder to use username from Basic
-    # authentication user. Whether or not client sets
-    # X-Limit-U and/or uses ?u= parameter, the user will
-    # be set to $remote_user.
-    proxy_set_header        X-Limit-U $remote_user;
-}
-```
 
 ## Advanced topics
 
