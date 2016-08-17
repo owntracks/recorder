@@ -12,6 +12,8 @@ There are two main components: the _Recorder_ obtains data via MQTT subscribes o
 
 We developed the Recorder as a one-stop solution to storing location data published by our OwnTracks apps (iOS and Android) and retrieving this data. Our previous offerings (`m2s`, `o2s`/`Pista`) also work of course, but we believe the Recorder is best suited to most environments.
 
+See also [HOOKS.md](https://github.com/owntracks/recorder/blob/master/doc/HOOKS.md), [DESIGN.md](https://github.com/owntracks/recorder/blob/master/doc/DESIGN.md), and [STORE.md](https://github.com/owntracks/recorder/blob/master/doc/STORE.md) for more information on Lua hooks, program design, and storage layout, respectively.
+
 ## Table of Contents
 
 * [`recorder`](#recorder)
