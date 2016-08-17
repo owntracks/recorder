@@ -41,8 +41,6 @@ We developed the Recorder as a one-stop solution to storing location data publis
 	* [List users and devices](#list-users-and-devices)
 	* [Show the last position reported by a user](#show-the-last-position-reported-by-a-user)
 	* [What were the last 4 positions reported?](#what-were-the-last-4-positions-reported)
-* [Design decisions](#design-decisions)
-* [Storage](#storage)
 * [Reverse Geo](#reverse-geo)
   * [Precision](#precision)
   * [The geo cache](#the-geo-cache)
@@ -608,35 +606,6 @@ isotst,vel,addr
 2015-08-24T08:30:00Z,50,"A14, 01683 Nossen, Germany"
 2015-08-24T08:24:59Z,40,"A14, 04741 Roßwein, Germany"
 ```
-
-
-## Design decisions
-
-We took a number of decisions when designing the Recorder and its utilities:
-
-* Flat files. The filesystem is the database. Period. That's were everything is stored. It makes incremental backups, purging old data, manipulation via the Unix toolset easy. (Admittedly, for fast geo-lookups we employ LMDB as a cache, but the final word is in the filesystem.) We considered all manner of databases and decided to keep this as simple and lightweight as possible. You can however have the Recorder send data to a database of your choosing, in addition to the file system it uses, by utilizing our embedded Lua hook.
-* We wanted to store received data in the format it's published in. As this format is JSON, we store this raw payload in the `.rec` files. If we add an attribute to the JSON published by our apps, you have it right there. There's one slight exception: the monthly logs (the `.rec` files) have a leading timestamp and a relative topic; see below. (In the particular case of the OwnTracks firmware for Greenwich devices which can publish in CSV mode, we convert the CSV into OwnTracks JSON for storage.)
-* File names are lower case. A user called `JaNe` with a device named `myPHONe` will be found in a file named `jane/myphone`.
-* All times are UTC (a.k.a. Zulu or GMT). We got sick and tired of converting stuff back and forth. It is up to the consumer of the data to convert to local time if need be.
-* The Recorder does not provide authentication or authorization. Nothing at all. Zilch. Nada. Think about this before making it available on a publicly-accessible IP address. Or rather: don't think about it; just don't do it. You can of course place a HTTP proxy in front of the Recorder to control access to it. Or use views (see below).
-* `ocat`, the `cat` program for the Recorder, uses the same back-end which is used by the API though it accesses it directly (i.e. without resorting to HTTP).
-* The Recorder supports 3-level MQTT topics only, in the typical OwnTracks format: `"owntracks/<username>/<devicename>"`, optionally with a leading slash. (The first part of the topic need not be "owntracks".) Publishes via HTTP POST construct a fictitious topic internally using the provided user (`u`) and device (`d`) parameters.
-
-## Storage
-
-As mentioned earlier, data is stored in files, and these files are relative to `STORAGEDIR` (compiled into the programs or specified as an option). In particular, the following directory structure can exist, whereby directories are created as needed by the Recorder:
-
-* `cards/`, optional, may contains user cards. This card is then stored here and used with, e.g., `ocat --last` to show a user's name and optional avatar. User cards are typically stored in a subdirectory called `username`, and therein a JSON file `[username].json`. When reading cards, the Recorder will first attempt to open `[username]/[device]/[username].json` and then `[username]/[username].json`.
-* `config/`, optional, contains the JSON of a [device configuration](http://owntracks.org/booklet/features/remoteconfig/) (`.otrc`)  which was requested remotely via a [dump command](http://owntracks.org/booklet/tech/json/#_typecmd). Note that this will contain sensitive data. You can use this `.otrc` file to restore the OwnTracks configuration on your device by copying to the device and opening it in OwnTracks.
-* `ghash/`, unless disabled, reverse Geo data (using a Google service) is collected into an LMDB database located in this directory. This LMDB database also contains named databases which are used by your optional Lua hooks, as well as a `topic2tid` database which can be used for TID re-mapping.
-* `last/` contains the last location published by devices. E.g. Jane's last publish from her iPhone would be in `last/jjolie/iphone/jjolie-iphone.json`. The JSON payload contained therein is enhanced with the fields `user`, `device`, `topic`, and `ghash`. If a device's `last/` directory contains a file called `extra.json` (i.e. matching the example, this would be `last/jjolie/iphone/extra.json`), the content of this file is merged into the existing JSON for this user and returned by the API. Note, that you cannot overwrite existing values. So, an `extra.json` containing `{ "tst" : 11 }` will do nothing because the `tst` element we obtain from location data overrules, but adding `{ "beverage" : "water" }` will do what you want. If Recorder is built with support for our Greenwich firmware, this directory might contain `batt.json`, `ext.json`, and/or `status.json` each of which hold an array of the last 100 reports for internal battery voltage, external voltage, and status respectively. These values are returned via the API in the LAST object. A file `http.json` which should contain either a single JSON object or an array of JSON objects is returned to clients in HTTP mode.
-* `monitor` a file which contains a timestamp and the last received topic (see Monitoring below).
-* `msg/` contains messages received by the Messaging system.
-* `photos/` optional; contains the binary photos from a card.
-* `rec/` the Recorder data proper. One subdirectory per user, one subdirectory therein per device. Data files are named `YYYY-MM.rec` (e.g. `2015-08.rec` for the data accumulated during the month of August 2015.
-* `waypoints/` contains a directory per user and device. Therein are individual files named by a timestamp with the JSON payload of published (i.e. shared) waypoints. The file names are timestamps because the `tst` of a waypoint is its key. If a user publishes all waypoints from a device (Publish Waypoints), the payload is stored in this directory as `username-device.otrw`. (Note, that this is the JSON [waypoints import format](http://owntracks.org/booklet/tech/json/#_typewaypoints).) You can use this `.otrw` file to restore the waypoints on your device by copying to the device and opening it in OwnTracks.
-
-You should definitely **not** modify or touch these files: they remain under the control of the Recorder. You can of course, remove old `.rec` files if they consume too much space.
 
 ## Reverse Geo
 
