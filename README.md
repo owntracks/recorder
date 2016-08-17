@@ -685,7 +685,7 @@ The key to this data is the geohash string (here with an example of precision 2)
 
 ## Lua hooks
 
-You can customize Recorder's behavior with Lua hooks. See [HOOKS.md](https://github.com/owntracks/recorder/blob/master/HOOKS.md).
+You can customize Recorder's behavior with Lua hooks. See [HOOKS.md](https://github.com/owntracks/recorder/blob/master/doc/HOOKS.md).
 
 ## Monitoring
 
