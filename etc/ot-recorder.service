@@ -1,14 +1,5 @@
 # /etc/systemd/system/ot-recorder.service
-#	systemctl enable ot-recorder
-#	systemctl start ot-recorder
-#	systemctl --system daemon-reload
-#	journalctl -f
-#
-# Centos
-#       install -m644 /usr/share/doc/ot-recorder/ot-recorder.service \
-#			/usr/lib/systemd/system/ot-recorder.service
-#       systemctl --system daemon-reload
-#
+
 [Unit]
 Description=OwnTracks Recorder
 
@@ -16,14 +7,7 @@ Description=OwnTracks Recorder
 Type=simple
 User=owntracks
 WorkingDirectory=/
-# deprecated: use config file
-# 	Environment='OTR_USER=xxx'
-ExecStart=/usr/sbin/ot-recorder
-Restart=always
-RestartSec=60
-StandardOutput=null
-StandardError=syslog
-SyslogIdentifier=ot-recorder
+ExecStart=/usr/sbin/ot-recorder 'owntracks/+/+'
 
 [Install]
 WantedBy=multi-user.target
