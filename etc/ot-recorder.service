@@ -7,7 +7,7 @@ Description=OwnTracks Recorder
 Type=simple
 User=owntracks
 WorkingDirectory=/
-ExecStart=/usr/sbin/ot-recorder 'owntracks/+/+'
+ExecStart=/usr/sbin/ot-recorder
 
 [Install]
 WantedBy=multi-user.target
