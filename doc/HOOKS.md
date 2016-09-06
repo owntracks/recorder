@@ -91,3 +91,13 @@ An optional function you provide is called `otr_httpobject(u, d, t, data)` where
 After running `otr_hook()`, the Recorder attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
 
 You define a hooklet function only if you're interested in expressly triggering on a particular JSON element.
+
+In addition to compiling with Lua support, if Recorder is built with MQTT support, a function `otr_publish()` is surfaced into your Lua script.
+
+```
+otr_publish(topic, payload, qos, retain)
+```
+
+`topic` and `payload` are mandatory and must be strings. `qos` and `retain` are optional and specify the QoS for publishing as well as a retain flag; `qos` must be specified if `retain` is to be.
+
+This function allows your code to publish via MQTT from the Recorder, using the same MQTT connection (including TLS, authentication, etc) as the Recorder uses.

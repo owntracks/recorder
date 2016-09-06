@@ -1621,6 +1621,8 @@ int main(int argc, char **argv)
 			mosquitto_lib_cleanup();
 			return rc;
 		}
+		/* Explicitly set MQTT connection for Lua's otr_publish() */
+		hooks_setmosq(mosq);
 	} else {
 		olog(LOG_INFO, "Not using MQTT: disabled by port=0");
 	}

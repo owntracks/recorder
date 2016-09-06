@@ -40,6 +40,11 @@ static int otr_log(lua_State *lua);
 static int otr_strftime(lua_State *lua);
 static int otr_putdb(lua_State *lua);
 static int otr_getdb(lua_State *lua);
+#ifdef WITH_MQTT
+# include <mosquitto.h>
+static int otr_publish(lua_State *lua);
+static struct mosquitto *MQTTconn = NULL;
+#endif
 
 static struct gcache *LuaDB = NULL;
 
@@ -102,6 +107,9 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 		lua_pushcfunction(ld->L, otr_getdb);
 		lua_setfield(ld->L, -2, "getdb");
 
+		lua_pushcfunction(ld->L, otr_publish);
+		lua_setfield(ld->L, -2, "publish");
+
 	lua_setglobal(ld->L, "otr");
 
 	LuaDB = ud->luadb;
@@ -129,6 +137,13 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 
 	return (ld);
 }
+
+#ifdef WITH_MQTT
+void hooks_setmosq(struct mosquitto *mosq)
+{
+	MQTTconn = mosq;
+}
+#endif
 
 void hooks_exit(struct luadata *ld, char *reason)
 {
@@ -448,4 +463,34 @@ static int otr_getdb(lua_State *lua)
 	}
 	return (rc);
 }
+
+#ifdef WITH_MQTT
+
+/*
+ * Requires two string arguments: topic, payload
+ * and two numeric args: qos and retain
+ * Will be published via MQTT to the Recorder's
+ * open connection.
+ */
+
+int otr_publish(lua_State *lua)
+{
+	const char *topic, *payload;
+	int qos = 0, retain = 0;
+	int rc = 0;
+
+	if (lua_gettop(lua) >= 1) {
+		topic =  lua_tostring(lua, 1);
+		payload =  lua_tostring(lua, 2);
+		qos =  lua_tonumber(lua, 3);
+		retain =  lua_tonumber(lua, 4);
+
+		rc = mosquitto_publish(MQTTconn, NULL, topic,
+		                                strlen(payload), payload, qos, retain);
+		olog(LOG_DEBUG, "LUA_PUBLISH (%s, %s, %d, %d) == %d\n", topic, payload, qos, retain, rc);
+	}
+	return (rc);
+}
+#endif
+
 #endif /* WITH_LUA */
