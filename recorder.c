@@ -1622,7 +1622,9 @@ int main(int argc, char **argv)
 			return rc;
 		}
 		/* Explicitly set MQTT connection for Lua's otr_publish() */
+#ifdef WITH_LUA
 		hooks_setmosq(mosq);
+#endif
 	} else {
 		olog(LOG_INFO, "Not using MQTT: disabled by port=0");
 	}
