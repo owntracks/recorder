@@ -1189,6 +1189,7 @@ int main(int argc, char **argv)
 	char *progname = *argv;
 
 #if WITH_MQTT
+	udata.mosq		= NULL;
 	udata.qos		= DEFAULT_QOS;
 	udata.pubprefix		= NULL;
 	udata.username		= NULL;
@@ -1528,18 +1529,6 @@ int main(int argc, char **argv)
 # endif
 	ud->httpfriends = gcache_open(err, "friends", TRUE);
 
-#if WITH_LUA
-	/*
-	 * If option for lua-script has not been given, ignore all hooks.
-	 */
-
-	if (ud->luascript) {
-		if ((udata.luadata = hooks_init(ud, ud->luascript)) == NULL) {
-			olog(LOG_ERR, "Stopping because loading of Lua script %s failed", ud->luascript);
-			exit(1);
-		}
-	}
-#endif
 
 #if WITH_ENCRYPT
 	if (sodium_init() == -1) {
@@ -1622,13 +1611,25 @@ int main(int argc, char **argv)
 			return rc;
 		}
 		/* Explicitly set MQTT connection for Lua's otr_publish() */
-#ifdef WITH_LUA
-		hooks_setmosq(mosq);
-#endif
+		ud->mosq = mosq;
 	} else {
 		olog(LOG_INFO, "Not using MQTT: disabled by port=0");
+		ud->mosq = NULL;
 	}
 #endif /* WITH_MQTT */
+
+#if WITH_LUA
+	/*
+	 * If option for lua-script has not been given, ignore all hooks.
+	 */
+
+	if (ud->luascript) {
+		if ((udata.luadata = hooks_init(ud, ud->luascript)) == NULL) {
+			olog(LOG_ERR, "Stopping because loading of Lua script %s failed", ud->luascript);
+			exit(1);
+		}
+	}
+#endif
 
 #ifdef WITH_HTTP
 	if (ud->http_port) {
