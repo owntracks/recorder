@@ -14,6 +14,7 @@ struct udata {
 	JsonNode *topics;		/* Array of topics to subscribe to */
 	int ignoreretained;		/* True if retained messages should be ignored */
 #if WITH_MQTT
+	struct mosquitto *mosq;		/* MQTT connection */
 	char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
 	int qos;			/* Subscribe QoS */
 	char *hostname;			/* MQTT broker */
