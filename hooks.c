@@ -84,6 +84,8 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 	ld->L = luaL_newstate();
 	luaL_openlibs(ld->L);
 
+	MQTTconn = ud->mosq;
+
 	/*
 	 * Set up a global with some values.
 	 */
@@ -107,8 +109,10 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 		lua_pushcfunction(ld->L, otr_getdb);
 		lua_setfield(ld->L, -2, "getdb");
 
+#ifdef WITH_MQTT
 		lua_pushcfunction(ld->L, otr_publish);
 		lua_setfield(ld->L, -2, "publish");
+#endif
 
 	lua_setglobal(ld->L, "otr");
 
@@ -138,12 +142,6 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 	return (ld);
 }
 
-#ifdef WITH_MQTT
-void hooks_setmosq(struct mosquitto *mosq)
-{
-	MQTTconn = mosq;
-}
-#endif
 
 void hooks_exit(struct luadata *ld, char *reason)
 {
@@ -485,9 +483,14 @@ int otr_publish(lua_State *lua)
 		qos =  lua_tonumber(lua, 3);
 		retain =  lua_tonumber(lua, 4);
 
-		rc = mosquitto_publish(MQTTconn, NULL, topic,
+		if (MQTTconn == NULL) {
+			olog(LOG_WARNING, "otr_publish(%s, %s, %d, %d): NULL MQTT connection\n",
+				topic, payload, qos, retain);
+		} else {
+			rc = mosquitto_publish(MQTTconn, NULL, topic,
 		                                strlen(payload), payload, qos, retain);
-		olog(LOG_DEBUG, "LUA_PUBLISH (%s, %s, %d, %d) == %d\n", topic, payload, qos, retain, rc);
+			olog(LOG_DEBUG, "otr_publish(%s, %s, %d, %d) == %d\n", topic, payload, qos, retain, rc);
+		}
 	}
 	return (rc);
 }
