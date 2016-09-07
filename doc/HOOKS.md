@@ -100,4 +100,27 @@ otr_publish(topic, payload, qos, retain)
 
 `topic` and `payload` are mandatory and must be strings. `qos` and `retain` are optional and specify the QoS for publishing as well as a retain flag; `qos` must be specified if `retain` is to be.
 
+```lua
+JSON = (loadfile "JSON.lua")() -- http://regex.info/blog/lua/json
+
+function otr_init()
+end
+
+function otr_exit()
+end
+
+function otr_hook(topic, _type, data)
+	-- republish partial messages to a different topic
+	local d = {}
+	d['_type']      = data['_type']
+	d['lat']        = data['lat']
+	d['lon']        = data['lon']
+	d['fromLua']	= true
+
+	local payload = JSON:encode(d)
+
+	otr.publish("topic/1", payload, 1, 0)
+end
+```
+
 This function allows your code to publish via MQTT from the Recorder, using the same MQTT connection (including TLS, authentication, etc) as the Recorder uses.
