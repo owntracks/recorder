@@ -59,7 +59,7 @@ See also [HOOKS.md](https://github.com/owntracks/recorder/blob/master/doc/HOOKS.
     * [`topic2tid`](#topic2tid)
 	* [`keys`](#keys)
 	* [`friends`](#friends)
-* [Encryption (*experimental!*)](#encryption-experimental)
+* [Encryption](#encryption)
 * [Tips and Tricks](#tips-and-tricks)
   * [Gatewaying HTTP to MQTT](#gatewaying-http-to-mqtt)
   * [Override reverse-geo precision](#override-reverse-geo-precision)
@@ -74,7 +74,7 @@ The Recorder serves two purposes:
 
 ## Installing
 
-We provide a ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image which bundles the Recorder and a Mosquitto broker [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/).
+We provide ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image which bundles the Recorder and a Mosquitto broker [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/).
 
 If those don't work for you, you can build from source.
 
@@ -913,7 +913,7 @@ EOF
 
 The user/device separator in the array's strings may be a slash (`/`), a dash (`-`), or a colon (`:`).
 
-## Encryption (*experimental!*)
+## Encryption
 
 If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the Recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
