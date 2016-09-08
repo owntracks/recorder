@@ -109,6 +109,7 @@ Debian 8 "Jessie":
 curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
 echo "deb  http://repo.owntracks.org/debian jessie main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
 sudo apt-get update
+sudo apt-get install libsodium-dev libsodium13
 sudo apt-get install ot-recorder
 ```
 
