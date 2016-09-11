@@ -9,7 +9,7 @@
 # Storage directory
 #
 
-# OTR_STORAGEDIR = "/var/spool/owntracks/recorder/store"
+# OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
 
 # -----------------------------------------------------
 # Address or hostname of the MQTT broker
