@@ -5,6 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=owntracks
+EnvironmentFile=/etc/default/ot-recorder
 ExecStart=/usr/sbin/ot-recorder
 
 [Install]
