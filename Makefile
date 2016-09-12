@@ -86,6 +86,7 @@ recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gca
 geo.o: geo.h geo.c udata.h
 geohash.o: geohash.h geohash.c udata.h
 base64.o: base64.h base64.c
+	$(CC) $(CFLAGS) -Wno-unused-result -Wno-uninitialized -c base64.c
 gcache.o: gcache.c gcache.h json.h
 misc.o: misc.c misc.h udata.h
 http.o: http.c mongoose.h util.h http.h storage.h version.h hooks.h
