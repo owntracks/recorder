@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <libconfig.h>
 #include "utstring.h"
 #include "ctype.h"
@@ -109,8 +110,10 @@ void get_defaults(char *filename, struct udata *ud)
 	long ival;
 #endif
 
-	if (access(filename, R_OK) == -1)
+	if (access(filename, R_OK) == -1) {
+		olog(LOG_ERR, "Cannot read defaults from %s: %s", filename, strerror(errno));
 		return;
+	}
 
 	config_init(cf = &cfg);
 
