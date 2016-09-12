@@ -1144,6 +1144,7 @@ void usage(char *prog)
 	printf("  --http-port <port>	-A     HTTP port (8083); 0 to disable HTTP\n");
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
 	printf("  --http-logdir <directory>    directory in which to store access.log\n");
+	printf("  --browser-apikey <key>       Google maps browser API key\n");
 #endif
 #ifdef WITH_LUA
 	printf("  --lua-script <script.lua>    path to Lua script. If unset, no Lua hooks\n");
@@ -1212,6 +1213,7 @@ int main(int argc, char **argv)
 	udata.http_host		= strdup("localhost");
 	udata.http_port		= 8083;
 	udata.http_logdir	= NULL;
+	udata.browser_apikey	= NULL;
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
@@ -1302,6 +1304,7 @@ int main(int argc, char **argv)
 			{ "http-port",	required_argument,	0, 	'A'},
 			{ "doc-root",	required_argument,	0, 	2},
 			{ "http-logdir",	required_argument,	0, 	14},
+			{ "browser-apikey",	required_argument,	0, 	15},
 #endif
 			{0, 0, 0, 0}
 		  };
@@ -1386,6 +1389,11 @@ int main(int argc, char **argv)
 			case 14:
 				if (ud->http_logdir) free(ud->http_logdir);
 				ud->http_logdir = strdup(optarg);
+				break;
+			case 15:
+				if (ud->browser_apikey) free(ud->browser_apikey);
+				ud->browser_apikey = strdup(optarg);
+				break;
 #endif
 			case 'D':
 				ud->skipdemo = FALSE;
@@ -1705,6 +1713,7 @@ int main(int argc, char **argv)
 #ifdef WITH_HTTP
 	mg_destroy_server(&udata.mgserver);
 	free(ud->http_host);
+	free(ud->browser_apikey);
 	if (ud->http_logdir) free(ud->http_logdir);
 #endif
 

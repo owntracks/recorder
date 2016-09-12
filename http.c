@@ -827,6 +827,23 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 }
 
 /*
+ * Build and return JavaScript file containing an API key variable in it.
+ */
+
+static int apikey(struct mg_connection *conn)
+{
+	struct udata *ud = (struct udata *)conn->server_param;
+	static UT_string *sbuf = NULL;
+
+	utstring_renew(sbuf);
+	utstring_printf(sbuf, "var apiKey = '%s';",
+		ud->browser_apikey ? ud->browser_apikey : "");
+
+	mg_printf_data(conn, "%s", UB(sbuf));
+	return (MG_TRUE);
+}
+
+/*
  * We're being asked for a view. `viewname' contains the ID for this view.
  * A view is a JSON file in docroot. The JSON describes which file
  * should actually be served as well as a bunch of other things.
@@ -1393,6 +1410,9 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				return view(conn, conn->uri + strlen("/view/"));
 			}
 
+			if (strstr(conn->uri, "/apikey.js") != NULL) {
+				return apikey(conn);
+			}
 
 
 			if (!strcmp(conn->request_method, "POST")) {

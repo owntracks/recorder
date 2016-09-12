@@ -869,11 +869,10 @@ Note, that Jane's user/device tuple should also be returned in order to display 
 
 ### Browser API keys
 
-In order to use the Recorder's maps and views, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then add this key to your docroot directory so that the Recorder can find it. (You should already have a file called `apikey.js.sample` in that directory; copy or rename the file to `apikey.js` and ensure its content is valid JavaScript:
+In order to use the Recorder's maps and views, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then pass this key to your Recorder invocation. 
 
 ```bash
-$ cat .../static/apikey.js
-var apiKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+$ ot-recorder --browser-apikey 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' ...
 ```
 
 
