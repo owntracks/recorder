@@ -84,6 +84,11 @@
 # OTR_PRECISION=7
 
 # -----------------------------------------------------
+# Browser API key for Google maps
+#
+# OTR_BROWSERAPIKEY=""
+
+# -----------------------------------------------------
 # List of topics for MQTT to subscribe to, blank separated in a string
 #
 

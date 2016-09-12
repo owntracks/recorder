@@ -277,6 +277,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
 | `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
+| `OTR_BROWSERAPIKEY`   |       |               | Google maps browser API key
 | `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overridden by command-line arguments)
 | `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
 
@@ -869,7 +870,7 @@ Note, that Jane's user/device tuple should also be returned in order to display 
 
 ### Browser API keys
 
-In order to use the Recorder's maps and views, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then pass this key to your Recorder invocation. 
+In order to use the Recorder's maps and views, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then pass this key to your Recorder by configuring it in the defaults configuration file or by overriding that with the option:
 
 ```bash
 $ ot-recorder --browser-apikey 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' ...

@@ -202,6 +202,10 @@ void get_defaults(char *filename, struct udata *ud)
 		if (ud->http_logdir) free(ud->http_logdir);
 		ud->http_logdir = strdup(value);
 	}
+	if (config_lookup_string(cf, "OTR_BROWSERAPIKEY", &value) != CONFIG_FALSE) {
+		if (ud->browser_apikey) free(ud->browser_apikey);
+		ud->browser_apikey = strdup(value);
+	}
 #endif /* WITH_HTTP */
 
 #if WITH_LUA
