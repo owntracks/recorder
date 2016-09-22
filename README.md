@@ -918,7 +918,7 @@ The user/device separator in the array's strings may be a slash (`/`), a dash (`
 
 If compiled with `WITH_ENCRYPT` support (this is the default in our packages), the Recorder will handle messages from OwnTracks [devices which support payload encryption](http://owntracks.org/booklet/features/encrypt/). Each user / device requires a secret key which is configured on the device and which must be configured on the Recorder host in order for the Recorder to be able to decrypt the payloads.
 
-Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store.
+Upon successful decryption, the Recorder processes the original (device-transmitted) JSON and stores the result in plain (i.e. un-encrypted) form in the store, adding a `"_decrypted":true` tag to the JSON.
 
 ## Tips and Tricks
 
