@@ -529,7 +529,7 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 }
 #endif /* ENCRYPT */
 
-void handle_message(void *userdata, char *topic, char *payload, size_t payloadlen, int retain, int httpmode)
+void handle_message(void *userdata, char *topic, char *payload, size_t payloadlen, int retain, int httpmode, int was_encrypted)
 {
 	JsonNode *json, *j, *geo = NULL;
 	char *tid = NULL, *t = NULL, *p;
@@ -750,7 +750,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 					cleartext = (char *)decrypt(ud, topic, j->string_, UB(username), UB(device));
 					if (cleartext != NULL) {
-						handle_message(ud, topic, cleartext, strlen(cleartext), retain, httpmode);
+						handle_message(ud, topic, cleartext, strlen(cleartext), retain, httpmode, TRUE);
 						free(cleartext);
 					}
 					if (_typestr) free(_typestr);
@@ -918,6 +918,11 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		json_append_member(json, "_http", json_mkbool(1));
 	}
 
+	if (was_encrypted) {
+		json_append_member(json, "_decrypted", json_mkbool(1));
+	}
+
+
 
 	/*
 	 * We have normalized data in the JSON, so we can now write it
@@ -1061,7 +1066,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 {
 	struct udata *ud = (struct udata *)userdata;
 
-	handle_message(ud, m->topic, m->payload, m->payloadlen, m->retain, FALSE);
+	handle_message(ud, m->topic, m->payload, m->payloadlen, m->retain, FALSE, FALSE);
 }
 
 
