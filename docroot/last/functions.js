@@ -135,6 +135,7 @@ function map_marker(loc)
 
 	var userdev = username + "/" + device;
 	userdev = renames[userdev] ? renames[userdev] : userdev;
+	userdev = loc.name ? loc.name : userdev;
 
 	var data = {
 		userdev: userdev,
