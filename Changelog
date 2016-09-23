@@ -1,4 +1,17 @@
 
+2016-09-23 version 0.6.8
+- UPD: name on live map can be overriden by 'name' in JSON payload
+- NEW: decrypted payloads have "_decrypted":true added to .rec file (#151)
+- NEW: new configuration variable OTR_BROWSERAPIKEY (#146)
+- FIX: Maps browser API key file (apikey.js) is now served by the Recorder (#146)
+- FIX: add CFLAGS for base64 to conver Arch (#128)
+- FIX: if defaults file can't be read, log an error (#131)
+- NEW: otr_publish() from Lua reuses Recorder's authenticated, TLS-enabled MQTT connection (#140)
+- UPD: changed systemd unit file (#137)
+- UPD: README restructured (#138)
+- NEW: ocat -v and api/0/version now show git version/commit
+- FIX: Debian package dependency on libsodium13
+
 2016-07-20 version 0.6.7
 - FIX: don't crash on null payloads
 
