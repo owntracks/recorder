@@ -136,30 +136,30 @@ void get_defaults(char *filename, struct udata *ud)
 #if WITH_MQTT
 	if (config_lookup_string(cf, "OTR_HOST", &value) != CONFIG_FALSE) {
 		if (ud->hostname) free(ud->hostname);
-		ud->hostname = strdup(value);
+		ud->hostname = (value) ? strdup(value) : NULL;
 	}
 	if (config_lookup_int(cf, "OTR_PORT", &ival) != CONFIG_FALSE) {
 		ud->port = ival;
 	}
 	if (config_lookup_string(cf, "OTR_USER", &value) != CONFIG_FALSE) {
 		if (ud->username) free(ud->username);
-		ud->username = strdup(value);
+		ud->username = (value) ? strdup(value) : NULL;
 	}
 	if (config_lookup_string(cf, "OTR_PASS", &value) != CONFIG_FALSE) {
 		if (ud->password) free(ud->password);
-		ud->password = strdup(value);
+		ud->password = (value) ? strdup(value) : NULL;
 	}
 	if (config_lookup_int(cf, "OTR_QOS", &ival) != CONFIG_FALSE) {
 		ud->qos = ival;
 	}
 	if (config_lookup_string(cf, "OTR_CLIENTID", &value) != CONFIG_FALSE) {
 		if (ud->clientid) free(ud->clientid);
-		ud->clientid = strdup(value);
+		ud->clientid = (value) ? strdup(value) : NULL;
 	}
 
 	if (config_lookup_string(cf, "OTR_CAFILE", &value) != CONFIG_FALSE) {
 		if (ud->cafile) free(ud->cafile);
-		ud->cafile = strdup(value);
+		ud->cafile = (value) ? strdup(value) : NULL;
 	}
 
 	/* Topics is a blank-separated string of words; split and add to JSON array */
@@ -183,7 +183,7 @@ void get_defaults(char *filename, struct udata *ud)
 
 	if (config_lookup_string(cf, "OTR_GEOKEY", &value) != CONFIG_FALSE) {
 		if (ud->geokey) free(ud->geokey);
-		ud->geokey = strdup(value);
+		ud->geokey = (value) ? strdup(value) : NULL;
 	}
 
 	if (config_lookup_int(cf, "OTR_PRECISION", &ival) != CONFIG_FALSE) {
@@ -193,25 +193,25 @@ void get_defaults(char *filename, struct udata *ud)
 #if WITH_HTTP
 	if (config_lookup_string(cf, "OTR_HTTPHOST", &value) != CONFIG_FALSE) {
 		if (ud->http_host) free(ud->http_host);
-		ud->http_host = strdup(value);
+		ud->http_host = (value) ? strdup(value) : NULL;
 	}
 	if (config_lookup_int(cf, "OTR_HTTPPORT", &ival) != CONFIG_FALSE) {
 		ud->http_port = ival;
 	}
 	if (config_lookup_string(cf, "OTR_HTTPLOGDIR", &value) != CONFIG_FALSE) {
 		if (ud->http_logdir) free(ud->http_logdir);
-		ud->http_logdir = strdup(value);
+		ud->http_logdir = (value) ? strdup(value) : NULL;
 	}
 	if (config_lookup_string(cf, "OTR_BROWSERAPIKEY", &value) != CONFIG_FALSE) {
 		if (ud->browser_apikey) free(ud->browser_apikey);
-		ud->browser_apikey = strdup(value);
+		ud->browser_apikey = (value) ? strdup(value) : NULL;
 	}
 #endif /* WITH_HTTP */
 
 #if WITH_LUA
 	if (config_lookup_string(cf, "OTR_LUASCRIPT", &value) != CONFIG_FALSE) {
 		if (ud->luascript) free(ud->luascript);
-		ud->luascript = strdup(value);
+		ud->luascript = (value) ? strdup(value) : NULL;
 	}
 #endif
 
