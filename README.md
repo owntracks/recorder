@@ -277,7 +277,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
 | `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
-| `OTR_BROWSERAPIKEY`   |       |               | Google maps browser API key
+| `OTR_BROWSERAPIKEY`   |  Y    |               | Google maps browser API key
 | `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overridden by command-line arguments)
 | `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
 

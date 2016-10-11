@@ -1278,6 +1278,11 @@ int main(int argc, char **argv)
 	}
 
 #endif
+	if ((p = getenv("OTR_BROWSERAPIKEY")) != NULL) {
+		if (ud->browser_apikey)
+			free(ud->browser_apikey);
+		ud->browser_apikey = strdup(p);
+	}
 
 	while (1) {
 		static struct option long_options[] = {
