@@ -103,7 +103,7 @@ sudo apt-get update
 sudo apt-get install ot-recorder
 ```
 
-Debian 8 "Jessie":
+Debian 8 "Jessie" (Raspi also):
 
 ```
 curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
