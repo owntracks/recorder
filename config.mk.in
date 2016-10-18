@@ -63,7 +63,7 @@ GHASHPREC = 7
 JSON_INDENT ?= no
 
 # Location of optional default configuration file
-CONFIGFILE = /etc/defaults/ot-recorder
+CONFIGFILE = /etc/default/ot-recorder
 
 # Optionally specify the path to the Mosquitto libs, include here
 MOSQUITTO_INC = -I/usr/include
