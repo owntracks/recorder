@@ -29,7 +29,7 @@ int syslog_facility_code(char *facility);
 const char *yyyymm(time_t t);
 int tac(char *filename, long lines, int (*func)(char *, void *), void *param);
 int cat(char *filename, int (*func)(char *, void *), void *param);
-FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix);
+FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix, time_t epoch);
 int safewrite(char *filename, char *buf);
 void olog(int level, char *fmt, ...);
 void geohash_setprec(int precision);

@@ -468,10 +468,9 @@ static void ut_clean(UT_string *us)
    creating directories on the fly. If device is NULL, omit it.
  */
 
-FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix)
+FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *suffix, time_t epoch)
 {
         static UT_string *path = NULL;
-	time_t now;
 
         utstring_renew(path);
 
@@ -503,8 +502,7 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 #endif
 
 	if (strcmp(prefix, "rec") == 0) {
-		time(&now);
-		utstring_printf(path, "/%s.%s", yyyymm(now), suffix);
+		utstring_printf(path, "/%s.%s", yyyymm(epoch), suffix);
 	} else {
 		utstring_printf(path, "/%s.%s",
 			UB(user), suffix);

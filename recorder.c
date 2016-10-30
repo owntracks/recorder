@@ -111,7 +111,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 
 	/* I know the payload is valid JSON: write card */
 
-	if ((fp = pathn("wb", "cards", username, NULL, "json")) != NULL) {
+	if ((fp = pathn("wb", "cards", username, NULL, "json", time(0))) != NULL) {
 		char *js = json_stringify(json, NULL);
 		if (js) {
 			fprintf(fp, "%s\n", js);
@@ -143,7 +143,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 
 	/* We have a base64-encoded "face". Decode it and store binary image */
 	if ((img = base64_decode(UB(face), &imglen)) != NULL) {
-		if ((fp = pathn("wb", "photos", username, NULL, "png")) != NULL) {
+		if ((fp = pathn("wb", "photos", username, NULL, "png", time(0))) != NULL) {
 			fwrite(img, sizeof(char), imglen, fp);
 			fclose(fp);
 		}
@@ -278,10 +278,11 @@ JsonNode *csv_to_json(char *payload)
 
 /*
  * Store payload in REC file unless our Lua putrec() function says
- * we shouldn't for this particular user/device combo.
+ * we shouldn't for this particular user/device combo. Use the epoch
+ * time to construct path name and "key"
  */
 
-static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
+static void putrec(struct udata *ud, time_t epoch, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
 {
 	FILE *fp;
 	int rc = 0;
@@ -294,13 +295,13 @@ static void putrec(struct udata *ud, time_t now, UT_string *reltopic, UT_string 
 #endif
 
 	if (rc == 0) {
-		if ((fp = pathn("a", "rec", username, device, "rec")) == NULL) {
+		if ((fp = pathn("a", "rec", username, device, "rec", epoch)) == NULL) {
 			olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
 				UB(username), UB(device));
 			return;
 		}
 
-		fprintf(fp, RECFORMAT, isotime(now),
+		fprintf(fp, RECFORMAT, isotime(epoch),
 			UB(reltopic), string);
 		fclose(fp);
 	}
@@ -541,7 +542,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
 	static UT_string *reltopic = NULL, *filename = NULL;
 	char *jsonstring, *_typestr = NULL;
-	time_t now;
+	time_t now, epoch;
 	int pingping = FALSE, skipslash = 0, geoprec = geohash_prec();
 	int r_ok = TRUE;			/* True if recording enabled for a publish */
 	payload_type _type;
@@ -657,7 +658,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	if ((json = json_decode(payload)) == NULL) {
 		if ((json = csv_to_json(payload)) == NULL) {
-			/* It's not JSON or it's not a location CSV; store it */
+			/* It's not JSON or it's not a location CSV; store it using
+			 * now as time -- we have no other */
 			putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
 			return;
 		}
@@ -931,7 +933,10 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	if (!pingping) {
 		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-			putrec(ud, now, reltopic, username, device, jsonstring);
+			double d_epoch = number(json, "tst");
+
+			epoch = (isnan(d_epoch)) ? now : d_epoch;
+			putrec(ud, epoch, reltopic, username, device, jsonstring);
 			free(jsonstring);
 		}
 	}
