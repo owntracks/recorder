@@ -1,4 +1,10 @@
 
+2016-11-25 version 0.6.9
+- UPD: REC files now use tst from JSON payload as timestamp (#133)
+- FIX: default file is /etc/default/ot-recorder
+- FIX: add support for $OTR_BROWSERAPIKEY from environment (#156)
+- UPD: packages now have API kill in them (#153)
+
 2016-09-23 version 0.6.8
 - UPD: name on live map can be overriden by 'name' in JSON payload
 - NEW: decrypted payloads have "_decrypted":true added to .rec file (#151)
