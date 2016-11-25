@@ -1166,6 +1166,7 @@ void usage(char *prog)
 	printf("\n");
 	printf("Options override these environment variables:\n");
 	printf("  $OTR_STORAGEDIR\n");
+	printf("  $OTR_BROWSERAPIKEY\n");
 #ifdef WITH_MQTT
 	printf("  $OTR_HOST		MQTT hostname\n");
 	printf("  $OTR_PORT		MQTT port\n");
