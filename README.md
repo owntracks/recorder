@@ -322,14 +322,14 @@ server {
     # OwnTracks Recorder Views
     location /owntracks/view/ {
          proxy_buffering         off;            # Chrome
-         proxy_pass              http://127.0.0.1:8085/view/;
+         proxy_pass              http://127.0.0.1:8083/view/;
          proxy_http_version      1.1;
          proxy_set_header        Host $host;
          proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
          proxy_set_header        X-Real-IP $remote_addr;
     }
     location /owntracks/static/ {
-         proxy_pass              http://127.0.0.1:8085/static/;
+         proxy_pass              http://127.0.0.1:8083/static/;
          proxy_http_version      1.1;
          proxy_set_header        Host $host;
          proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
