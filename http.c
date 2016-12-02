@@ -839,6 +839,7 @@ static int apikey(struct mg_connection *conn)
 	utstring_printf(sbuf, "var apiKey = '%s';",
 		ud->browser_apikey ? ud->browser_apikey : "");
 
+	mg_send_header(conn, "Content-type", "application/javascript");
 	mg_printf_data(conn, "%s", UB(sbuf));
 	return (MG_TRUE);
 }
