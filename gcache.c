@@ -21,6 +21,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "udata.h"
+#include "fences.h"
 #include "gcache.h"
 #include "util.h"
 
@@ -344,4 +346,95 @@ void gcache_load(char *path, char *lmdbname)
 	}
 
 	gcache_close(gc);
+}
+
+/*
+ * Enumerate (list) keys in lmdb `gc` and invoke func() on each. If func() returns true
+ * update the data.
+ */
+
+bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, int (*func)(char *key, wpoint *wp, double lat, double lon), double lat, double lon, struct udata *ud)
+{
+	MDB_val key, data;
+	MDB_txn *txn;
+	MDB_cursor *cursor;
+	int rc, op;
+	static UT_string *ks; 	/* key string */
+	wpoint wp;
+
+	if (gc == NULL)
+		return (NULL);
+
+	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
+	if (rc) {
+		olog(LOG_ERR, "gcache_enum: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
+		return (NULL);
+	}
+
+	key.mv_data = key_part;
+	key.mv_size = strlen(key_part);
+
+	rc = mdb_cursor_open(txn, gc->dbi, &cursor);
+
+	op = MDB_SET_RANGE;
+	do {
+		JsonNode *json, *jlat, *jlon, *jrad, *jio, *jdesc;
+
+		rc = mdb_cursor_get(cursor, &key, &data, op);
+		if (rc != 0)
+			break;
+
+		/* FIXME: strlen??? */
+		if (memcmp(key_part, key.mv_data, strlen(key_part)) != 0) {
+			break;
+		}
+
+		/* -1 because we 0-terminate strings */
+		//printf("ENUM---- %*.*s %*.*s\n",
+		//	(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data,
+		//	(int)data.mv_size - 1, (int)data.mv_size - 1, (char *)data.mv_data);
+
+		utstring_renew(ks);
+		utstring_printf(ks, "%*.*s",
+			(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data);
+
+		if ((json = json_decode(data.mv_data)) == NULL)
+			continue;
+
+		if ((jlat = json_find_member(json, "lat")) == NULL) continue;
+		if ((jlon = json_find_member(json, "lon")) == NULL) continue;
+		if ((jrad = json_find_member(json, "rad")) == NULL) continue;
+		if ((jdesc = json_find_member(json, "desc")) == NULL) continue;
+		if ((jio = json_find_member(json, "io")) == NULL) {
+			json_append_member(json, "io", json_mkbool(false));
+			jio = json_find_member(json, "io");
+		}
+
+		wp.lat	  = jlat->number_;
+		wp.lon	  = jlon->number_;
+		wp.rad	  = (long)jrad->number_;
+		wp.io	  = jio->bool_;
+		wp.desc	  = strdup(jdesc->string_);
+
+		wp.ud	  = ud;
+		wp.user   = user;
+		wp.device = device;
+
+		if (func && func(UB(ks), &wp, lat, lon) == true) {
+			json_remove_from_parent(jio);
+			json_append_member(json, "io", json_mkbool(wp.io));
+			if (gcache_json_put(gc, UB(ks), json) != 0) {
+				olog(LOG_ERR, "gcache_enum: cannot rewrite key %s", UB(ks));
+			}
+		}
+		free(wp.desc);
+		json_delete(json);
+
+		op = MDB_NEXT;
+	} while (rc == 0);
+
+	mdb_cursor_close(cursor);
+	mdb_txn_commit(txn);
+
+	return (true);
 }

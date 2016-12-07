@@ -27,6 +27,8 @@
 #include "json.h"
 #include "util.h"
 #include "misc.h"
+#include "fences.h"
+#include "gcache.h"
 #include "storage.h"
 #include "geohash.h"
 #include "udata.h"

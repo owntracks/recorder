@@ -32,8 +32,9 @@
 #include "utstring.h"
 #include "storage.h"
 #include "geohash.h"
+#include "fences.h"
+#include "gcache.h"
 #include "util.h"
-#include "udata.h"
 #include "listsort.h"
 
 char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
@@ -405,8 +406,8 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi, int h
 
 static void ls(char *path, JsonNode *obj)
 {
-        DIR *dirp;
-        struct dirent *dp;
+	DIR *dirp;
+	struct dirent *dp;
 	JsonNode *jarr = json_mkarray();
 
 	if (obj == NULL || obj->tag != JSON_OBJECT) {
@@ -414,20 +415,20 @@ static void ls(char *path, JsonNode *obj)
 		return;
 	}
 
-        if ((dirp = opendir(path)) == NULL) {
+	if ((dirp = opendir(path)) == NULL) {
 		json_append_member(obj, "error", json_mkstring("Cannot open requested directory"));
 		json_delete(jarr);
-                return;
-        }
+		return;
+	}
 
-        while ((dp = readdir(dirp)) != NULL) {
-                if ((*dp->d_name != '.') && (dp->d_type == DT_DIR)) {
+	while ((dp = readdir(dirp)) != NULL) {
+		if ((*dp->d_name != '.') && (dp->d_type == DT_DIR)) {
 			json_append_element(jarr, json_mkstring(dp->d_name));
-                }
-        }
+		}
+	}
 
 	json_append_member(obj, "results", jarr);
-        closedir(dirp);
+	closedir(dirp);
 }
 
 /*
@@ -503,7 +504,7 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 
 	if ((n = scandir(pathpat, &namelist, filter_filename, cmp)) < 0) {
 		json_append_member(obj, "error", json_mkstring("Cannot lsscan requested directory"));
-                return;
+		return;
 	}
 
 	/* If our obj contains the "results" array, use that
@@ -926,7 +927,7 @@ static void append_to_feature_array(JsonNode *features, double lat, double lon, 
 JsonNode *geo_json(JsonNode *location_array)
 {
 	JsonNode *one, *j;
-        JsonNode *feature_array, *fcollection;
+	JsonNode *feature_array, *fcollection;
 
 	if ((fcollection = json_mkobject()) == NULL)
 		return (NULL);
@@ -1031,7 +1032,7 @@ JsonNode *geo_linestring(JsonNode *location_array)
 char *gpx_string(JsonNode *location_array)
 {
 	JsonNode *one;
-        static UT_string *xml = NULL;
+	static UT_string *xml = NULL;
 
 	if (location_array->tag != JSON_ARRAY)
 		return (NULL);
@@ -1043,7 +1044,7 @@ char *gpx_string(JsonNode *location_array)
  <trk>\n\
   <trkseg>\n");
 
-      // <trkpt lat="xx.xxx" lon="yy.yyy"> <!-- Attribute des Trackpunkts --> </trkpt>
+	// <trkpt lat="xx.xxx" lon="yy.yyy"> <!-- Attribute des Trackpunkts --> </trkpt>
 
 	json_foreach(one, location_array) {
 		JsonNode *jlat, *jlon, *jisotst, *j;
@@ -1108,7 +1109,7 @@ JsonNode *kill_datastore(char *user, char *device)
 		json_append_member(obj, "status", json_mkstring("ERROR"));
 		json_append_member(obj, "error", json_mkstring(strerror(errno)));
 		json_append_member(obj, "reason", json_mkstring("cannot scandir"));
-                return (obj);
+		return (obj);
 	}
 
 	for (i = 0; i < n; i++) {
@@ -1515,4 +1516,143 @@ void extra_http_json(JsonNode *array, char *user, char *device)
 		json_delete(node);
 	}
 	free(js_string);
+}
+
+/*
+ * Process an array of waypoints as read from an .otrw file. If
+ * rad is positive and lat/lon exist, store in LMDB database for
+ * this user.
+ */
+
+static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, char *device)
+{
+	JsonNode *n;
+	static UT_string *key;
+	long len;
+	char buf[20];
+
+	json_foreach(n, wplist) {
+		JsonNode *rad, *lat, *lon, *desc, *tst, *type;
+
+		if ((type = json_find_member(n, "_type")) == NULL)
+			return (false);
+
+		if (strcmp(type->string_, "waypoint") != 0)
+			return (false);
+
+		json_remove_from_parent(type);
+
+		if ((rad = json_find_member(n, "rad")) == NULL)
+			continue;
+		if (rad->number_ <= 0)
+			continue;
+
+		lat = json_find_member(n, "lat");
+		lon = json_find_member(n, "lon");
+		tst = json_find_member(n, "tst");
+		desc = json_find_member(n, "desc");
+
+		/* It turns out tst was a key, but it breaks on iOS when dumped
+		 * waypoints are re-imported. we'll use the geohash of lat/lon here */
+
+		json_remove_from_parent(tst);
+
+		utstring_renew(key);
+		utstring_printf(key, "%s-%s-%s", user, device,
+			geohash_encode(lat->number_, lon->number_, 10));
+
+		printf("--> %s: %s\t(%lf, %lf) (%ld)\n", UB(key), desc->string_, lat->number_, lon->number_, (long)rad->number_);
+
+		/*
+		 * Just before initially storing in LMDB, we need to determine whether
+		 * device is currently within or without a waypoint... FIXME
+		 */
+
+		/* Note: we don't need buf -- just checking if key exists */
+		len = gcache_get(ud->wpdb, UB(key), buf, sizeof(buf));
+		if (len == -1) {
+			gcache_json_put(ud->wpdb, UB(key), n);
+		}
+	}
+
+	return (true);
+}
+
+void load_otrw_from_string(struct udata *ud, char *username, char *device, char *js_string)
+{
+	JsonNode *node, *wplist;
+
+	if ((node = json_decode(js_string)) == NULL) {
+		olog(LOG_ERR, "load_otrw_from_string: can't decode JSON from string for %s-%s\n", username, device);
+		return;
+	}
+
+	if ((wplist = json_find_member(node, "waypoints"))) {
+		load_otrw_waypoints(ud, wplist, username, device);
+	}
+
+	json_delete(node);
+}
+
+static int load_otrw_file(struct udata *ud, char *filename)
+{
+	char *js_string, *bp, *parts[20], *user, *device;
+	JsonNode *node, *wplist;
+
+	if ((js_string = slurp_file(filename, TRUE)) == NULL) {
+		return (false);
+	}
+
+	if ((node = json_decode(js_string)) == NULL) {
+		olog(LOG_ERR, "load_otrw_file: can't decode JSON from file s\n", filename);
+		free(js_string);
+		return (false);
+	}
+
+	/*
+	 * Find username / device name from filename component of
+	 * path (i.e. "/user-device.otrw").
+	 */
+
+	if ((bp = strrchr(filename, '/')) == NULL)
+		return (false);
+	if (splitter(bp+1, "-.", parts) != 3)
+		return (false);
+
+	user = parts[0];
+	device = parts[1];
+
+	if ((wplist = json_find_member(node, "waypoints"))) {
+		load_otrw_waypoints(ud, wplist, user, device);
+	}
+
+	splitterfree(parts);
+	free(js_string);
+	json_delete(node);
+
+	return (true);
+}
+
+bool load_fences(struct udata *ud)
+{
+	static UT_string *path = NULL;
+	int n, rc;
+	glob_t results;
+
+	/* Get list of waypoint files */
+	utstring_renew(path);
+	utstring_printf(path, "%s/waypoints/*/*/*.otrw", STORAGEDIR);
+	rc = glob(UB(path), 0, 0, &results);
+	if (rc == 0) {
+
+		for (n = 0; n < results.gl_pathc; n++) {
+			char *f = results.gl_pathv[n];
+
+			// puts(f);
+			load_otrw_file(ud, f);
+		}
+	}
+	globfree(&results);
+
+	return (true);
 }

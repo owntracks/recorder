@@ -2,8 +2,8 @@
 # define _STORAGE_H_INCL_
 
 #include <time.h>
-#include "gcache.h"
 #include "json.h"
+#include "udata.h"
 
 #define DEFAULT_HISTORY_HOURS 6
 
@@ -55,5 +55,7 @@ void csv_output(JsonNode *json, output_type otype, JsonNode *fields, void (*func
 char *storage_userphoto(char *username);
 void append_card_to_object(JsonNode *obj, char *user, char *device);
 void extra_http_json(JsonNode *array, char *user, char *device);
+void load_otrw_from_string(struct udata *ud, char *username, char *device, char *js);
+bool load_fences(struct udata *ud);
 
 #endif

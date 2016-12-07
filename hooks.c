@@ -32,9 +32,11 @@
 # include <lua.h>
 # include <lualib.h>
 # include <lauxlib.h>
+# include "fences.h"
 # include "gcache.h"
 # include "json.h"
 # include "version.h"
+# include "fences.h"
 
 static int otr_log(lua_State *lua);
 static int otr_strftime(lua_State *lua);
@@ -376,6 +378,35 @@ void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
 	do_hook("otr_hook", ud, topic, fullo);
 	hooks_hooklet(ud, topic, fullo);
 }
+
+/*
+ * This hook is invoked through fences.c when we determine that a movement
+ * into or out of a geofence has caused a transition.
+ */
+
+void hooks_transition(struct udata *ud, char *user, char *device, int event, char *desc, double wplat, double wplon, double lat, double lon)
+{
+	JsonNode *json = json_mkobject();
+	char *topic = "transition";
+
+	json_append_member(json, "_type", json_mkstring("event"));
+	json_append_member(json, "user", json_mkstring(user));
+	json_append_member(json, "device", json_mkstring(device));
+	json_append_member(json, "desc", json_mkstring(desc));
+	json_append_member(json, "event",
+		event == ENTER ? json_mkstring("enter") : json_mkstring("leave"));
+	json_append_member(json, "wplat", json_mknumber(wplat));
+	json_append_member(json, "wplon", json_mknumber(wplon));
+	json_append_member(json, "lat", json_mknumber(lat));
+	json_append_member(json, "lon", json_mknumber(lon));
+
+	olog(LOG_DEBUG, "**** Lua hook for %s %s\n",
+		event == ENTER ? "ENTER" : "LEAVE", desc);
+
+	do_hook("transition", ud, topic, json);
+	json_delete(json);
+}
+
 
 /*
  * --- Here come the functions we provide to Lua scripts.

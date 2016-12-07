@@ -7,7 +7,7 @@
 # include <stdarg.h>
 # include "mongoose.h"
 #endif
-#include "gcache.h"
+// #include "gcache.h"
 
 
 struct udata {
@@ -49,6 +49,7 @@ struct udata {
 	char *geokey;			/* Google reverse-geo API key */
 	int debug;			/* enable for debugging */
 	struct gcache *httpfriends;	/* lmdb named database 'friends' */
+	struct gcache *wpdb;		/* lmdb named database 'wp' (waypoints) */
 };
 
 #endif

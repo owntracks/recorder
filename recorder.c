@@ -34,6 +34,7 @@
 #include <sys/utsname.h>
 #include <regex.h>
 #include "recorder.h"
+#include "udata.h"
 #include "utstring.h"
 #include "geo.h"
 #include "geohash.h"
@@ -41,6 +42,7 @@
 #include "misc.h"
 #include "util.h"
 #include "storage.h"
+#include "fences.h"
 #include "gcache.h"
 #ifdef WITH_HTTP
 # include "http.h"
@@ -388,6 +390,8 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 	}
 
 	xx_dump(ud, username, device, (js) ? js : payloadstring, "waypoints", "otrw");
+	load_otrw_from_string(ud, UB(username), UB(device), (js) ? js : payloadstring);
+
 	if (js)
 		free(js);
 }
@@ -837,14 +841,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		}
 	}
 
-#if 0
-	/* Haversine */
-
-	{
-		double d = haversine_dist(lat, lon, 52.03431, 8.47654);
-		printf("*** d=%lf meters\n", d);
-	}
-#endif
 
 	/*
 	 * If the topic we are handling is in topic2tid, replace the TID
@@ -1055,7 +1051,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			}
 		}
 	}
-	
+
+	check_fences(ud, UB(username), UB(device), lat, lon, json);
 
     cleanup:
 	if (geo)	json_delete(geo);
@@ -1481,6 +1478,12 @@ int main(int argc, char **argv)
 			exit(2);
 		}
 		gcache_close(gt);
+
+		if ((gt = gcache_open(path, "wp", FALSE)) == NULL) {
+			fprintf(stderr, "Cannot lmdb-open `wp'\n");
+			exit(2);
+		}
+		gcache_close(gt);
 		exit(0);
 	}
 
@@ -1552,7 +1555,9 @@ int main(int argc, char **argv)
 	ud->keydb = gcache_open(err, "keys", TRUE);
 # endif
 	ud->httpfriends = gcache_open(err, "friends", TRUE);
+	ud->wpdb = gcache_open(err, "wp", FALSE);
 
+	load_fences(ud);
 
 #if WITH_ENCRYPT
 	if (sodium_init() == -1) {
@@ -1716,6 +1721,7 @@ int main(int argc, char **argv)
 	gcache_close(ud->gc);
 	gcache_close(ud->t2t);
 	gcache_close(ud->httpfriends);
+	gcache_close(ud->wpdb);
 #ifdef WITH_LUA
 	if (ud->luadb)
 		gcache_close(ud->luadb);

@@ -13,6 +13,7 @@ OTR_OBJS = json.o \
 	   misc.o \
 	   util.o \
 	   storage.o \
+	   fences.o \
 	   listsort.o
 OTR_EXTRA_OBJS =
 
@@ -82,7 +83,7 @@ ocat: ocat.o $(OTR_OBJS)
 
 $(OTR_OBJS): config.mk Makefile
 
-recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h base64.h recorder.h version.h
+recorder.o: recorder.c storage.h util.h Makefile geo.h udata.h json.h http.h gcache.h config.mk hooks.h base64.h recorder.h version.h fences.h
 geo.o: geo.h geo.c udata.h
 geohash.o: geohash.h geohash.c udata.h
 base64.o: base64.h base64.c
@@ -96,6 +97,7 @@ ocat.o: ocat.c storage.h util.h version.h config.mk Makefile
 storage.o: storage.c storage.h util.h gcache.h listsort.h
 hooks.o: hooks.c udata.h hooks.h util.h version.h gcache.h
 listsort.o: listsort.c listsort.h
+fences.o: fences.c fences.h util.h json.h udata.h gcache.h hooks.h
 
 
 clean:
