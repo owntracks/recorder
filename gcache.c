@@ -379,13 +379,14 @@ bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, in
 	op = MDB_SET_RANGE;
 	do {
 		JsonNode *json, *jlat, *jlon, *jrad, *jio, *jdesc;
+		size_t len;
 
 		rc = mdb_cursor_get(cursor, &key, &data, op);
 		if (rc != 0)
 			break;
 
-		/* FIXME: strlen??? */
-		if (memcmp(key_part, key.mv_data, strlen(key_part)) != 0) {
+		len = (strlen(key_part) < key.mv_size) ? strlen(key_part) : key.mv_size;
+		if (memcmp(key_part, key.mv_data, len) != 0) {
 			break;
 		}
 
