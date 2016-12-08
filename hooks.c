@@ -382,29 +382,28 @@ void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
 /*
  * This hook is invoked through fences.c when we determine that a movement
  * into or out of a geofence has caused a transition.
+ * json is the original JSON we received enhanced with stuff from recorder.
  */
 
-void hooks_transition(struct udata *ud, char *user, char *device, int event, char *desc, double wplat, double wplon, double lat, double lon)
+void hooks_transition(struct udata *ud, char *user, char *device, int event, char *desc, double wplat, double wplon, double lat, double lon, char *topic, JsonNode *json)
 {
-	JsonNode *json = json_mkobject();
-	char *topic = "transition";
+	JsonNode *j;
 
-	json_append_member(json, "_type", json_mkstring("event"));
-	json_append_member(json, "user", json_mkstring(user));
-	json_append_member(json, "device", json_mkstring(device));
-	json_append_member(json, "desc", json_mkstring(desc));
+	if ((j = json_find_member(json, "_type")) != NULL) {
+		json_remove_from_parent(j);
+	}
+	json_append_member(json, "_type", json_mkstring("transition"));
 	json_append_member(json, "event",
 		event == ENTER ? json_mkstring("enter") : json_mkstring("leave"));
+	json_append_member(json, "desc", json_mkstring(desc));
 	json_append_member(json, "wplat", json_mknumber(wplat));
 	json_append_member(json, "wplon", json_mknumber(wplon));
-	json_append_member(json, "lat", json_mknumber(lat));
-	json_append_member(json, "lon", json_mknumber(lon));
 
 	olog(LOG_DEBUG, "**** Lua hook for %s %s\n",
 		event == ENTER ? "ENTER" : "LEAVE", desc);
 
-	do_hook("transition", ud, topic, json);
-	json_delete(json);
+
+	do_hook("otr_transition", ud, topic, json);
 }
 
 

@@ -86,7 +86,7 @@ non-zero value, the Recorder will *not* write the REC file for this publish.
 
 An optional function you provide is called `otr_httpobject(u, d, t, data)` where `u` is the username used by the client (`?u=`), `d` is the device name (`&d=` in the URI), `t` is the OwnTracks JSON `_type` and `data` a Lua table built from the OwnTracks JSON payload of `_type`. If it exists, this function is called whenever a POST is received in httpmode and the Recorder is gathering data to return to the client app. The function *must* return a Lua table containing any number of string, number, or boolean values which are converted to a JSON object and appended to the JSON array returned to the client. An [example](etc/example.lua) shows how, say, a transition event can be used to open the Featured content tab in the app.
 
-## `transition`
+## `otr_transition`
 
 See [geo fences](FENCES.md).
 

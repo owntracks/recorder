@@ -62,7 +62,7 @@ static int check_a_waypoint(char *key, wpoint *wp, double lat, double lon)
 		// printf("%s - %s: EVENT == %s\n", wp->user, wp->device, wp->event == 0 ? "ENTER" : "LEAVE");
 #ifdef WITH_LUA
 		if (wp->ud->luadata) {
-			hooks_transition(wp->ud, wp->user, wp->device, wp->event, wp->desc, wp->lat, wp->lon, lat, lon);
+			hooks_transition(wp->ud, wp->user, wp->device, wp->event, wp->desc, wp->lat, wp->lon, lat, lon, wp->topic, wp->json);
 		}
 #endif /* WITH_LUA */
 	}
@@ -78,7 +78,7 @@ static int check_a_waypoint(char *key, wpoint *wp, double lat, double lon)
  * the Haversine formula.
  */
 
-void check_fences(struct udata *ud, char *username, char *device, double lat, double lon, JsonNode *json)
+void check_fences(struct udata *ud, char *username, char *device, double lat, double lon, JsonNode *json, char *topic)
 {
 	static UT_string *userdev;
 
@@ -90,5 +90,5 @@ void check_fences(struct udata *ud, char *username, char *device, double lat, do
 	 * and do as described above.
 	 */
 
-	gcache_enum(username, device, ud->wpdb, UB(userdev), check_a_waypoint, lat, lon, ud);
+	gcache_enum(username, device, ud->wpdb, UB(userdev), check_a_waypoint, lat, lon, ud, topic, json);
 }

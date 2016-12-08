@@ -353,7 +353,7 @@ void gcache_load(char *path, char *lmdbname)
  * update the data.
  */
 
-bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, int (*func)(char *key, wpoint *wp, double lat, double lon), double lat, double lon, struct udata *ud)
+bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, int (*func)(char *key, wpoint *wp, double lat, double lon), double lat, double lon, struct udata *ud, char *topic, JsonNode *jsonpayload)
 {
 	MDB_val key, data;
 	MDB_txn *txn;
@@ -419,6 +419,8 @@ bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, in
 		wp.ud	  = ud;
 		wp.user   = user;
 		wp.device = device;
+		wp.topic  = topic;
+		wp.json   = jsonpayload;
 
 		if (func && func(UB(ks), &wp, lat, lon) == true) {
 			json_remove_from_parent(jio);

@@ -35,7 +35,7 @@ Note how the `io` (in / out) element in the JSON indicates whether the last posi
 
 ### Transition hook
 
-When Recorder determines that the user's device has entered or left the geo fence, it invokes a user-provided Lua function called `transition`:
+When Recorder determines that the user's device has entered or left the geo fence, it invokes a user-provided Lua function called `otr_transition`:
 
 ```lua
 function otr_init()
@@ -44,8 +44,12 @@ end
 function otr_exit()
 end
 
-function transition(topic, _type, data)
+function otr_transition(topic, _type, data)
 	print("IN TRANSITION " .. _type .. " " .. topic)
 	otr.publish('special/topic', data['event'] .. " " .. data['desc'])
 end
 ```
+
+In addition to the payload as described in the Booklet, recorder enhances the table passed to the Lua function with the following elements:
+
+- `wplat` / `wplon` are the latitude / longitude of the original waypoint definition

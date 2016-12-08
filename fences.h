@@ -13,9 +13,11 @@ typedef struct {
 	char *device;
 	enum { ENTER, LEAVE } event;
 	struct udata *ud;
+	char *topic;	/* original publish topic */
+	JsonNode *json;	/* full JSON payload of publish */
 } wpoint;
 
-void check_fences(struct udata *ud, char *username, char *device, double lat, double lon, JsonNode *json);
+void check_fences(struct udata *ud, char *username, char *device, double lat, double lon, JsonNode *json, char *topic);
 
 
 #endif
