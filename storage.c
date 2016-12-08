@@ -1565,7 +1565,7 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 
 		/*
 		 * Just before initially storing in LMDB, we need to determine whether
-		 * device is currently within or without a waypoint... FIXME
+		 * device is currently within or without a waypoint...
 		 */
 
 		/* Note: we don't need buf -- just checking if key exists */
