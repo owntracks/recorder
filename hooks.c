@@ -385,7 +385,7 @@ void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
  * json is the original JSON we received enhanced with stuff from recorder.
  */
 
-void hooks_transition(struct udata *ud, char *user, char *device, int event, char *desc, double wplat, double wplon, double lat, double lon, char *topic, JsonNode *json)
+void hooks_transition(struct udata *ud, char *user, char *device, int event, char *desc, double wplat, double wplon, double lat, double lon, char *topic, JsonNode *json, long meters)
 {
 	JsonNode *j;
 
@@ -398,6 +398,7 @@ void hooks_transition(struct udata *ud, char *user, char *device, int event, cha
 	json_append_member(json, "desc", json_mkstring(desc));
 	json_append_member(json, "wplat", json_mknumber(wplat));
 	json_append_member(json, "wplon", json_mknumber(wplon));
+	json_append_member(json, "dist", json_mknumber(meters));
 
 	olog(LOG_DEBUG, "**** Lua hook for %s %s\n",
 		event == ENTER ? "ENTER" : "LEAVE", desc);

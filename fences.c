@@ -38,13 +38,13 @@
 
 static int check_a_waypoint(char *key, wpoint *wp, double lat, double lon)
 {
-	double d;
+	double dist;
 	bool rewrite = false;
 
-	d = haversine_dist(wp->lat, wp->lon, lat, lon);
-	// printf("WP= rad=%ld, io=%d, dist=%lf %s\n", wp->rad, wp->io, d, wp->desc);
+	dist = haversine_dist(wp->lat, wp->lon, lat, lon);
+	// printf("WP= rad=%ld, io=%d, dist=%lf %s\n", wp->rad, wp->io, dist, wp->desc);
 	
-	if (d < wp->rad) {
+	if (dist < wp->rad) {
 		// printf("YEAH: key(%s)\n", key);
 		
 		if (wp->io == false) {
@@ -62,7 +62,7 @@ static int check_a_waypoint(char *key, wpoint *wp, double lat, double lon)
 		// printf("%s - %s: EVENT == %s\n", wp->user, wp->device, wp->event == 0 ? "ENTER" : "LEAVE");
 #ifdef WITH_LUA
 		if (wp->ud->luadata) {
-			hooks_transition(wp->ud, wp->user, wp->device, wp->event, wp->desc, wp->lat, wp->lon, lat, lon, wp->topic, wp->json);
+			hooks_transition(wp->ud, wp->user, wp->device, wp->event, wp->desc, wp->lat, wp->lon, lat, lon, wp->topic, wp->json, (long)dist);
 		}
 #endif /* WITH_LUA */
 	}

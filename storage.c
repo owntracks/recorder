@@ -1561,7 +1561,7 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 		utstring_printf(key, "%s-%s-%s", user, device,
 			geohash_encode(lat->number_, lon->number_, 10));
 
-		printf("--> %s: %s\t(%lf, %lf) (%ld)\n", UB(key), desc->string_, lat->number_, lon->number_, (long)rad->number_);
+		olog(LOG_DEBUG, "--> %s: %s\t(%lf, %lf) (%ld)", UB(key), desc->string_, lat->number_, lon->number_, (long)rad->number_);
 
 		/*
 		 * Just before initially storing in LMDB, we need to determine whether

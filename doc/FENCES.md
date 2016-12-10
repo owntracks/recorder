@@ -56,4 +56,5 @@ end
 
 In addition to the payload as described in the Booklet, recorder enhances the table passed to the Lua function with the following elements:
 
+- `dist` the distance in meters between the current position and the center of the waypoint
 - `wplat` / `wplon` are the latitude / longitude of the original waypoint definition
