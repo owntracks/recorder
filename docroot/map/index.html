@@ -17,28 +17,49 @@
 
     </style>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+    </script>
+
     <script src="../static/js/mustache.js"></script>
     <script src="../static/js/moment.min.js"></script>
-    <script src="functions.js"></script>
+    <script src="map_google"></script>
+    <script src="map_leaflet.js"></script>
     <script src="../static/apikey.js"></script>
     <script>
-        function loadMapsAPI() {
-          var script = document.createElement('script');
-          script.type = 'text/javascript';
+      function loadMapsAPI() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        if (typeof apiKey != 'undefined' | apiKey != "" ) {
           script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
-              '&signed_in=true&key=' + apiKey +'&callback=initialize';
-          document.body.appendChild(script);
-
-
+            '&signed_in=true&key=' + apiKey +'&callback=initialize_googlemaps';
+        } else {
+          // Dynamic script loading from http://stackoverflow.com/a/8578840
+          (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)){ return; }
+            js = d.createElement(s); js.id = id;
+            js.onload = function(){
+              initialize_leaflet();
+            };
+            js.src = "https://unpkg.com/leaflet@1.0.2/dist/leaflet.js";
+            fjs.parentNode.insertBefore(js, fjs);
+          }(document, 'script', 'leaflet'));
         }
+        
+        document.body.appendChild(script);
+      }
 
-        document.addEventListener("DOMContentLoaded", function(event) {
-                loadMapsAPI();
-        });
-
+      document.addEventListener("DOMContentLoaded", function(event) {
+        loadMapsAPI();
+      });
     </script>
   </head>
   <body>
-      <div id="map-canvas"></div>
+    <div id="map-canvas"></div>
   </body>
 </html>

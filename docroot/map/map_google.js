@@ -17,7 +17,7 @@ function processPoints(geometry, callback, thisArg) {
 	}
 }
 
-function initialize() {
+function initialize_googlemaps() {
 
 	var map;
 	var center = new google.maps.LatLng( 46.993665, 10.399188);
@@ -44,6 +44,9 @@ function initialize() {
 	for (var i = 1; i < parts.length - 2; i++) {
 		dataURL = dataURL + "/" + parts[i];
 	}
+	
+	dataURL = "http://kantaki:8083"
+	
 	dataURL = dataURL + "/api/0/locations" + location.search;
 
 	console.log("dataURL = " + dataURL);
