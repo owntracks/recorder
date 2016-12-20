@@ -17,7 +17,7 @@ function processPoints(geometry, callback, thisArg) {
 	}
 }
 
-function initialize() {
+function initialize_googlemaps() {
 
 	var map;
 	var center = new google.maps.LatLng( 46.993665, 10.399188);

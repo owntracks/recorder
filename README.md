@@ -870,7 +870,9 @@ Note, that Jane's user/device tuple should also be returned in order to display 
 
 ### Browser API keys
 
-In order to use the Recorder's maps and views, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then pass this key to your Recorder by configuring it in the defaults configuration file or by overriding that with the option:
+By default, the Recorder uses [OpenStreetMap](https://www.openstreetmap.org) to view points and tracks.
+
+In order to use Google Maps, you have to obtain a [Google API "Browser key"](https://developers.google.com/maps/documentation/javascript/get-api-key). You then pass this key to your Recorder by configuring it in the defaults configuration file or by overriding that with the option:
 
 ```bash
 $ ot-recorder --browser-apikey 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' ...
