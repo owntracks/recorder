@@ -1699,7 +1699,10 @@ int main(int argc, char **argv)
 	while (run) {
 #ifdef WITH_MQTT
 		if (ud->port != 0) {
-			loop_timeout = 0;
+#if WITH_HTTP
+			if (ud->http_port != 0)
+#endif /* WITH_HTTP */
+				loop_timeout = 0; /* this belongs to above `if' */
 			rc = mosquitto_loop(mosq, loop_timeout, /* max-packets */ 1);
 			if (run && rc) {
 				olog(LOG_INFO, "MQTT connection: rc=%d [%s] (errno=%d; %s). Sleeping...", rc, mosquitto_strerror(rc), errno, strerror(errno));
