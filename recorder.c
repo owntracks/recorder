@@ -1208,6 +1208,9 @@ int main(int argc, char **argv)
 	udata.clientid		= NULL;
 	udata.topics		= NULL;
 	udata.cafile		= NULL;
+	udata.capath		= NULL;
+	udata.certfile		= NULL;
+	udata.keyfile		= NULL;
 #endif
 	udata.ignoreretained	= TRUE;
 	udata.skipdemo		= TRUE;
@@ -1278,6 +1281,24 @@ int main(int argc, char **argv)
 		if (ud->cafile)
 			free(ud->cafile);
 		ud->cafile = strdup(p);
+	}
+
+	if ((p = getenv("OTR_CAPATH")) != NULL) {
+		if (ud->capath)
+			free(ud->capath);
+		ud->capath = strdup(p);
+	}
+
+	if ((p = getenv("OTR_CERTFILE")) != NULL) {
+		if (ud->certfile)
+			free(ud->certfile);
+		ud->certfile = strdup(p);
+	}
+
+	if ((p = getenv("OTR_KEYFILE")) != NULL) {
+		if (ud->keyfile)
+			free(ud->keyfile);
+		ud->keyfile = strdup(p);
 	}
 
 #endif
@@ -1603,9 +1624,9 @@ int main(int argc, char **argv)
 
 			rc = mosquitto_tls_set(mosq,
 				ud->cafile,		/* cafile */
-				NULL,			/* capath */
-				NULL,			/* certfile */
-				NULL,			/* keyfile */
+				ud->capath,		/* capath */
+				ud->certfile,		/* certfile */
+				ud->keyfile,		/* keyfile */
 				NULL			/* pw_callback() */
 				);
 			if (rc != MOSQ_ERR_SUCCESS) {
@@ -1760,6 +1781,9 @@ int main(int argc, char **argv)
 	free(ud->hostname);
 	if (ud->clientid) free(ud->clientid);
 	if (ud->cafile) free(ud->cafile);
+	if (ud->capath) free(ud->capath);
+	if (ud->certfile) free(ud->certfile);
+	if (ud->keyfile) free(ud->keyfile);
 #endif
 
 	return (0);
