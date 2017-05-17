@@ -6,7 +6,8 @@ In particular, Recorder can read a list of fences from `.otrw` files, and it wil
 
 ### `.otrw`
 
-Recorder reads `.otrw` files from `<store>/waypoints/user/device/user-device.otrw` upon startup and loads these into an internal LMDB database. Each waypoint (geo fence) is keyed by `user-device-geohash(lat,lon)` in the LMDB sub table. In addition, when Recorder receives a waypoint dump (say, from an OwnTracks device), it will also inspect said dump and merge new waypoints for the user/device into this database.
+Recorder reads `.otrw` files from `<store>/waypoints/user/device/user-device.otrw` (for all existing globs of user and device, so `<store>/waypoints/*/*/*-*.otrw`) upon startup and loads these into an internal LMDB database. Each waypoint (geo fence) is keyed by `user-device-geohash(lat,lon)` in the LMDB sub table. In addition, when Recorder receives a waypoint dump (say, from an OwnTracks device), it will also inspect said dump and merge new waypoints for the user/device into this database.
+
 
 For example, the following otrw
 
@@ -58,3 +59,5 @@ In addition to the payload as described in the Booklet, recorder enhances the ta
 
 - `dist` the distance in meters between the current position and the center of the waypoint
 - `wplat` / `wplon` are the latitude / longitude of the original waypoint definition
+
+The special user and device pair (`_`, `_`) is meant as a global store of waypoints; these are shared throughout all users. So any user with any device can trigger a geo fence contained in `_-_.otrw`.
