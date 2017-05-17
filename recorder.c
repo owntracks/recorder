@@ -1153,6 +1153,8 @@ void usage(char *prog)
 	printf("  --pubprefix		-P     republish prefix (dflt: no republish)\n");
 	printf("  --host		-H     MQTT host (localhost)\n");
 	printf("  --port		-p     MQTT port (1883)\n");
+	printf("  --psk                        PSK hint\n");
+	printf("  --identity                   PSK identity\n");
 #endif
 	printf("  --logfacility		       syslog facility (local0)\n");
 	printf("  --quiet		       disable printing of messages to stdout\n");
@@ -1223,6 +1225,8 @@ int main(int argc, char **argv)
 	udata.capath		= NULL;
 	udata.certfile		= NULL;
 	udata.keyfile		= NULL;
+	udata.psk		= NULL;
+	udata.identity		= NULL;
 #endif
 	udata.ignoreretained	= TRUE;
 	udata.skipdemo		= TRUE;
@@ -1332,6 +1336,8 @@ int main(int argc, char **argv)
 			{ "qos",	required_argument,	0, 	'q'},
 			{ "host",	required_argument,	0, 	'H'},
 			{ "port",	required_argument,	0, 	'p'},
+			{ "psk",	required_argument,	0, 	20},
+			{ "identity",	required_argument,	0, 	21},
 #endif /* !MQTT */
 			{ "storage",	required_argument,	0, 	'S'},
 			{ "logfacility",	required_argument,	0, 	4},
@@ -1439,6 +1445,13 @@ int main(int argc, char **argv)
 			case 15:
 				if (ud->browser_apikey) free(ud->browser_apikey);
 				ud->browser_apikey = strdup(optarg);
+				break;
+
+			case 20:
+				ud->psk = strdup(optarg);
+				break;
+			case 21:
+				ud->identity = strdup(optarg);
 				break;
 #endif
 			case 'D':
@@ -1627,6 +1640,18 @@ int main(int argc, char **argv)
 			mosquitto_username_pw_set(mosq, ud->username, ud->password);
 		}
 
+		if (ud->psk && ud->cafile) {
+			olog(LOG_ERR, "Configuring TLS together with PSK is an error");
+			exit(2);
+		}
+
+		if (ud->psk && *ud->psk && ud->identity && *ud->identity) {
+			rc = mosquitto_tls_psk_set(mosq,
+				ud->psk,
+				ud->identity,
+				NULL);			/* Ciphers */
+		}
+
 		if (ud->cafile && *ud->cafile) {
 
 			if (access(ud->cafile, R_OK) != 0) {
@@ -1655,10 +1680,11 @@ int main(int argc, char **argv)
 
 		}
 
-		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s TLS",
+		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s %s",
 			ud->hostname, ud->port,
 			ud->clientid,
-			(ud->cafile && *ud->cafile) ? "with" : "without");
+			((ud->cafile && *ud->cafile) || (ud->psk && *ud->psk)) ? "with" : "without",
+			(ud->psk && *ud->identity) ? "PSK" : "TLS");
 
 		rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
 		if (rc) {

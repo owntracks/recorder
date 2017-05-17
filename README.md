@@ -220,6 +220,8 @@ This section lists the most important options of the Recorder with their long na
 
 `--port` is the port number of the MQTT broker and overrides `$OTR_PORT`; it defaults to 1883. Setting this to 0 disables MQTT even if it is compiled-in.
 
+`--identity` and `--psk` define the TLS PSK identity and preshared key respectively to use in a TLS-PSK connection to Mosquitto. Note that the listener needs to be set up accordingly and that it is an error to configure `--cafile` together with these options.
+
 `--user` overrides `$OTR_USER` and specifies the username to use in the MQTT connection.
 
 `--qos` specifies the MQTT QoS to use; it defaults to 2.

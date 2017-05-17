@@ -26,6 +26,8 @@ struct udata {
 	char *capath;			/* CA path */
 	char *certfile;			/* certificate (client) */
 	char *keyfile;			/* client key */
+	char *identity;			/* PSK identity (hint) */
+	char *psk;			/* PSK */
 #endif
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
