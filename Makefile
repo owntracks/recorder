@@ -20,7 +20,7 @@ OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
-ifeq ($(FREEBSD),no)
+ifneq ($(FREEBSD),yes)
 	CFLAGS += -Imdb/
 	LIBS += mdb/liblmdb.a
 	TARGETS += mdb/liblmdb.a
