@@ -1,4 +1,7 @@
 
+2017-05-17 version 0.7.1
+- FIX: systemd launch and default topics in default files (#185)
+
 2017-05-17 version 0.7.0
 - NEW: name of Lua revgeo function can be set in JSON payload
 - NEW: support TLS PSK (#74)
