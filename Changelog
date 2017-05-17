@@ -1,4 +1,17 @@
 
+2017-05-17 version 0.7.0
+- NEW: name of Lua revgeo function can be set in JSON payload
+- NEW: support TLS PSK (#74)
+- NEW: support for a Lua function to perform reverse Geo (#149)
+- FIX: support for FREEBSD in Makefile/config.mk.in (#163)
+- NEW: support for global store of geo fences (#178)
+- NEW: support for CA_PATH and TLS client certificates
+- FIX: setting http_port = 0 took CPU to unheard heights (#176)
+- NEW: Add support for OSM using Leaflet, by Sven Klomp (#173)
+- NEW: support for waypoints / geo-fences (WARNING: you must --initialize)
+- FIX: built-in Web server serves apikey.js with application/javascript mime type (#168)
+- FIX: Usage now shows missing OTR_BROWSERAPIKEY (#167)
+
 2016-11-25 version 0.6.9
 - UPD: REC files now use tst from JSON payload as timestamp (#133)
 - FIX: default file is /etc/default/ot-recorder
