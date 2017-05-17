@@ -92,5 +92,5 @@
 # List of topics for MQTT to subscribe to, blank separated in a string
 #
 
-# OTR_TOPICS="owntracks/+/+"
+OTR_TOPICS="owntracks/#"
 
