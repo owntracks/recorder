@@ -119,6 +119,12 @@ Running the recorder with the above function (and `_rec` set) could cause it to 
 {"_type":"location","cog":16,"batt":11,"lat":48.85833,"lon":3.29513,"acc":5,"vel":12,"alt":0,"tid":"JJ","_geoprec":3,"tst":1495010110,"addr":"Some place or other","cc":"JP","beverage":"tea"}
 ```
 
+The name of the Lua function defaults to `otr_revgeo` but can be modified/set on a per/payload basis by populating the JSON element `_lua` before the payload reaches the recorder. The recorder will use the string contained in that element as name of the Lua function. So, assuming you have a Lua function called `geo2` defined in your Lua script and you wish that to be used, the JSON sent to the Recorder would look like 
+
+```json
+{"_type":"location","lat":48.85833,"lon":3.29513,"tid":"JJ","_lua":"geo2","tst":1495018728}
+```
+
 ## Hooklets
 
 After running `otr_hook()`, the Recorder attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.

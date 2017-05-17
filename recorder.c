@@ -878,7 +878,14 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
 #ifdef WITH_LUA
-		if ((geo = hook_revgeo(ud, topic, UB(username), UB(device), lat, lon)) != NULL) {
+		char *lua_func = "otr_revgeo";
+
+		if ((j = json_find_member(json, "_lua")) != NULL) {
+			if (j->tag == JSON_STRING) {
+				lua_func = j->string_;
+			}
+		}
+		if ((geo = hook_revgeo(ud, lua_func, topic, UB(username), UB(device), lat, lon)) != NULL) {
 			if ((j = json_find_member(geo, "_rec")) != NULL) {
 				if (j->bool_ == true) {
 					json_remove_from_parent(j);

@@ -16,7 +16,7 @@ void hooks_hook(struct udata *ud, char *topic, JsonNode *obj);
 int hooks_norec(struct udata *ud, char *user, char *device, char *payload);
 JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload);
 void hooks_transition(struct udata *ud, char *user, char *device, int event, char *desc, double wplat, double wplon, double lat, double lon, char *topic, JsonNode *json, long meters);
-JsonNode *hook_revgeo(struct udata *ud, char *topic, char *user, char *device, double lat, double lon);
+JsonNode *hook_revgeo(struct udata *ud, char *luafunc, char *topic, char *user, char *device, double lat, double lon);
 
 #endif /* WITH_LUA */
 

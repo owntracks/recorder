@@ -409,10 +409,11 @@ void hooks_transition(struct udata *ud, char *user, char *device, int event, cha
 
 /*
  * If the Lua function otr_revgeo() is defined, invoke that to obtain a result
- * of reverse geocoding.
+ * of reverse geocoding. The function name proper (otr_revgeo) is contained in
+ * `luafunc'
  */
 
-JsonNode *hook_revgeo(struct udata *ud, char *topic, char *user, char *device, double lat, double lon)
+JsonNode *hook_revgeo(struct udata *ud, char *luafunc, char *topic, char *user, char *device, double lat, double lon)
 {
 	struct luadata *ld = ud->luadata;
 	JsonNode *obj = NULL;
@@ -422,9 +423,9 @@ JsonNode *hook_revgeo(struct udata *ud, char *topic, char *user, char *device, d
 		return (0);
 
 	lua_settop(ld->L, 0);
-	lua_getglobal(ld->L, "otr_revgeo");
+	lua_getglobal(ld->L, luafunc);
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
-		debug(ud, "no otr_revgeo function in Lua file: returning");
+		debug(ud, "no %s function in Lua file: returning", luafunc);
 		return (0);
 	}
 
