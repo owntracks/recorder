@@ -877,6 +877,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
+#ifdef WITH_LUA
 		if ((geo = hook_revgeo(ud, topic, UB(username), UB(device), lat, lon)) != NULL) {
 			if ((j = json_find_member(geo, "_rec")) != NULL) {
 				if (j->bool_ == true) {
@@ -886,6 +887,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				}
 			}
 		} else {
+#endif /* WITH_LUA */
 			if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
 				/* Habemus cached data */
 				
@@ -916,7 +918,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 					}
 				}
 			}
+#ifdef WITH_LUA
 		}
+#endif /* WITH_LUA */
 	} else {
 		utstring_printf(cc, "??");
 		utstring_printf(addr, "n.a.");
