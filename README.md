@@ -616,7 +616,12 @@ isotst,vel,addr
 
 ## Reverse Geo
 
-If not disabled with option `--norevgeo`, the Recorder will attempt to perform a reverse-geo lookup on the location coordinates it obtains and store them in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., Recorder keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
+If not disabled with option `--norevgeo`, the Recorder will attempt to perform a reverse-geo lookup on the location coordinates it obtains. These can be either
+
+1. obtained via a Lua function you define (see [doc/HOOKS.md](doc/HOOKS.md))
+2. obtained via a call to Google
+
+Lookups performed via Google are stored in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., Recorder keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
 
 ```
 $ cat store/ghash/missing

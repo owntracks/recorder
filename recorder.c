@@ -877,32 +877,42 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	cached = FALSE;
 	if (ud->revgeo == TRUE) {
-		if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
-			/* Habemus cached data */
-			
-			cached = TRUE;
-
-			if ((j = json_find_member(geo, "cc")) != NULL) {
-				utstring_printf(cc, "%s", j->string_);
-			}
-			if ((j = json_find_member(geo, "addr")) != NULL) {
-				utstring_printf(addr, "%s", j->string_);
+		if ((geo = hook_revgeo(ud, topic, UB(username), UB(device), lat, lon)) != NULL) {
+			if ((j = json_find_member(geo, "_rec")) != NULL) {
+				if (j->bool_ == true) {
+					json_remove_from_parent(j);
+					json_copy_to_object(json, geo, false);
+					geo = NULL;	/* Reset so it's not copied again later */
+				}
 			}
 		} else {
-			if (geoprec > 0) {
-				if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
-					gcache_json_put(ud->gc, UB(ghash), geo);
-				} else {
-					/* We didn't obtain reverse Geo, maybe because of over
-					 * quota; make a note of the missing geohash */
-
-					char gfile[BUFSIZ];
-					FILE *fp;
-
-					snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
-					if ((fp = fopen(gfile, "a")) != NULL) {
-						fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
-						fclose(fp);
+			if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
+				/* Habemus cached data */
+				
+				cached = TRUE;
+	
+				if ((j = json_find_member(geo, "cc")) != NULL) {
+					utstring_printf(cc, "%s", j->string_);
+				}
+				if ((j = json_find_member(geo, "addr")) != NULL) {
+					utstring_printf(addr, "%s", j->string_);
+				}
+			} else {
+				if (geoprec > 0) {
+					if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
+						gcache_json_put(ud->gc, UB(ghash), geo);
+					} else {
+						/* We didn't obtain reverse Geo, maybe because of over
+						 * quota; make a note of the missing geohash */
+	
+						char gfile[BUFSIZ];
+						FILE *fp;
+	
+						snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
+						if ((fp = fopen(gfile, "a")) != NULL) {
+							fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
+							fclose(fp);
+						}
 					}
 				}
 			}
@@ -911,6 +921,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		utstring_printf(cc, "??");
 		utstring_printf(addr, "n.a.");
 	}
+
 
 	if (httpmode) {
 		json_append_member(json, "_http", json_mkbool(1));

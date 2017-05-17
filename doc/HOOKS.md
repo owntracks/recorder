@@ -90,6 +90,35 @@ An optional function you provide is called `otr_httpobject(u, d, t, data)` where
 
 See [geo fences](FENCES.md).
 
+## `otr_revgeo`
+
+If the user-defined `otr_revgeo()` function exists in the Lua script, it is invoked by the Recorder to obtain reverse-geo data on a publish. (Unless Recorder was launched with `--norevgeo` in which case no such information is gathered at all.)
+
+`otr_revgeo()` overrides the built-in Google reverse-geo lookups. So, to clarify, if this function is defined, Google lookups will not be attempted.
+
+The function is invoked with _topic_, _user_, _device_, _lat_, and _lon_, and it should return a table with at least `cc` and `addr` populated. Any other elements in the table are added and passed on to, say, the Websocket interface. If the element `_rec` is defined in the table and its value is _true_, the data will be merged into the payload stored in the REC file.
+
+```lua
+function otr_revgeo(topic, user, device, lat, lon)
+
+        local d = {}
+
+        d['cc']         = 'JP'
+        d['addr']       = 'Some place or other'
+        d['beverage']   = 'tea'
+
+        d['_rec']       = true
+
+        return d
+end
+```
+
+Running the recorder with the above function (and `_rec` set) could cause it to store the following in a REC file:
+
+```json
+{"_type":"location","cog":16,"batt":11,"lat":48.85833,"lon":3.29513,"acc":5,"vel":12,"alt":0,"tid":"JJ","_geoprec":3,"tst":1495010110,"addr":"Some place or other","cc":"JP","beverage":"tea"}
+```
+
 ## Hooklets
 
 After running `otr_hook()`, the Recorder attempts to invoke a Lua function for each of the elements in the extended JSON. If, say, your Lua script contains a function called `hooklet_lat`, it will be invoked every time a `lat` is received as part of the JSON payload. Similarly with `hooklet_addr`, `hooklet_cc`, `hooklet_tst`, etc. These _hooklets_ are invoked with the same parameters as `otr_hook()`.
