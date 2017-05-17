@@ -2,6 +2,7 @@
 
 INSTALLDIR = /usr/
 CONFIGFILE = /etc/default/ot-recorder
+FREEBSD ?= no
 
 WITH_MQTT ?= yes
 WITH_HTTP ?= yes
