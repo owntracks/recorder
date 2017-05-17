@@ -9,6 +9,7 @@
 # CC      = clang
 # CFLAGS += -I/usr/local/include
 # MORELIBS += -L /usr/local/lib
+FREEBSD ?= no
 # -- end FreeBSD
 
 INSTALLDIR = /usr/local

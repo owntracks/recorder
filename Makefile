@@ -6,6 +6,7 @@ LIBS 	+= -lcurl -lconfig
 
 TARGETS=
 OTR_OBJS = json.o \
+	   gcache.o \
 	   geo.o \
 	   geohash.o \
 	   mkpath.o \
@@ -19,10 +20,14 @@ OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
-CFLAGS += -Imdb/
-OTR_OBJS += gcache.o
-LIBS += mdb/liblmdb.a -lpthread
-TARGETS += mdb/liblmdb.a
+ifeq ($(FREEBSD),no)
+	CFLAGS += -Imdb/
+	LIBS += mdb/liblmdb.a
+	TARGETS += mdb/liblmdb.a
+else
+	LIBS += -llmdb
+endif
+LIBS += -lpthread
 
 ifeq ($(WITH_MQTT),yes)
 	CFLAGS += -DWITH_MQTT=1
@@ -117,7 +122,8 @@ install: ot-recorder ocat
 	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
-	test -r $(DESTDIR)/$(CONFIGFILE) || install -D -m 640 etc/ot-recorder.default $(DESTDIR)/$(CONFIGFILE)
+	mkdir -p `dirname $(DESTDIR)/$(CONFIGFILE)`
+	test -r $(DESTDIR)/$(CONFIGFILE) || install -m 640 etc/ot-recorder.default $(DESTDIR)/$(CONFIGFILE)
 ifndef DESTDIR
 	$(INSTALLDIR)/sbin/ot-recorder --initialize
 endif
