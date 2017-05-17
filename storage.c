@@ -1528,8 +1528,6 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 {
 	JsonNode *n;
 	static UT_string *key;
-	long len;
-	char buf[20];
 
 	json_foreach(n, wplist) {
 		JsonNode *rad, *lat, *lon, *desc, *tst, *type;
@@ -1569,10 +1567,12 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 		 */
 
 		/* Note: we don't need buf -- just checking if key exists */
-		len = gcache_get(ud->wpdb, UB(key), buf, sizeof(buf));
-		if (len == -1) {
-			gcache_json_put(ud->wpdb, UB(key), n);
-		}
+		// len = gcache_get(ud->wpdb, UB(key), buf, sizeof(buf));
+		// if (len == -1) {
+		// }
+
+		/* Clobber existing record b/c desc might have changed (#171) */
+		gcache_json_put(ud->wpdb, UB(key), n);
 	}
 
 	return (true);
@@ -1648,7 +1648,6 @@ bool load_fences(struct udata *ud)
 		for (n = 0; n < results.gl_pathc; n++) {
 			char *f = results.gl_pathv[n];
 
-			// puts(f);
 			load_otrw_file(ud, f);
 		}
 	}
