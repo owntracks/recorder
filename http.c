@@ -110,15 +110,17 @@ static double field_d(struct mg_connection *conn, char *fieldname)
 }
 
 
-static long field_n(struct mg_connection *conn, char *fieldname)
+static long *field_n(struct mg_connection *conn, char *fieldname)
 {
 	char buf[BUFSIZ];
 	int ret;
+	static long l;
 
 	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) < 0) {
-		return (NAN);
+		return (NULL);
 	}
-	return (atol(buf));
+	l = atol(buf);
+	return (&l);
 }
 
 /*
@@ -1483,7 +1485,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				static UT_string *topic = NULL;
 				char *js, *parts[10], buf[512];
 				double d;
-				long l;
+				long *l;
 				int n;
 
 				if ((n = mg_get_var(conn, "id", buf, sizeof(buf))) > 0) {
@@ -1508,34 +1510,35 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				json_append_member(obj, "lon", json_mknumber(d));
 
 
-				if ((l = field_n(conn, "timestamp")) == NAN) goto not_traccar;
-				json_append_member(obj, "tst", json_mknumber(l));
+				if ((l = field_n(conn, "timestamp")) == NULL) goto not_traccar;
+				json_append_member(obj, "tst", json_mknumber(*l));
 
 				/* The following are optional */
-				if ((l = field_n(conn, "altitude")) != NAN) {
-					json_append_member(obj, "alt", json_mknumber(l));
+				if ((l = field_n(conn, "altitude")) != NULL) {
+					json_append_member(obj, "alt", json_mknumber(*l));
 				}
 
 				/* document says 'hdop'; Traccar/iOS uses 'bearing' */
-				if ((l = field_n(conn, "bearing")) != NAN) {
-					json_append_member(obj, "cog", json_mknumber(l));
+				if ((l = field_n(conn, "bearing")) != NULL) {
+					json_append_member(obj, "cog", json_mknumber(*l));
 				}
 
-				if ((l = field_n(conn, "batt")) != NAN) {
-					json_append_member(obj, "batt", json_mknumber(l));
+				if ((l = field_n(conn, "batt")) != NULL) {
+					json_append_member(obj, "batt", json_mknumber(*l));
 				}
 
-				if ((l = field_n(conn, "speed")) != NAN) {
+				if ((l = field_n(conn, "speed")) != NULL) {
 					/* is in knots; we (OwnTracks) want kph */
 
-					l *= 1.852;
-					json_append_member(obj, "vel", json_mknumber(l));
+					*l *= 1.852;
+					json_append_member(obj, "vel", json_mknumber(*l));
 				}
 
 				json_append_member(obj, "_type", json_mkstring("location"));
 				json_append_member(obj, "_proto", json_mkstring("osmand"));
 
 				if ((js = json_stringify(obj, NULL)) != NULL) {
+					fprintf(stderr, "Traccar: %s\n", js);
 					handle_message(ud, UB(topic), js, strlen(js), 0, TRUE, FALSE);
 					free(js);
 				}
