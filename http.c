@@ -98,6 +98,29 @@ static char *field(struct mg_connection *conn, char *fieldname)
 	return (NULL);
 }
 
+static double field_d(struct mg_connection *conn, char *fieldname)
+{
+	char buf[BUFSIZ];
+	int ret;
+
+	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) < 0) {
+		return (NAN);
+	}
+	return (atof(buf));
+}
+
+
+static long field_n(struct mg_connection *conn, char *fieldname)
+{
+	char buf[BUFSIZ];
+	int ret;
+
+	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) < 0) {
+		return (NAN);
+	}
+	return (atol(buf));
+}
+
 /*
  * Open a view.json file, parse the JSON and return the object
  * or NULL.
@@ -1446,6 +1469,86 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 					return (MG_TRUE);
 				}
 			}
+
+			/*
+			 * Let's see if this is a GET request with particular fields, in which
+			 * case we assume it's an osmand/traccar location report.
+			 *
+			 * http://demo.traccar.org:5055/?id=123456&lat={0}&lon={1}&timestamp={2}&hdop={3}&altitude={4}&speed={5}
+			 * https://www.traccar.org/osmand/
+			 */
+
+			if (!strcmp(conn->request_method, "GET") && !strcmp(conn->uri, "/")) {
+				JsonNode *obj = json_mkobject();
+				static UT_string *topic = NULL;
+				char *js, *parts[10], buf[512];
+				double d;
+				long l;
+				int n;
+
+				if ((n = mg_get_var(conn, "id", buf, sizeof(buf))) > 0) {
+					if ((n = splitter(buf, "/", parts)) != 2) {
+						goto not_traccar;
+					}
+					olog(LOG_DEBUG, "Traccar requested for %s", buf);
+					json_append_member(obj, "user", json_mkstring(parts[0]));
+					json_append_member(obj, "device", json_mkstring(parts[1]));
+					utstring_renew(topic);
+					utstring_printf(topic, "owntracks/%s/%s", parts[0], parts[1]);
+					splitterfree(parts);
+				} else {
+					goto not_traccar;
+				}
+
+
+				if ((d = field_d(conn, "lat")) == NAN) goto not_traccar;
+				json_append_member(obj, "lat", json_mknumber(d));
+
+				if ((d = field_d(conn, "lon")) == NAN) goto not_traccar;
+				json_append_member(obj, "lon", json_mknumber(d));
+
+
+				if ((l = field_n(conn, "timestamp")) == NAN) goto not_traccar;
+				json_append_member(obj, "tst", json_mknumber(l));
+
+				/* The following are optional */
+				if ((l = field_n(conn, "altitude")) != NAN) {
+					json_append_member(obj, "alt", json_mknumber(l));
+				}
+
+				/* document says 'hdop'; Traccar/iOS uses 'bearing' */
+				if ((l = field_n(conn, "bearing")) != NAN) {
+					json_append_member(obj, "cog", json_mknumber(l));
+				}
+
+				if ((l = field_n(conn, "batt")) != NAN) {
+					json_append_member(obj, "batt", json_mknumber(l));
+				}
+
+				if ((l = field_n(conn, "speed")) != NAN) {
+					/* is in knots; we (OwnTracks) want kph */
+
+					l *= 1.852;
+					json_append_member(obj, "vel", json_mknumber(l));
+				}
+
+				json_append_member(obj, "_type", json_mkstring("location"));
+				json_append_member(obj, "_proto", json_mkstring("osmand"));
+
+				if ((js = json_stringify(obj, NULL)) != NULL) {
+					handle_message(ud, UB(topic), js, strlen(js), 0, TRUE, FALSE);
+					free(js);
+				}
+
+				mg_printf_data(conn, "tak");
+				json_delete(obj);
+
+				return (MG_TRUE);
+
+			   not_traccar:
+				json_delete(obj);
+			}
+
 			/*
 			 * We can't handle this request ourselves. Return
 			 * to Mongoose and have it try document root.
