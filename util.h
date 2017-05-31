@@ -8,6 +8,7 @@
 
 #include <time.h>
 #include <syslog.h>
+#include <math.h>
 #include "json.h"
 #include "udata.h"
 #include "utstring.h"
@@ -38,5 +39,6 @@ void lowercase(char *s);
 double haversine_dist(double th1, double ph1, double th2, double ph2);
 void debug(struct udata *, char *fmt, ...);
 void chomp(char *s);
+double number(JsonNode *j, char *element);
 
 #endif

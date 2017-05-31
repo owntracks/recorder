@@ -66,27 +66,6 @@
 
 static int run = 1;
 
-double number(JsonNode *j, char *element)
-{
-	JsonNode *m;
-	double d;
-
-	if ((m = json_find_member(j, element)) != NULL) {
-		if (m->tag == JSON_NUMBER) {
-			return (m->number_);
-		} else if (m->tag == JSON_STRING) {
-			d = atof(m->string_);
-			/* Normalize to number */
-			json_remove_from_parent(m);
-			json_delete(m);
-			json_append_member(j, element, json_mknumber(d));
-			return (d);
-		}
-	}
-
-	return (NAN);
-}
-
 static const char *ltime(time_t t) {
 	static char buf[] = "HH:MM:SS";
 
