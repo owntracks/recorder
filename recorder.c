@@ -1645,7 +1645,7 @@ int main(int argc, char **argv)
 		if (ud->cafile && *ud->cafile) {
 
 			if (access(ud->cafile, R_OK) != 0) {
-				olog(LOG_ERR, "cafile configured as `%s' can't be opened: %m", ud->cafile);
+				olog(LOG_ERR, "cafile configured as `%s' can't be opened: errno=%d", ud->cafile, errno);
 				exit(2);
 			}
 

@@ -162,6 +162,16 @@ void get_defaults(char *filename, struct udata *ud)
 		ud->cafile = (value) ? strdup(value) : NULL;
 	}
 
+	if (config_lookup_string(cf, "OTR_KEYFILE", &value) != CONFIG_FALSE) {
+		if (ud->keyfile) free(ud->keyfile);
+		ud->keyfile = (value) ? strdup(value) : NULL;
+	}
+
+	if (config_lookup_string(cf, "OTR_CERTFILE", &value) != CONFIG_FALSE) {
+		if (ud->certfile) free(ud->certfile);
+		ud->certfile = (value) ? strdup(value) : NULL;
+	}
+
 	/* Topics is a blank-separated string of words; split and add to JSON array */
 	if (config_lookup_string(cf, "OTR_TOPICS", &value) != CONFIG_FALSE) {
 		char *parts[40];
