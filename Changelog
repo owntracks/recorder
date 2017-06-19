@@ -1,4 +1,9 @@
 
+2017-05-19 version 0.7.2
+- FIX: ping/ping monitoring user/device no longer shows up on map nor in table (#195)
+- FIX: OTR_CAFILE, KEYFILE, CERTFILE are now also read from config file (#198)
+- NEW: support Traccar (osmand) GET requests
+
 2017-05-17 version 0.7.1
 - FIX: systemd launch and default topics in default files (#185)
 
