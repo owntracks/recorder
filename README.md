@@ -687,6 +687,8 @@ After sending a pingping, you can query the REST interface to determine the diff
 OK ot-recorder pingping at http://127.0.0.1:8085: 0 seconds difference
 ```
 
+Note that our Docker image has this monitoring built in with recorder-health.sh. What this basically does is it allows Docker to monitor the Recorder's availability in HEALTHCHECK. So, the `ping/ping` you may be seeing is being used between Docker and the container running the Recorder and has absolutely no impact on mobile data.
+
 ## Views
 
 A view is a sort of sandboxed look at data provided by the Recorder. Assume you host several devices, be they your own or those of some of your friends, and assume you want to allow somebody else to see where you are or have been during a specific time frame: with the Recorder's default Web server you cannot limit a visitor to see specific data only; once they reach the Recorder's Web interface, they have access to all your data. (We warned you about that earlier.) Using a HTTP proxy, you can provide an insight into certain portions of your data only.

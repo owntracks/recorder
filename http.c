@@ -279,6 +279,7 @@ static int send_reply(struct mg_connection *conn)
  * Push a list of LAST users down the Websocket. We send individual
  * JSON objects (not an array of them) because these are what the
  * WS client gets when we the recorder sees a publish.
+ * Ignore the ping/ping user.
  */
 
 static void send_last(struct mg_connection *conn)
@@ -297,6 +298,22 @@ static void send_last(struct mg_connection *conn)
 
 			o = json_mkobject();
 
+			if ((f = json_find_member(one, "username")) != NULL) {
+				JsonNode *d = json_find_member(one, "device");
+
+				/* check for pingping user (ping/ping) and skip */
+				if (f && d) {
+					if (!strcmp(f->string_, "ping") &&
+						!strcmp(d->string_, "ping")) {
+						json_delete(o);
+						continue;
+					}
+				}
+
+				/* Add CARD details */
+				append_card_to_object(o, f->string_, d->string_);
+			}
+
 			json_append_member(o, "_type", json_mkstring("location"));
 			if ((f = json_find_member(one, "lat")) != NULL)
 				json_copy_element_to_object(o, "lat", f);
@@ -312,11 +329,6 @@ static void send_last(struct mg_connection *conn)
 			if ((f = json_find_member(one, "topic")) != NULL)
 				json_copy_element_to_object(o, "topic", f);
 
-			if ((f = json_find_member(one, "username")) != NULL) {
-				JsonNode *d = json_find_member(one, "device");
-				/* Add CARD details */
-				append_card_to_object(o, f->string_, d->string_);
-			}
 
 			http_ws_push_json(ud->mgserver, o);
 			json_delete(o);

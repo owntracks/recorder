@@ -59,6 +59,10 @@
 	for (i in data) {
 		var d = data[i];
 
+		if (d.username == 'ping' && d.device == 'ping') {
+			continue;
+		}
+
 		if (!d.topic) {
 			console.log("SKIP " + JSON.stringify(d));
 			continue;
