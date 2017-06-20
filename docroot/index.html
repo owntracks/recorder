@@ -71,6 +71,9 @@
 					console.log(d);
 					continue;
 				}
+				if (d.username == 'ping' && d.device == 'ping') {
+					continue;
+				}
 				d['udev'] = "user=" + d['username'] + "&device=" + d['device'];
 				d['f12'] = f12;
 				d['f7'] = f7;
