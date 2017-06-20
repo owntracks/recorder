@@ -22,6 +22,12 @@ debfile="${name}_${version}_${arch}.deb"
 
 rm -f "${debfile}"
 
+libsodium='libsodium13'
+case $(cat /etc/debian_version) in
+	8.8) ;;
+	9.0) libsodium="libsodium18" ;;
+esac
+
 fpm -s dir \
         -t deb \
         -n ${name} \
@@ -38,7 +44,7 @@ fpm -s dir \
         -d "libmosquitto1" \
         -d "liblua5.2-0" \
         -d "libconfig9" \
-        -d "libsodium13" \
+        -d "${libsodium}" \
 	--config-files etc/default/ot-recorder \
         --post-install etc/debian/postinst \
         usr var etc
