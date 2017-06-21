@@ -115,6 +115,8 @@ sudo apt-get install ot-recorder
 
 Debian 9 "Stretch":
 
+using Stretch Mosquitto packages:
+
 ```
 curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
 echo "deb  http://repo.owntracks.org/debian stretch main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
