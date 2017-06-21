@@ -113,6 +113,15 @@ sudo apt-get install libsodium-dev libsodium13
 sudo apt-get install ot-recorder
 ```
 
+Debian 9 "Stretch":
+
+```
+curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
+echo "deb  http://repo.owntracks.org/debian stretch main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+sudo apt-get update
+sudo apt-get install ot-recorder
+```
+
 #### systemd service
 
 The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
