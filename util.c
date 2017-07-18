@@ -490,22 +490,10 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
                 return (NULL);
         }
 
-
-#if 0
-	if (device) {
-		utstring_printf(path, "/%s-%s.%s",
-			UB(user), UB(device), suffix);
-	} else {
-		utstring_printf(path, "/%s.%s",
-			UB(user), suffix);
-	}
-#endif
-
 	if (strcmp(prefix, "rec") == 0) {
 		utstring_printf(path, "/%s.%s", yyyymm(epoch), suffix);
 	} else {
-		utstring_printf(path, "/%s.%s",
-			UB(user), suffix);
+		utstring_printf(path, "/%s-%s.%s", UB(user), UB(device), suffix);
 	}
 
         ut_clean(path);

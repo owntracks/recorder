@@ -92,7 +92,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 
 	/* I know the payload is valid JSON: write card */
 
-	if ((fp = pathn("wb", "cards", username, NULL, "json", time(0))) != NULL) {
+	if ((fp = pathn("wb", "cards", username, device, "json", time(0))) != NULL) {
 		char *js = json_stringify(json, NULL);
 		if (js) {
 			fprintf(fp, "%s\n", js);
@@ -124,7 +124,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 
 	/* We have a base64-encoded "face". Decode it and store binary image */
 	if ((img = base64_decode(UB(face), &imglen)) != NULL) {
-		if ((fp = pathn("wb", "photos", username, NULL, "png", time(0))) != NULL) {
+		if ((fp = pathn("wb", "photos", username, device, "png", time(0))) != NULL) {
 			fwrite(img, sizeof(char), imglen, fp);
 			fclose(fp);
 		}
