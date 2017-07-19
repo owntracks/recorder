@@ -600,6 +600,16 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if (utstring_len(reltopic) == 0)
 		utstring_printf(reltopic, "-");
 
+	/*
+	 * Are we handing ../user/device/pico from OwnTracks Pico / Homie?
+	 * Pretend we have a base-topic publish, so change "/pico" to "*"
+	 */
+
+	if ( (count == (4 + skipslash)) && (strcmp(UB(reltopic), "pico") == 0)) {
+		utstring_renew(reltopic);
+		utstring_printf(reltopic, "*");
+	}
+
 
 	utstring_printf(basetopic, "%s/%s/%s", topics[0 + skipslash], topics[1 + skipslash], topics[2 + skipslash]);
 	utstring_printf(username, "%s", topics[1 + skipslash]);
