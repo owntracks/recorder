@@ -362,7 +362,6 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 		return;
 
 	if ((j = json_find_member(json, "r")) != NULL) {
-		json_remove_from_parent(j);
 		json_delete(j);
 		js = json_stringify(json, NULL);
 		json_delete(json);
@@ -780,7 +779,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if ((j = json_find_member(json, "tst")) != NULL) {
 		if (j->tag == JSON_STRING) {
 			tst = strtoul(j->string_, NULL, 10);
-			json_remove_from_parent(j);
 			json_delete(j);
 			json_append_member(json, "tst", json_mknumber(tst));
 		} else {
@@ -804,7 +802,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if ((j = json_find_member(json, "acc")) != NULL) {
 		if (j->tag == JSON_STRING) {
 			acc = atof(j->string_);
-			json_remove_from_parent(j);
 			json_delete(j);
 			json_append_member(json, "acc", json_mknumber(acc));
 		}
@@ -842,7 +839,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 		if ((blen = gcache_get(ud->t2t, topic, newtid, sizeof(newtid))) > 0) {
 			if ((j = json_find_member(json, "tid")) != NULL) {
-				json_remove_from_parent(j);
 				json_delete(j);
 			}
 			json_append_member(json, "tid", json_mkstring(newtid));
@@ -877,7 +873,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		if ((geo = hook_revgeo(ud, lua_func, topic, UB(username), UB(device), lat, lon)) != NULL) {
 			if ((j = json_find_member(geo, "_rec")) != NULL) {
 				if (j->bool_ == true) {
-					json_remove_from_parent(j);
+					json_delete(j);
 					json_copy_to_object(json, geo, false);
 					geo = NULL;	/* Reset so it's not copied again later */
 				}

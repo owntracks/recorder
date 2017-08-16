@@ -390,7 +390,7 @@ void hooks_transition(struct udata *ud, char *user, char *device, int event, cha
 	JsonNode *j;
 
 	if ((j = json_find_member(json, "_type")) != NULL) {
-		json_remove_from_parent(j);
+		json_delete(j);
 	}
 	json_append_member(json, "_type", json_mkstring("transition"));
 	json_append_member(json, "event",

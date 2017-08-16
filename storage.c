@@ -513,7 +513,6 @@ static void lsscan(char *pathpat, time_t s_lo, time_t s_hi, JsonNode *obj, int r
 	if ((jarr = json_find_member(obj, "results")) == NULL) {
 		jarr = json_mkarray();
 	} else {
-		json_remove_from_parent(jarr);
 		json_delete(jarr);
 	}
 
@@ -1538,7 +1537,7 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 		if (strcmp(type->string_, "waypoint") != 0)
 			return (false);
 
-		json_remove_from_parent(type);
+		json_delete(type);
 
 		if ((rad = json_find_member(n, "rad")) == NULL)
 			continue;
@@ -1553,7 +1552,7 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 		/* It turns out tst was a key, but it breaks on iOS when dumped
 		 * waypoints are re-imported. we'll use the geohash of lat/lon here */
 
-		json_remove_from_parent(tst);
+		json_delete(tst);
 
 		utstring_renew(key);
 		utstring_printf(key, "%s-%s-%s", user, device,

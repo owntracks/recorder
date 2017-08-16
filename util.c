@@ -617,7 +617,6 @@ double number(JsonNode *j, char *element)
 		} else if (m->tag == JSON_STRING) {
 			d = atof(m->string_);
 			/* Normalize to number */
-			json_remove_from_parent(m);
 			json_delete(m);
 			json_append_member(j, element, json_mknumber(d));
 			return (d);

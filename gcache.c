@@ -424,7 +424,7 @@ bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, in
 		wp.json   = jsonpayload;
 
 		if (func && func(UB(ks), &wp, lat, lon) == true) {
-			json_remove_from_parent(jio);
+			json_delete(jio);
 			json_append_member(json, "io", json_mkbool(wp.io));
 			if (gcache_json_put(gc, UB(ks), json) != 0) {
 				olog(LOG_ERR, "gcache_enum: cannot rewrite key %s", UB(ks));
