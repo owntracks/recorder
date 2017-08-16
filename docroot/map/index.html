@@ -36,7 +36,7 @@
           script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
             '&signed_in=true&key=' + apiKey +'&callback=initialize_googlemaps';
         } else {
-          $("head").append("<link rel='stylesheet' href='https://unpkg.com/leaflet@1.0.2/dist/leaflet.css' type='text/css' />");
+          $("head").append("<link rel='stylesheet' href='https://unpkg.com/leaflet@1.2.0/dist/leaflet.css' type='text/css' />");
           // Dynamic script loading from http://stackoverflow.com/a/8578840
           (function(d, s, id){
             var js, fjs = d.getElementsByTagName(s)[0];
@@ -45,7 +45,7 @@
             js.onload = function(){
               initialize_leaflet();
             };
-            js.src = "https://unpkg.com/leaflet@1.0.2/dist/leaflet.js";
+            js.src = "https://unpkg.com/leaflet@1.2.0/dist/leaflet.js";
             fjs.parentNode.insertBefore(js, fjs);
           }(document, 'script', 'leaflet'));
         }
