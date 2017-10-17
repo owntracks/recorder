@@ -9,6 +9,7 @@ After=network-online.target
 Type=simple
 User=owntracks
 WorkingDirectory=/
+ExecStartPre=/bin/sleep 15
 ExecStart=/usr/sbin/ot-recorder
 
 [Install]
