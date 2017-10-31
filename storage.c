@@ -1039,7 +1039,7 @@ char *gpx_string(JsonNode *location_array)
 	utstring_renew(xml);
 
 	utstring_printf(xml, "%s", "<?xml version='1.0' encoding='UTF-8' standalone='no' ?>\n\
-<gpx version='1.1' creator='OwnTracks-Recorder'>\n\
+<gpx version='1.1' creator='OwnTracks-Recorder' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://www.topografix.com/GPX/1/1'>\n\
  <trk>\n\
   <trkseg>\n");
 
