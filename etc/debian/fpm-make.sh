@@ -25,7 +25,7 @@ rm -f "${debfile}"
 libsodium='libsodium13'
 case $(cat /etc/debian_version) in
 	8.8) ;;
-	9.0) libsodium="libsodium18" ;;
+	9.*) libsodium="libsodium18" ;;
 esac
 
 fpm -s dir \
