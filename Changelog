@@ -1,3 +1,7 @@
+
+2018-02-12 version 0.7.4
+- FIX: fpm-make for Debian to pull in correct libsodium package (thanks @juzam!) 
+
 2018-02-12 version 0.7.3
 - FIX: GPX exporter gets xmlns (#215)
 - FIX: wait on start of systemd to allow Mosquitto to start (#185)
