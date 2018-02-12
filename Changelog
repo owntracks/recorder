@@ -1,3 +1,9 @@
+2018-02-12 version 0.7.3
+- FIX: GPX exporter gets xmlns (#215)
+- FIX: wait on start of systemd to allow Mosquitto to start (#185)
+- FIX: s/json_remove_from_parent/_delete/g
+- NEW: Add support for OwnTracks Pico by pretending `../pico` is a base topic (#205)
+- UPD: rollback: cards are now once again stored at user/device/user-device.json (but map/table also uses user/user.json if it exists)
 
 2017-05-19 version 0.7.2
 - FIX: ping/ping monitoring user/device no longer shows up on map nor in table (#195)
