@@ -1,4 +1,7 @@
 
+2018-02-13 version 0.7.5
+- FIX: ocat --list now works also on file systems which don't support dtype (xfs)
+
 2018-02-12 version 0.7.4
 - FIX: fpm-make for Debian to pull in correct libsodium package (thanks @juzam!) 
 
