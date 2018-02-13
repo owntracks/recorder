@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <glob.h>
 #include <ctype.h>
+#include <assert.h>
 #include <sys/stat.h>
 #include "utstring.h"
 #include "storage.h"
@@ -422,7 +423,25 @@ static void ls(char *path, JsonNode *obj)
 	}
 
 	while ((dp = readdir(dirp)) != NULL) {
-		if ((*dp->d_name != '.') && (dp->d_type == DT_DIR)) {
+		bool is_dir = false;
+
+		/* XFS doesn't support d_type, and it's used on CentOS 7.
+		 * Ensure we can determine whether something's a directory.
+		 */
+
+		if (dp->d_type == DT_DIR) {
+			is_dir = true;
+		} else {
+			struct stat st;
+			static UT_string *fullp = NULL;
+
+			utstring_renew(fullp);
+			utstring_printf(fullp, "%s/%s", path, dp->d_name);
+
+			assert(stat(UB(fullp), &st) != -1);
+			is_dir = S_ISDIR(st.st_mode);
+		}
+		if (is_dir && (*dp->d_name != '.')) {
 			json_append_element(jarr, json_mkstring(dp->d_name));
 		}
 	}
