@@ -795,11 +795,11 @@ static int candidate_line(char *line, void *param)
 	}
 
 	/* Do we have location line? */
-	if ((bp = strstr(line, "Z\t* ")) == NULL) {	/* Not a location line */
+	if ((bp = strstr(line, "_type\":\"location\"")) == NULL) {	/* Not a location line */
 		return (0);
 	}
 
-	if ((bp = strrchr(bp, '\t')) == NULL) {
+	if ((bp = strrchr(line, '\t')) == NULL) {
 		return (0);
 	}
 
