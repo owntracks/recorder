@@ -6,6 +6,8 @@
 #       cd /usr/ports/ftp/curl; make config; make install clean
 #       cd /usr/ports/devel/libconfig; make config; make install clean
 #
+#       You will need to install and use `gmake' to compile the Recorder
+#
 # CC      = clang
 # CFLAGS += -I/usr/local/include
 # MORELIBS += -L /usr/local/lib
