@@ -1193,6 +1193,7 @@ int main(int argc, char **argv)
 	UT_string *clientid;
 	int rc, i;
 	struct utsname uts;
+	bool do_tls = false;
 #endif /* WITH_MQTT */
 	char err[1024], *p;
 	char *logfacility = "local0";
@@ -1636,7 +1637,7 @@ int main(int argc, char **argv)
 			mosquitto_username_pw_set(mosq, ud->username, ud->password);
 		}
 
-		if (ud->psk && ud->cafile) {
+		if (ud->psk && (ud->cafile || ud->capath)) {
 			olog(LOG_ERR, "Configuring TLS together with PSK is an error");
 			exit(2);
 		}
@@ -1648,11 +1649,15 @@ int main(int argc, char **argv)
 				NULL);			/* Ciphers */
 		}
 
-		if (ud->cafile && *ud->cafile) {
+		do_tls =  (ud->cafile || ud->capath);
 
-			if (access(ud->cafile, R_OK) != 0) {
-				olog(LOG_ERR, "cafile configured as `%s' can't be opened: errno=%d", ud->cafile, errno);
-				exit(2);
+		if (do_tls) {
+
+			if (ud->cafile) {
+				if (access(ud->cafile, R_OK) != 0) {
+					olog(LOG_ERR, "cafile configured as `%s' can't be opened: errno=%d", ud->cafile, errno);
+					exit(2);
+				}
 			}
 
 			rc = mosquitto_tls_set(mosq,
@@ -1679,7 +1684,7 @@ int main(int argc, char **argv)
 		olog(LOG_INFO, "connecting to MQTT on %s:%d as clientID %s %s %s",
 			ud->hostname, ud->port,
 			ud->clientid,
-			((ud->cafile && *ud->cafile) || (ud->psk && *ud->psk)) ? "with" : "without",
+			do_tls ? "with" : "without",
 			(ud->psk && *ud->identity) ? "PSK" : "TLS");
 
 		rc = mosquitto_connect(mosq, ud->hostname, ud->port, 60);
