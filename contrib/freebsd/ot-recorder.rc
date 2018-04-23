@@ -1,0 +1,49 @@
+#!/bin/sh
+# $FreeBSD$
+#
+# PROVIDE: otrecorder
+# REQUIRE: LOGIN mosquitto hass
+# KEYWORD: shutdown
+#
+. /etc/rc.subr
+
+name=otrecorder
+rcvar=${name}_enable
+
+start_cmd=${name}_start
+stop_cmd=${name}_stop
+
+load_rc_config $name
+: ${otrecorder_enable:=NO}
+: ${otrecorder_pidfile:=/var/run/otrecorder.pid}
+
+command=/usr/local/sbin/ot-recorder
+#command_args="--debug --norevgeo"
+command_args="--debug --label MyMap"
+
+otrecorder_start()
+{
+  if [ -f $otrecorder_pidfile ] && kill -0 $(cat $otrecorder_pidfile) >/dev/null 2>&1 ; then
+    echo 'Service already running'
+    return 1
+  fi
+  echo 'Starting service after 10 secs so mosquitto is up'
+  sleep 10;
+  $command $command_args &
+  echo $! > ${otrecorder_pidfile}
+  echo 'Service started'
+}
+
+otrecorder_stop()
+{
+  if [ ! -f $otrecorder_pidfile ] || ! kill -0 $(cat $otrecorder_pidfile) >/dev/null 2>&1 ; then
+    echo 'Service not running'
+    return 1
+  fi
+  echo 'Stopping service'
+  kill $(cat $otrecorder_pidfile)
+  while ps -p $(cat $otrecorder_pidfile) >/dev/null 2>&1 ; do sleep 1;done
+  echo 'Service stopped'
+}
+
+run_rc_command "$1"
