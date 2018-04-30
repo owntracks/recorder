@@ -1,4 +1,9 @@
 
+2018-04-30 version 0.7.6
+- NEW: contrib/freebsd/  notes and rc (#229)
+- NEW: View using Leaflet (#226)
+- FIX: CAPATH or CAFILE set TLS (#232)
+
 2018-02-13 version 0.7.5
 - FIX: ocat --list now works also on file systems which don't support dtype (xfs)
 
