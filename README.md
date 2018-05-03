@@ -261,7 +261,7 @@ This section lists the most important options of the Recorder with their long na
 
 `--precision` overrides the compiled-in default. (See "Precision" later.)
 
-`--geokey` sets the Google API key for reverse geo lookups.  If you do more than 2500 (currently) reverse-geo requests per day, you'll need an API key for Google's geocoding service. Specify that here.
+`--geokey` sets the Google API key for reverse geo lookups.  If you do more than 2500 (currently) reverse-geo requests per day, you'll need an API key for Google's geocoding service. Specify that here. (Note: these limits have changed in May 2018; make sure to check Google's Map Project documentation before using this; we recommend using [OpenCage](doc/OPENCAGE.md) as reverse geo-encoder.)
 
 `--debug` enables a bit of additional debugging on stderr.
 
