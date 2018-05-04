@@ -25,7 +25,9 @@ function otr_revgeo(topic, user, device, lat, lon)
 	}
 	local res, status, err = gc:reverse_geocode(lat, lon, params)
 	if status == 200 then
-		d['addr'] = res.results[1].formatted
+		d['cc']		= string.upper(res.results[1].components.country_code)
+		d['locality']	= res.results[1].components.city
+		d['addr']	= res.results[1].formatted
 	else
 		print("OpenCage lookup returned status=" .. status)
 	end
