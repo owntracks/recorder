@@ -261,7 +261,13 @@ This section lists the most important options of the Recorder with their long na
 
 `--precision` overrides the compiled-in default. (See "Precision" later.)
 
-`--geokey` sets the Google API key for reverse geo lookups.  If you do more than 2500 (currently) reverse-geo requests per day, you'll need an API key for Google's geocoding service. Specify that here. (Note: these limits have changed in May 2018; make sure to check Google's Map Project documentation before using this; we recommend using [OpenCage](doc/OPENCAGE.md) as reverse geo-encoder.)
+`--geokey` sets the API key for reverse geo lookups. We support Google (legacy) and OpenCage which we recommend [OpenCage](doc/OPENCAGE.md). You will require an API key for both. For backwards-compatibility the API key for Google is used "as is", whereas you prefix the OpenCage API key with the string `"opencage:"`:
+```
+--geokey "opencage:xxxxxxxxxxxxxxxxxxxxxx"      # for OpenCage
+--geokey "xxxxxxxxxxxxxxxxxxxxxx"               # for Google
+```
+
+(The rules of the game for using Google as reverse geocoder changed in May 2018; make sure to check Google's Map Project documentation before using this)
 
 `--debug` enables a bit of additional debugging on stderr.
 
@@ -632,9 +638,9 @@ isotst,vel,addr
 If not disabled with option `--norevgeo`, the Recorder will attempt to perform a reverse-geo lookup on the location coordinates it obtains. These can be either
 
 1. obtained via a Lua function you define (see [doc/HOOKS.md](doc/HOOKS.md))
-2. obtained via a call to Google
+2. obtained via a call to one of the supported reverse geocoders (see `--geokey`)
 
-Lookups performed via Google are stored in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., Recorder keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
+Results of lookups are stored in an LMDB database. If a lookup is not possible, for example because you're over quota, the service isn't available, etc., Recorder keeps tracks of the coordinates which could *not* be resolved in a file named `missing`:
 
 ```
 $ cat store/ghash/missing
@@ -663,7 +669,7 @@ and a precision of 2 would mean that a very large part of France resolves to a s
 
 ![geohash2](assets/geohash-2.png)
 
-The bottom line: if you run the Recorder with just a few devices and want to know quite exactly where you've been, use a high precision (7 is probably good). If you, on the other hand, run Recorder with many devices and are only interested in where a device was approximately, lower the precision; this also has the effect that fewer reverse-geo lookups will be performed in the Google infrastructure. (Also: respect their quotas!)
+The bottom line: if you run the Recorder with just a few devices and want to know quite exactly where you've been, use a high precision (7 is probably good). If you, on the other hand, run Recorder with many devices and are only interested in where a device was approximately, lower the precision; this also has the effect that fewer reverse-geo lookups will be performed in the geocoding service infrastructure. (Also: respect their quotas!)
 
 ### The geo cache
 

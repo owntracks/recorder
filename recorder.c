@@ -1168,7 +1168,7 @@ void usage(char *prog)
 #endif
 	printf("  --precision		       ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --norec		       don't maintain REC files\n");
-	printf("  --geokey		       optional Google reverse-geo API key\n");
+	printf("  --geokey		       optional reverse-geo API key\n");
 	printf("  --debug  		       additional debugging\n");
 	printf("\n");
 	printf("Options override these environment variables:\n");

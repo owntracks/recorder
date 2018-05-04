@@ -20,13 +20,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 #include <curl/curl.h>
 #include "utstring.h"
 #include "geo.h"
 #include "json.h"
 #include "util.h"
 
-#define GURL "%s://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN"
+typedef enum {
+	GOOGLE,
+	OPENCAGE
+} geocoder;
+
+#define GOOGLE_URL "https://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN&key=%s"
+
+#define OPENCAGE_URL "https://api.opencagedata.com/geocode/v1/json?q=%lf+%lf&key=%s&abbrv=1&no_record=1&limit=1&format=json"
 
 static CURL *curl;
 
@@ -131,15 +139,113 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_st
 	return (1);
 }
 
+static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
+{
+	JsonNode *json, *results, *address, *ac, *zeroth;
+
+	/*
+	* We are parsing this. I want the formatted in `addr' and
+	* the country code short_name in `cc'
+	*
+	* {
+	*   "documentation": "https://geocoder.opencagedata.com/api",
+	*   "licenses": [
+	*     {
+	*       "name": "CC-BY-SA",
+	*       "url": "http://creativecommons.org/licenses/by-sa/3.0/"
+	*     },
+	*     {
+	*       "name": "ODbL",
+	*       "url": "http://opendatacommons.org/licenses/odbl/summary/"
+	*     }
+	*   ],
+	*   "rate": {
+	*     "limit": 2500,
+	*     "remaining": 2495,
+	*     "reset": 1525392000
+	*   },
+	*   "results": [
+	*     {
+	*       ...
+	*       "components": {
+	*         "city": "Sablonnières",
+	*         "country": "France",
+	*         "country_code": "fr",
+	*         "place": "La Terre Noire",
+	*       },
+	*       "formatted": "La Terre Noire, 77510 Sablonnières, France",
+	*/
+
+	if ((json = json_decode(UB(geodata))) == NULL) {
+		return (0);
+	}
+
+	if ((results = json_find_member(json, "results")) != NULL) {
+		if ((zeroth = json_find_element(results, 0)) != NULL) {
+			address = json_find_member(zeroth, "formatted");
+			if ((address != NULL) && (address->tag == JSON_STRING)) {
+				utstring_printf(addr, "%s", address->string_);
+			}
+		}
+
+		if ((ac = json_find_member(zeroth, "components")) != NULL) {
+
+			/*
+			 * {
+			 *   "ISO_3166-1_alpha-2": "FR",
+			 *   "_type": "place",
+			 *   "city": "Sablonnières",
+			 *   "country": "France",
+			 *   "country_code": "fr",
+			 *   "county": "Seine-et-Marne",
+			 *   "place": "La Terre Noire",
+			 *   "political_union": "European Union",
+			 *   "postcode": "77510",
+			 *   "state": "Île-de-France"
+			 * }
+			 */
+
+			JsonNode *j;
+			int have_cc = 0, have_locality = 0;
+
+			if ((j = json_find_member(ac, "country_code")) != NULL) {
+				if (j->tag == JSON_STRING) {
+					char *bp = j->string_;
+					int ch;
+
+					while (*bp) {
+						ch = (islower(*bp)) ? toupper(*bp) : *bp;
+						utstring_printf(cc, "%c", ch);
+						++bp;
+					}
+					have_cc = 1;
+				}
+			}
+
+			if ((j = json_find_member(ac, "city")) != NULL) {
+				if (j->tag == JSON_STRING) {
+					utstring_printf(locality, "%s", j->string_);
+					have_locality = 1;
+				}
+			}
+		}
+	}
+
+	json_delete(json);
+	return (1);
+}
+
 JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_string *cc)
 {
 	static UT_string *url;
 	static UT_string *cbuf;		/* Buffer for curl GET */
 	static UT_string *locality = NULL;
+	long http_code;
 	CURLcode res;
 	int rc;
 	JsonNode *geo;
 	time_t now;
+	geocoder geocoder;
 
 	if ((geo = json_mkobject()) == NULL) {
 		return (NULL);
@@ -155,12 +261,21 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	utstring_renew(cbuf);
 	utstring_renew(locality);
 
-	if (ud && ud->geokey) {
-		utstring_printf(url, GURL, "https", lat, lon);
-		utstring_printf(url, "&key=%s", ud->geokey);
-	} else {
-		utstring_printf(url, GURL, "http", lat, lon);
+	if (!ud->geokey || !*ud->geokey) {
+		utstring_printf(addr, "Unknown (%lf,%lf)", lat, lon);
+		utstring_printf(cc, "__");
+		return (geo);
 	}
+
+	if (strncmp(ud->geokey, "opencage:", strlen("opencage:")) == 0) {
+		utstring_printf(url, OPENCAGE_URL, lat, lon, ud->geokey + strlen("opencage:"));
+		geocoder = OPENCAGE;
+	} else {
+		utstring_printf(url, GOOGLE_URL, lat, lon, ud->geokey);
+		geocoder = GOOGLE;
+	}
+
+	// printf("--------------- %s\n", UB(url));
 
 	curl_easy_setopt(curl, CURLOPT_URL, UB(url));
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
@@ -172,8 +287,10 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)cbuf);
 
 	res = curl_easy_perform(curl);
-	if (res != CURLE_OK) {
-		utstring_printf(addr, "revgeo failed for (%lf,%lf)", lat, lon);
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+	if (res != CURLE_OK || http_code != 200) {
+		utstring_printf(addr, "revgeo failed for (%lf,%lf): HTTP status_code==%ld", lat, lon, http_code);
 		utstring_printf(cc, "__");
 		fprintf(stderr, "curl_easy_perform() failed: %s\n",
 		              curl_easy_strerror(res));
@@ -181,9 +298,16 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 		return (NULL);
 	}
 
-	// printf("%s\n", UB(url));
+	switch (geocoder) {
+		case GOOGLE:
+			rc = goog_decode(cbuf, addr, cc, locality);
+			break;
+		case OPENCAGE:
+			rc = opencage_decode(cbuf, addr, cc, locality);
+			break;
+	}
 
-	if (!(rc = goog_decode(cbuf, addr, cc, locality))) {
+	if (!rc) {
 		json_delete(geo);
 		return (NULL);
 	}

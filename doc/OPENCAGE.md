@@ -2,7 +2,15 @@
 
 We now (since May 2018) recommend using [OpenCage](https://geocoder.opencagedata.com) as reverse geo-coding provider: their [pricing](https://geocoder.opencagedata.com/pricing) is attractive and they currently offer a free tier which allows up to 2,500 requests per day.
 
-In order to use OpenCage with the Recorder, proceed as follows:
+Use the OpenCage API in Recorder simply by setting the `--geokey` option to the string `"opencage:"` with your API key concatenated to it. (Without the substring `opencage:` the Recorder falls back to using Google in order to maintain backwards-compatibility.)
+
+```
+--geokey "opencage:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+Be aware that the Recorder uses the following settings: `no_record=1&limit=1`. OpenCage documents the first as meaning it will not log the request, and that protects your privacy.
+
+In order to use OpenCage with the Recorder using Lua, proceed as follows:
 
 1. Make sure you've built the Recorder with support for Lua
 1. Install the required Lua modules:
