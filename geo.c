@@ -206,7 +206,6 @@ static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, U
 			 */
 
 			JsonNode *j;
-			int have_cc = 0, have_locality = 0;
 
 			if ((j = json_find_member(ac, "country_code")) != NULL) {
 				if (j->tag == JSON_STRING) {
@@ -218,14 +217,12 @@ static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, U
 						utstring_printf(cc, "%c", ch);
 						++bp;
 					}
-					have_cc = 1;
 				}
 			}
 
 			if ((j = json_find_member(ac, "city")) != NULL) {
 				if (j->tag == JSON_STRING) {
 					utstring_printf(locality, "%s", j->string_);
-					have_locality = 1;
 				}
 			}
 		}
