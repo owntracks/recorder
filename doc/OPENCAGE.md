@@ -22,7 +22,7 @@ luarocks install lua-opencage-geocoder
 ```bash
 export OPENCAGE_APIKEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
-4. Add a Lua script for the Recorder, which looks like [our example OpenCage Lua script](contrib/opencage.lua)
+4. Add a Lua script for the Recorder, which looks like [our example OpenCage Lua script](/contrib/opencage.lua)
 5. Launch the Recorder using something along these lines:
 ```bash
 ot-recorder --lua-script opencage.lua 'owntracks/#'
