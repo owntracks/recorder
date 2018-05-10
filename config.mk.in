@@ -2,16 +2,33 @@
 
 # Uncomment the following for FreeBSD; this assumes:
 #
-#	cd /usr/ports/databases/lmdb; make config; make install clean
-#       cd /usr/ports/ftp/curl; make config; make install clean
-#       cd /usr/ports/devel/libconfig; make config; make install clean
+# The following ports are required for building recorder:
 #
-#       You will need to install and use `gmake' to compile the Recorder
+#	databases/lmdb ftp/curl devel/libconfig net/mosquitto devel/gmake
+#
+# You can install them via the ports collection as:
+#
+#	$ cd /usr/ports/databases/lmdb; make install
+#	$ cd /usr/ports/ftp/curl; make install
+#	$ cd /usr/ports/devel/libconfig; make install
+#	$ cd /usr/ports/net/mosquitto; make install
+#	$ cd /usr/ports/devel/gmake; make install
+#
+# Or as a package:
+#
+#	$ sudo pkg install lmdb curl libconfig mosquitto gmake
+#
+# Uncomment the following lines and replaced "no" with "yes":
 #
 # CC      = clang
 # CFLAGS += -I/usr/local/include
 # MORELIBS += -L /usr/local/lib
 FREEBSD ?= no
+#
+# Now build recorder with the "gmake" command:
+#
+#	$ gmake
+#
 # -- end FreeBSD
 
 INSTALLDIR = /usr/local
