@@ -1,6 +1,6 @@
 include config.mk
 
-CFLAGS	+=-Wall -Werror -Wno-format-truncation
+CFLAGS	+=-Wall -Werror 
 LIBS	= $(MORELIBS) -lm
 LIBS 	+= -lcurl -lconfig
 
