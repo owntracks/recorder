@@ -1,6 +1,7 @@
 var reconnectTimeout = 3000;
 var ws_url;
 var ws;
+var ws_callback = map_marker;
 
 function setColor(element, color) {
 	element.style.border = '2px solid ' + color;
@@ -43,7 +44,7 @@ function ws_connect() {
 				}
 
 				if (loc['_type'] == 'location') {
-					map_marker(loc);
+					ws_callback(loc);
 				}
 			} catch (x) {
 				;
@@ -56,9 +57,13 @@ function ws_connect() {
 	};
 }
 
-function ws_go() {
+function ws_go(callback) {
 	// var url = 'ws://' + location.host + '/ws/last';
 	// console.log(JSON.stringify(location));
+  
+        if (typeof callback != 'undefined') {
+          ws_callback=callback;
+        } 
 
 	var url = ("https:" == document.location.protocol ? "wss://" : "ws://") + location.host + "/";
 	var parts = location.pathname.split('/');
@@ -66,6 +71,7 @@ function ws_go() {
 		url = url + parts[i] + "/";
 	}
 	url = url + "ws/last";
+
 	console.log("Websocket URI: " + url);
 
 
