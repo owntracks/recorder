@@ -1,6 +1,6 @@
 include config.mk
 
-CFLAGS	+=-Wall -Werror 
+CFLAGS	+=-Wall -Werror
 LIBS	= $(MORELIBS) -lm
 LIBS 	+= -lcurl -lconfig
 
