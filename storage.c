@@ -41,6 +41,7 @@
 char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
 #define LINESIZE	8192
+#define LARGEBUF        (BUFSIZ * 2)
 
 static struct gcache *gc = NULL;
 
@@ -49,9 +50,9 @@ void storage_init(int revgeo)
 	setenv("TZ", "UTC", 1);
 
 	if (revgeo) {
-		char path[BUFSIZ * 2];
+		char path[LARGEBUF];
 
-		snprintf(path, BUFSIZ * 2, "%s/ghash", STORAGEDIR);
+		snprintf(path, LARGEBUF, "%s/ghash", STORAGEDIR);
 		gc = gcache_open(path, NULL, TRUE);
 		if (gc == NULL) {
 			olog(LOG_ERR, "storage_init(): gc is NULL");
@@ -61,17 +62,17 @@ void storage_init(int revgeo)
 
 void storage_gcache_dump(char *lmdbname)
 {
-	char path[BUFSIZ*2];
-	snprintf(path, BUFSIZ*2, "%s/ghash", STORAGEDIR);
+	char path[LARGEBUF];
+	snprintf(path, LARGEBUF, "%s/ghash", STORAGEDIR);
 
 	gcache_dump(path, lmdbname);
 }
 
 void storage_gcache_load(char *lmdbname)
 {
-	char path[BUFSIZ*2];
+	char path[LARGEBUF];
 
-	snprintf(path, BUFSIZ*2, "%s/ghash", STORAGEDIR);
+	snprintf(path, LARGEBUF, "%s/ghash", STORAGEDIR);
 	gcache_load(path, lmdbname);
 }
 
@@ -178,19 +179,19 @@ static void get_gw_data(char *username, char *device, JsonNode *last)
 
 void append_card_to_object(JsonNode *obj, char *user, char *device)
 {
-	char path[BUFSIZ*2], path1[BUFSIZ*2], *cardfile = NULL;
+	char path[LARGEBUF], path1[LARGEBUF], *cardfile = NULL;
 	JsonNode *card;
 
 	if (!user || !*user)
 		return;
 
 
-	snprintf(path, BUFSIZ*2, "%s/cards/%s/%s/%s-%s.json",
+	snprintf(path, LARGEBUF, "%s/cards/%s/%s/%s-%s.json",
 		STORAGEDIR, user, device, user, device);
 	if (access(path, R_OK) == 0) {
 		cardfile = path;
 	} else {
-		snprintf(path1, BUFSIZ*2, "%s/cards/%s/%s.json",
+		snprintf(path1, LARGEBUF, "%s/cards/%s/%s.json",
 			STORAGEDIR, user, user);
 
 		if (access(path1, R_OK) == 0) {
@@ -207,10 +208,10 @@ void append_card_to_object(JsonNode *obj, char *user, char *device)
 
 void append_device_details(JsonNode *userlist, char *user, char *device)
 {
-	char path[BUFSIZ*2];
+	char path[LARGEBUF];
 	JsonNode *node, *last;
 
-	snprintf(path, BUFSIZ*2, "%s/last/%s/%s/%s-%s.json",
+	snprintf(path, LARGEBUF, "%s/last/%s/%s/%s-%s.json",
 		STORAGEDIR, user, device, user, device);
 
 	last = json_mkobject();
@@ -233,7 +234,7 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 	}
 
 	/* Extra data */
-	snprintf(path, BUFSIZ*2, "%s/last/%s/%s/extra.json",
+	snprintf(path, LARGEBUF, "%s/last/%s/%s/extra.json",
 		STORAGEDIR, user, device);
 	json_copy_from_file(last, path);
 #if WITH_GREENWICH
@@ -253,9 +254,9 @@ JsonNode *last_users(char *in_user, char *in_device, JsonNode *fields)
 {
 	JsonNode *obj = json_mkobject();
 	JsonNode *un, *dn, *userlist = json_mkarray();
-	char path[BUFSIZ*2], user[BUFSIZ], device[BUFSIZ];
+	char path[LARGEBUF], user[BUFSIZ], device[BUFSIZ];
 
-	snprintf(path, BUFSIZ*2, "%s/last", STORAGEDIR);
+	snprintf(path, LARGEBUF, "%s/last", STORAGEDIR);
 
 	// fprintf(stderr, "last_users(%s, %s)\n", (in_user) ? in_user : "<nil>",
 	// 	(in_device) ? in_device : "<nil>");
@@ -1481,7 +1482,7 @@ void csv_output(JsonNode *array, output_type otype, JsonNode *fields, void (*fun
 
 char *storage_userphoto(char *username)
 {
-	static char path[BUFSIZ*2];
+	static char path[LARGEBUF];
 
 	if (!username || !*username)
 		return (NULL);
@@ -1498,7 +1499,7 @@ char *storage_userphoto(char *username)
 
 void extra_http_json(JsonNode *array, char *user, char *device)
 {
-	char path[BUFSIZ*2], *js_string;
+	char path[LARGEBUF], *js_string;
 	JsonNode *node;
 
 	if (!array || !user || !*user || !device || !*device)
@@ -1507,7 +1508,7 @@ void extra_http_json(JsonNode *array, char *user, char *device)
 		return;
 
 	/* Extra data */
-	snprintf(path, BUFSIZ*2, "%s/last/%s/%s/http.json",
+	snprintf(path, LARGEBUF, "%s/last/%s/%s/http.json",
 		STORAGEDIR, user, device);
 
 	if ((js_string = slurp_file(path, TRUE)) == NULL) {
