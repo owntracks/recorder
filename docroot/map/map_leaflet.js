@@ -42,14 +42,25 @@ function initialize_leaflet() {
         data.lon = feature.geometry.coordinates[1].toFixed(4);
         data.addr = feature.properties.address;
         var tst = feature.properties.tst;
+        // determine speed
+        data.speed = feature.properties.vel;
+        var speed = data.speed;
         var dt = moment.utc(tst * 1000).local();
         data.tst = tst;
         data.fulldate = dt.format("DD MMM YYYY HH:mm:ss")
-        var t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> {{ fulldate }}";
-        if (typeof(tst) === 'undefined') {
-            t = "Position: {{lat}}, {{lon}}";
+        var t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> {{ fulldate }}<br/> Speed: {{ speed }}";
+        // if speed is 0 then don't display speed
+        if (speed === 0) {
+        t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> {{ fulldate }}"
         }
-
+        if (typeof(tst) === 'undefined') {
+            t = "Position: ({{lat}},{{lon}})<br/>Speed: {{speed}}";
+        }
+        // if speed is 0 then don't display speed
+        if (typeof(tst) === 'undefined' && speed === 0) {
+            t = "Position: ({{lat}},{{lon}})";
+        }
+        
         layer.bindPopup(Mustache.render(t, data));
       }
     },
