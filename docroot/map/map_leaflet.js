@@ -42,6 +42,9 @@ function initialize_leaflet() {
         data.lon = feature.geometry.coordinates[1].toFixed(4);
         data.addr = feature.properties.address;
         var tst = feature.properties.tst;
+        // determine speed
+        data.speed = feature.properties.vel;
+        var speed = data.speed;
         var dt = moment.utc(tst * 1000).local();
         data.tst = tst;
         data.fulldate = dt.format("DD MMM YYYY HH:mm:ss")
