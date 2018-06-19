@@ -82,9 +82,10 @@ function initialize_googlemaps() {
 			tst:   tst,
 			addr:  event.feature.getProperty('address'),
 			fulldate: dt.format("DD MMM YYYY HH:mm:ss"),
+			vel:   event.feature.getProperty('vel'),
 		};
 
-		var t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> {{ fulldate }}";
+		var t = "{{ addr }}<br/><span class='latlon'>({{ lat }},{{lon}})</span> vel={{vel}} {{ fulldate }}";
 		if (typeof(tst) === 'undefined') {
 			t = "Position: {{lat}}, {{lon}}";
 		}

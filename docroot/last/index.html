@@ -51,7 +51,7 @@
 	  script.type = 'text/javascript';
 	  if (typeof apiKey != 'undefined' && apiKey != "" ) {
             script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
-	      '&signed_in=true&key=' + apiKey +'&callback=initialize_googlemaps';
+	      '&key=' + apiKey +'&callback=initialize_googlemaps';
           } else {
             $("head").append("<link rel='stylesheet' href='https://unpkg.com/leaflet@1.0.2/dist/leaflet.css' type='text/css' />");
             
