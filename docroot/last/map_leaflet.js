@@ -16,9 +16,13 @@ function initialize_leaflet() {
     if (!markers.hasOwnProperty(id)) {
       markers[id] = L.marker([loc.lat, loc.lon]);
       markerLayer.addLayer(markers[id]);
+      if (loc.face) {
+        markers[id]._face=loc.face;
+      }
     } 
 
     markers[id].setLatLng({lat: loc.lat, lng: loc.lon});
+    loc.face=markers[id]._face;
     var description = formatPopup(loc);
     
     markers[id].bindPopup(description.htmldesc).openPopup()
