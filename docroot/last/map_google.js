@@ -3,7 +3,7 @@ var do_fit = false;
 var markers = {};
 var livemarkers = true;
 
-function initialize() {
+function initialize_googlemaps() {
 	var lat = 50.098280;
 	var lon = 10.187189;
 	var params = getSearchParameters();
