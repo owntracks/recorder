@@ -164,7 +164,8 @@
             formatted_local_iDevice_todate = date.toISOString().substring(0, 16);
           }
           else formatted_UTC_iDevice_todate = date.toISOString().substring(0, 16);
-          // from datum 0:00 at night UTC time
+          // from date 0:00 at night UTC time
+          var date = new Date();
           date.setHours(00);
           tz_comp = date.getTimezoneOffset()/60; 
           date.setHours(date.getHours() - tz_comp);
