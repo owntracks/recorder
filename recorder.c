@@ -1417,6 +1417,12 @@ int main(int argc, char **argv)
 			case 'p':
 				ud->port = atoi(optarg);
 				break;
+			case 20:
+				ud->psk = strdup(optarg);
+				break;
+			case 21:
+				ud->identity = strdup(optarg);
+				break;
 #endif /* WITH_MQTT */
 			case 5:
 				geohash_setprec(atoi(optarg));
@@ -1442,13 +1448,6 @@ int main(int argc, char **argv)
 			case 15:
 				if (ud->browser_apikey) free(ud->browser_apikey);
 				ud->browser_apikey = strdup(optarg);
-				break;
-
-			case 20:
-				ud->psk = strdup(optarg);
-				break;
-			case 21:
-				ud->identity = strdup(optarg);
 				break;
 #endif
 			case 'D':
