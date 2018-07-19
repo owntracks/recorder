@@ -1,6 +1,7 @@
 <!DOCTYPE html>
   <html lang="en">
     <head>
+      <!-- Version  1.1 19-07-2018 -->
       <title>Recorder</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="mobile-web-app-capable" content="yes">
@@ -42,25 +43,29 @@
         var urldata = Httpreq.responseText;          
         if (urldata.length < 3) document.getElementById('error3').innerHTML = "OT-recorder user data couldn't be loaded";
         //parsing users en devices
-        var stringpointer = 0;
+        var stringpointer = 0;        
+        var beginposus;
+        var endposus;
         var beginposdev;
         var endposdev;
+        var biggest;        
         var user =[];
         var device =[];
         var index = 0;
         // get users and devices
         while (stringpointer < urldata.length) {
           beginposus = urldata.indexOf("user", stringpointer);
-          beginposdev = urldata.indexOf("device", beginposus);
-          endposdev = urldata.indexOf("fulldate", beginposdev);
-          if (stringpointer < endposdev) stringpointer = endposdev;
-          else { break; }   
-          user[index] = urldata.substr((beginposus+11),(beginposdev-beginposus-14));
-          device[index] = urldata.substr((beginposdev+9),(endposdev-beginposdev-12));
+          endposus = urldata.indexOf('"', beginposus+13);
+          beginposdev = urldata.indexOf("device", stringpointer);
+          endposdev = urldata.indexOf('"', beginposdev+9);
+          if (endposdev < endposus) biggest = endpondus;
+          else biggest = endposdev;
+          if (stringpointer < biggest) stringpointer = biggest;
+          else { break; }
+          user[index] = urldata.substr(beginposus+11,endposus-(beginposus+11));
+          device[index] = urldata.substr(beginposdev+9,endposdev-(beginposdev+9));
           index ++;
         }
-
-
         //build user/device radio button list
         var radio_home = document.getElementById("usertable");
         function makeRadioButton(name, useriddeviceid, useriddeviceidinput) {
