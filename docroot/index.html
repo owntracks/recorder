@@ -58,7 +58,7 @@
           endposus = urldata.indexOf('"', beginposus+13);
           beginposdev = urldata.indexOf("device", stringpointer);
           endposdev = urldata.indexOf('"', beginposdev+9);
-          if (endposdev < endposus) biggest = endpondus;
+          if (endposdev < endposus) biggest = endposus;
           else biggest = endposdev;
           if (stringpointer < biggest) stringpointer = biggest;
           else { break; }
