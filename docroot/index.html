@@ -1,7 +1,7 @@
 <!DOCTYPE html>
   <html lang="en">
     <head>
-      <!-- Version  1.1 19-07-2018 -->
+      <!-- Version  1.2 20-07-2018 -->
       <title>Recorder</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="mobile-web-app-capable" content="yes">
@@ -54,7 +54,7 @@
         var index = 0;
         // get users and devices
         while (stringpointer < urldata.length) {
-          beginposus = urldata.indexOf("user", stringpointer);
+          beginposus = urldata.indexOf("username", stringpointer);
           endposus = urldata.indexOf('"', beginposus+13);
           beginposdev = urldata.indexOf("device", stringpointer);
           endposdev = urldata.indexOf('"', beginposdev+9);
