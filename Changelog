@@ -1,5 +1,5 @@
 
-2018-09-01 version 0.7.8
+2018-09-01 version 0.7.9
 - NEW: support for OSM on live map, by @avanc (#244)
 - FIX: compilation on gcc 8 no longer warns about truncated strings (#242)
 - FIX: remove deprecated signed_in in Google maps
