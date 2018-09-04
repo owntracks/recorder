@@ -10,6 +10,10 @@ Use the OpenCage API in Recorder simply by setting the `--geokey` option to the 
 
 Be aware that the Recorder uses the following settings: `no_record=1&limit=1`. OpenCage documents the first as meaning it will not log the request, and that protects your privacy.
 
+## With Lua
+
+There was experimental Lua support for OpenCage, but this is no longer necessary; we keep the following for historic purposes only.
+
 In order to use OpenCage with the Recorder using Lua, proceed as follows:
 
 1. Make sure you've built the Recorder with support for Lua
