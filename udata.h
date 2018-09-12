@@ -13,6 +13,8 @@
 struct udata {
 	JsonNode *topics;		/* Array of topics to subscribe to */
 	int ignoreretained;		/* True if retained messages should be ignored */
+	char *identity;			/* PSK identity (hint) */
+    char *psk;			    /* PSK */
 #if WITH_MQTT
 	struct mosquitto *mosq;		/* MQTT connection */
 	char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
@@ -26,8 +28,6 @@ struct udata {
 	char *capath;			/* CA path */
 	char *certfile;			/* certificate (client) */
 	char *keyfile;			/* client key */
-	char *identity;			/* PSK identity (hint) */
-	char *psk;			/* PSK */
 #endif
 	int skipdemo;			/* True if _demo users are to be skipped */
 	int revgeo;			/* True (default) if we should do reverse Geo lookups */
