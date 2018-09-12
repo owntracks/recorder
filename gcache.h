@@ -4,7 +4,7 @@
 #include "json.h"
 #include "lmdb.h"
 
-#define LMDB_DB_SIZE	(100000 * 1024 * 1024)
+#define LMDB_DB_SIZE	((size_t)100000 * (size_t)(1024 * 1024))
 
 struct gcache {
 	MDB_env *env;
