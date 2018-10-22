@@ -9,7 +9,7 @@ before_install:
 - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
 - sudo DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_FRONTEND=noninteractive apt-get update -qq
 - apt-cache search mosquitto
-- sudo apt-get install -qq libmosquitto-dev libconfig8-dev
+- sudo apt-get install -qq libmosquitto-dev libconfig8-dev liblmdb-dev
 script:
 - cp config.mk.in config.mk
 - make
