@@ -6,6 +6,7 @@ tempdir=$(mktemp -d /tmp/ot-XXX)
 
 make install DESTDIR=$tempdir
 
+mkdir -p $tempdir/usr/share/doc/ot-recorder
 install -D README.md $tempdir/usr/share/doc/ot-recorder/README.md
 install -D etc/ot-recorder.service $tempdir/usr/share/doc/ot-recorder/ot-recorder.service
 
@@ -33,6 +34,7 @@ fpm -s dir \
         -d "libmosquitto1" \
         -d "lua" \
         -d "libconfig" \
+        -d "lmdb" \
 	--config-files etc/default/ot-recorder \
         --post-install etc/centos/postinst \
         usr var etc

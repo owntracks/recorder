@@ -45,6 +45,7 @@ fpm -s dir \
         -d "liblua5.2-0" \
         -d "libconfig9" \
         -d "${libsodium}" \
+        -d "liblmdb0" \
 	--config-files etc/default/ot-recorder \
         --post-install etc/debian/postinst \
         usr var etc
