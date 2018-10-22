@@ -20,13 +20,7 @@ OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
 
-ifneq ($(FREEBSD),yes)
-	CFLAGS += -Imdb/
-	LIBS += mdb/liblmdb.a
-	TARGETS += mdb/liblmdb.a
-else
-	LIBS += -llmdb
-endif
+LIBS += -llmdb
 LIBS += -lpthread
 
 ifeq ($(WITH_MQTT),yes)
@@ -108,11 +102,7 @@ fences.o: fences.c fences.h util.h json.h udata.h gcache.h hooks.h
 clean:
 	rm -f *.o
 clobber: clean
-	(cd mdb; $(MAKE) clean)
 	rm -f ot-recorder ocat
-
-mdb/liblmdb.a:
-	(cd mdb && $(MAKE) liblmdb.a CC=$(CC) CFLAGS="$(MDBFLAGS)" )
 
 install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
