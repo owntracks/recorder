@@ -29,12 +29,15 @@
 
 typedef enum {
 	GOOGLE,
-	OPENCAGE
+	OPENCAGE,
+	REVGEOD
 } geocoder;
 
 #define GOOGLE_URL "https://maps.googleapis.com/maps/api/geocode/json?latlng=%lf,%lf&sensor=false&language=EN&key=%s"
 
 #define OPENCAGE_URL "https://api.opencagedata.com/geocode/v1/json?q=%lf+%lf&key=%s&abbrv=1&no_record=1&limit=1&format=json"
+
+#define REVGEOD_URL "http://%s/rev?lat=%lf&lon=%lf"	/* "host:port", lat, lon */
 
 static CURL *curl;
 
@@ -131,6 +134,43 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_st
 				}
 				if (have_cc && have_locality)
 					break;
+			}
+		}
+	}
+
+	json_delete(json);
+	return (1);
+}
+
+static int revgeod_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
+{
+	JsonNode *json, *village, *j, *a;
+
+	/*
+	* We are parsing this data returned from revgeod(1):
+	*
+	* {"address":{"village":"La Terre Noire, 77510 Sablonnières, France","locality":"Sablonnières","cc":"FR","s":"lmdb"}}
+	*
+	*/
+
+	if ((json = json_decode(UB(geodata))) == NULL) {
+		return (0);
+	}
+
+	if ((a = json_find_member(json, "address")) != NULL) {
+		if ((village = json_find_member(a, "village")) != NULL) {
+			if (village->tag == JSON_STRING) {
+				utstring_printf(addr, "%s", village->string_);
+			}
+		}
+		if ((j = json_find_member(a, "locality")) != NULL) {
+			if (j->tag == JSON_STRING) {
+				utstring_printf(locality, "%s", j->string_);
+			}
+		}
+		if ((j = json_find_member(a, "cc")) != NULL) {
+			if (j->tag == JSON_STRING) {
+				utstring_printf(cc, "%s", j->string_);
 			}
 		}
 	}
@@ -267,12 +307,16 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	if (strncmp(ud->geokey, "opencage:", strlen("opencage:")) == 0) {
 		utstring_printf(url, OPENCAGE_URL, lat, lon, ud->geokey + strlen("opencage:"));
 		geocoder = OPENCAGE;
+	} else if (strncmp(ud->geokey, "revgeod:", strlen("revgeod:")) == 0) {
+		/* revgeod:localhost:8865 */
+		utstring_printf(url, REVGEOD_URL, ud->geokey + strlen("revgeod:"), lat, lon);
+		geocoder = REVGEOD;
 	} else {
 		utstring_printf(url, GOOGLE_URL, lat, lon, ud->geokey);
 		geocoder = GOOGLE;
 	}
 
-	// printf("--------------- %s\n", UB(url));
+	// fprintf(stderr, "--------------- %s\n", UB(url));
 
 	curl_easy_setopt(curl, CURLOPT_URL, UB(url));
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
@@ -301,6 +345,9 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 			break;
 		case OPENCAGE:
 			rc = opencage_decode(cbuf, addr, cc, locality);
+			break;
+		case REVGEOD:
+			rc = revgeod_decode(cbuf, addr, cc, locality);
 			break;
 	}
 

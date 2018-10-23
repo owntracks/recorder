@@ -269,10 +269,11 @@ This section lists the most important options of the Recorder with their long na
 
 `--precision` overrides the compiled-in default. (See "Precision" later.)
 
-`--geokey` sets the API key for reverse geo lookups. We support Google (legacy) and OpenCage which we recommend [OpenCage](doc/OPENCAGE.md). You will require an API key for both. For backwards-compatibility the API key for Google is used "as is", whereas you prefix the OpenCage API key with the string `"opencage:"`:
+`--geokey` sets the API key for reverse geo lookups. We support Google (legacy) and OpenCage which we recommend [OpenCage](doc/OPENCAGE.md). We also support [revgeod]. You will require an API key for the first two. For backwards-compatibility the API key for Google is used "as is", whereas you prefix the OpenCage API key with the string `"opencage:"`:
 ```
 --geokey "opencage:xxxxxxxxxxxxxxxxxxxxxx"      # for OpenCage
 --geokey "xxxxxxxxxxxxxxxxxxxxxx"               # for Google
+--geokey "revgeod:localhost:8865"               # for Revgeod (host:port)
 ```
 
 (The rules of the game for using Google as reverse geocoder changed in May 2018; make sure to check Google's Map Project documentation before using this)
@@ -969,3 +970,4 @@ It actually is possible to gateway location publishes arriving via HTTP into MQT
 
 If a payload is received with an element called `_geoprec` it contains an override for the Recorder's configured reverse-geo precision. So, for example, if Recorder is running with precision 7, say, and the received payload contains `"_geoprec" : 2` the 2 will be used for this particular publish. This is not used in the OwnTracks apps, but it can be used with payloads you generate otherwise. If `_geoprec` is negative, new reverse geo lookups will not be performed, but cached entries of `abs(_geoprec)` will be used.
 
+  [revgeod]: https://github.com/jpmens/revgeod
