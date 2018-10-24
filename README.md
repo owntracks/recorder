@@ -916,6 +916,8 @@ In order to use Google Maps, you have to obtain a [Google API "Browser key"](htt
 $ ot-recorder --browser-apikey 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' ...
 ```
 
+Do not configure `browser-apikey` if you want to use [OSM](https://www.openstreetmap.org).
+
 
 ### The LMDB database
 
