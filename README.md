@@ -4,7 +4,7 @@
 
 [![Build Status](https://travis-ci.org/owntracks/recorder.svg?branch=master)](https://travis-ci.org/owntracks/recorder)
 
-The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via MQTT (or HTTP) by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easily to install and operate even on low-end hardware, and it doesn't require an external database.
+The _OwnTracks Recorder_ is a lightweight program for storing and accessing location data published via [MQTT](https://mqtt.org/) (or HTTP) by the [OwnTracks](http://owntracks.org) apps. It is a compiled program which is easy to install and operate even on low-end hardware, and it doesn't require an external database.
 
 ![Architecture of the Recorder](assets/ot-recorder.png)
 
