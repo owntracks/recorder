@@ -1,4 +1,11 @@
 
+2018-11-24 version 0.8.0
+- FIX: local leaflet.js installation (#269)
+- FIX: swapped lat/lon in last/ (#268)
+- NEW: support for revgeod (#263)
+- UPD: remove bundled MDB
+- UPD: increased LMDB mapsize (#253) This increases the maximum size of the LMDB in place
+
 2018-09-01 version 0.7.9
 - NEW: support for OSM on live map, by @avanc (#244)
 - FIX: compilation on gcc 8 no longer warns about truncated strings (#242)
