@@ -52,11 +52,10 @@
 
         console.log("dataURI = " + dataURI);
 
-	var now = moment();
-
-	var f12 = now.subtract(12, 'hours').utc().format('YYYY-MM-DDTHH:mm');
-	var f7 = now.subtract(7, 'days').utc().format('YYYY-MM-DDTHH:mm');
-	var f30 = now.subtract(30, 'days').utc().format('YYYY-MM-DDTHH:mm');
+	var f0 = moment().utc().format('YYYY-MM-DDTHH:mm:ss');
+	var f12h = moment().utc().subtract(12, 'hours').format('YYYY-MM-DDTHH:mm:ss');
+	var f7d = moment().utc().subtract(7, 'days').format('YYYY-MM-DDTHH:mm:ss');
+	var f30d = moment().utc().subtract(30, 'days').format('YYYY-MM-DDTHH:mm:ss');
 
 	$.ajax({
 		url: dataURI,
@@ -75,17 +74,18 @@
 					continue;
 				}
 				d['udev'] = "user=" + d['username'] + "&device=" + d['device'];
-				d['f12'] = f12;
-				d['f7'] = f7;
-				d['f30'] = f30;
+				d['f0'] = f0;
+				d['f12h'] = f12h;
+				d['f7d'] = f7d;
+				d['f30d'] = f30d;
 
 	var line = "<tr><td>{{ username }} / {{ device }}</td>" +
-	"<td><a href='map/index.html?{{udev}}&format=geojson&from={{f12}}'>12h</a></td>" +
-	"<td><a href='map/index.html?{{udev}}&format=geojson&from={{f7}}'>7d</a></td>" +
+	"<td><a href='map/index.html?from={{f12h}}&to={{f0}}&format=geojson&{{udev}}'>12h</a></td>" +
+	"<td><a href='map/index.html?from={{f7d}}&to={{f0}}&format=geojson&{{udev}}'>7d</a></td>" +
 
-	"<td><a href='map/index.html?{{udev}}&format=linestring&from={{f12}}'>12h</a></td>" +
-	"<td><a href='map/index.html?{{udev}}&format=linestring&from={{f7}}'>7d</a></td>" +
-	"<td><a href='map/index.html?{{udev}}&format=linestring&from={{f30}}'>30d</a></td>" +
+	"<td><a href='map/index.html?from={{f12h}}&to={{f0}}&format=linestring&{{udev}}'>12h</a></td>" +
+	"<td><a href='map/index.html?from={{f7d}}&to={{f0}}&format=linestring&{{udev}}'>7d</a></td>" +
+	"<td><a href='map/index.html?from={{f30d}}&to={{f0}}&format=linestring&{{udev}}'>30d</a></td>" +
 	"</tr>";
 
 				var row = Mustache.render(line, d);
