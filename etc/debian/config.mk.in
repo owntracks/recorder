@@ -23,3 +23,5 @@ LUA_CFLAGS = `pkg-config --cflags lua5.2`
 LUA_LIBS   = `pkg-config --libs lua5.2`
 SODIUM_CFLAGS = `pkg-config --cflags libsodium`
 SODIUM_LIBS   = `pkg-config --libs libsodium`
+
+GEOCODE_TIMEOUT = 4000

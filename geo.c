@@ -322,7 +322,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "OwnTracks-Recorder/1.0");
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 2000L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, GEOCODE_TIMEOUT);
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writemem);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)cbuf);

@@ -90,6 +90,9 @@ MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
 MORELIBS += # -lssl
 
+# Milliseconds (ms) timeout for reverse geocoding
+GEOCODE_TIMEOUT = 4000
+
 # If WITH_LUA is configured, specify compilation and linkage flags
 # for Lua either manually or using pkg-config. This may require tweaking,
 # and in particular could require you to add the lua+version (e.g lua-5.2)

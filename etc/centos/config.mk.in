@@ -22,6 +22,8 @@ MORELIBS = # -lssl
 LUA_CFLAGS = `pkg-config --cflags lua`
 LUA_LIBS   = `pkg-config --libs lua`
 
+GEOCODE_TIMEOUT = 4000
+
 # Requires statically built libsodium:
 # 
 #  wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz
