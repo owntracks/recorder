@@ -9,7 +9,6 @@ config.mk
 obsolete/
 codesign.sh
 sundry/
-*.lua
 kick*.sh
 /debian/*\.debhelper
 /debian/*\.debhelper.log
