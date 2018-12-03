@@ -5,6 +5,12 @@
 
 JSON = (loadfile "/etc/ot-recorder/JSON.lua")()
 
+function otr_init()
+end
+
+function otr_exit()
+end
+
 function otr_hook(topic, _type, data)
     otr.log("DEBUG_PUB:" .. topic .. " " .. JSON:encode(data))
     if(data['_http'] == true) then
