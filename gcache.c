@@ -99,7 +99,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_txn_commit(txn);
 	if (rc != 0) {
-		olog(LOG_ERR, "cogcache_open: mmit after open %s", mdb_strerror(rc));
+		olog(LOG_ERR, "cogcache_open: commit after open %s", mdb_strerror(rc));
 		mdb_env_close(gc->env);
 		free(gc);
 		return (NULL);
