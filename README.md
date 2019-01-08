@@ -309,8 +309,8 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overridden by command-line arguments)
 | `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
 | `OTR_CAPATH`          |  Y    |               | Directory of c_rehashed PEM certificates
-| `OTR_CERTFILE`        |  Y    |               | Path to PEM-encoded client certificate
-| `OTR_KEYFILE`         |  Y    |               | Path to PEM-encoded client key
+| `OTR_CERTFILE`        |  Y    |               | Path to PEM-encoded client certificate for MQTT
+| `OTR_KEYFILE`         |  Y    |               | Path to PEM-encoded client key for MQTT
 
 
 Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
