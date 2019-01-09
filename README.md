@@ -74,7 +74,7 @@ The Recorder serves two purposes:
 
 ## Installing
 
-We provide ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image which bundles the Recorder and a Mosquitto broker [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/).
+We provide ready-to-run packages for a limited number of platforms on our [package repository](http://repo.owntracks.org/README.txt), and we provide a Docker image of the Recorder [directly from the Docker hub](https://hub.docker.com/r/owntracks/recorder).
 
 If those don't work for you, you can build from source.
 
@@ -144,7 +144,7 @@ The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/
 
 ### Docker
 
-We also have a Docker image to create containers which integrate a [Mosquitto broker](http://mosquitto.org) with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorderd/) (e.g. `docker pull owntracks/recorderd`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
+We also have a Docker image to create a container with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorder) (e.g. `docker pull owntracks/recorder`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
 
 ### Building from source
 
