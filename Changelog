@@ -1,4 +1,5 @@
 
+
 2019-01-10 version 0.8.1
 - FIX: ensure geohash is sent down the tube in http
 - FIX: environment variable OTR_GEOKEY overrides defaults config (#277)

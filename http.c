@@ -316,12 +316,14 @@ static void send_last(struct mg_connection *conn)
 			}
 
 			json_append_member(o, "_type", json_mkstring("location"));
-			if ((f = json_find_member(one, "lat")) != NULL)
+			if ((f = json_find_member(one, "lat")) != NULL) {
 				lat = f->number_;
 				json_copy_element_to_object(o, "lat", f);
-			if ((f = json_find_member(one, "lon")) != NULL)
+			}
+			if ((f = json_find_member(one, "lon")) != NULL) {
 				lon = f->number_;
 				json_copy_element_to_object(o, "lon", f);
+			}
 
 			if ((f = json_find_member(one, "tst")) != NULL)
 				json_copy_element_to_object(o, "tst", f);
