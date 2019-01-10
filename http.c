@@ -286,7 +286,8 @@ static void send_last(struct mg_connection *conn)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
 	JsonNode *user_array, *o, *one;
-	char *u = NULL, *d = NULL;
+	char *u = NULL, *d = NULL, *ghash;
+	double lat, lon;
 
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
@@ -316,8 +317,10 @@ static void send_last(struct mg_connection *conn)
 
 			json_append_member(o, "_type", json_mkstring("location"));
 			if ((f = json_find_member(one, "lat")) != NULL)
+				lat = f->number_;
 				json_copy_element_to_object(o, "lat", f);
 			if ((f = json_find_member(one, "lon")) != NULL)
+				lon = f->number_;
 				json_copy_element_to_object(o, "lon", f);
 
 			if ((f = json_find_member(one, "tst")) != NULL)
@@ -329,6 +332,10 @@ static void send_last(struct mg_connection *conn)
 			if ((f = json_find_member(one, "topic")) != NULL)
 				json_copy_element_to_object(o, "topic", f);
 
+			if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
+				json_append_member(o, "ghash", json_mkstring(ghash));
+				free(ghash);
+			}
 
 			http_ws_push_json(ud->mgserver, o);
 			json_delete(o);
