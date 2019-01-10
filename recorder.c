@@ -1315,6 +1315,12 @@ int main(int argc, char **argv)
 	}
 
 #endif
+	if ((p = getenv("OTR_GEOKEY")) != NULL) {
+		if (ud->geokey)
+			free(ud->geokey);
+		ud->geokey = strdup(p);
+	}
+
 	if ((p = getenv("OTR_BROWSERAPIKEY")) != NULL) {
 		if (ud->browser_apikey)
 			free(ud->browser_apikey);
