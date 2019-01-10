@@ -1,4 +1,10 @@
 
+2019-01-10 version 0.8.1
+- FIX: ensure geohash is sent down the tube in http
+- FIX: environment variable OTR_GEOKEY overrides defaults config (#277)
+- UPD: Surface GEOCODE_TIMEOUT into config.mk (#272)
+- FIX: Correctly calculate time differences (#271)
+
 2018-11-24 version 0.8.0
 - FIX: local leaflet.js installation (#269)
 - FIX: swapped lat/lon in last/ (#268)
