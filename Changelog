@@ -1,4 +1,7 @@
 
+2019-01-11 version 0.8.2
+- FIX: fix paths to be relative to docroot for map/, views/, and  last/
+- FIX: Link to location in table/ now uses OSM, our default (#278)
 
 2019-01-10 version 0.8.1
 - FIX: ensure geohash is sent down the tube in http
