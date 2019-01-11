@@ -77,8 +77,8 @@ function initialize_leaflet() {
     onEachFeature: function(feature, layer) {
       if (feature.geometry.type == "Point") { 
         var data ={}
-        data.lat = feature.geometry.coordinates[0].toFixed(4);
-        data.lon = feature.geometry.coordinates[1].toFixed(4);
+        data.lat = feature.geometry.coordinates[1].toFixed(4);
+        data.lon = feature.geometry.coordinates[0].toFixed(4);
         data.addr = feature.properties.addr;
         data.label = feature.properties.label ? feature.properties.label : (feature.properties.user + "/" + feature.properties.device);
 
