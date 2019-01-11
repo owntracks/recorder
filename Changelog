@@ -1,5 +1,6 @@
 
-2019-01-11 version 0.8.2
+2019-01-11 version 0.8.3
+- FIX: lat,lon in leaflet views
 - FIX: fix paths to be relative to docroot for map/, views/, and  last/
 - FIX: Link to location in table/ now uses OSM, our default (#278)
 
