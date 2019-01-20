@@ -37,7 +37,7 @@ typedef enum {
 
 #define OPENCAGE_URL "https://api.opencagedata.com/geocode/v1/json?q=%lf+%lf&key=%s&abbrv=1&no_record=1&limit=1&format=json"
 
-#define REVGEOD_URL "http://%s/rev?lat=%lf&lon=%lf"	/* "host:port", lat, lon */
+#define REVGEOD_URL "http://%s/rev?lat=%lf&lon=%lf&app=recorder"	/* "host:port", lat, lon */
 
 static CURL *curl;
 
