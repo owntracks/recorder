@@ -12,7 +12,7 @@ install -D etc/ot-recorder.service $tempdir/usr/share/doc/ot-recorder/ot-recorde
 
 
 name="ot-recorder"
-version=$(awk '{print $NF;}' version.h | sed -e 's/"//g' )
+version=$(awk 'NR==1 {print $NF;}' version.h | sed -e 's/"//g' )
 arch=$(uname -m)
 rpmfile="${name}_${version}_${arch}.rpm"
 
