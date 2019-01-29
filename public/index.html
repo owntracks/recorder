@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0" />
+    <title>OwnTracks</title>
+    <link href="static/style.css" rel="stylesheet">
+    <link href="static/vendor/leaflet@1.4.0/dist/leaflet.css" rel="stylesheet">
+    <link href="static/vendor/noto-sans@7/noto-sans.css" rel="stylesheet">
+    <link href="static/vendor/materialdesignicons@3.3.92/css/materialdesignicons.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <nav>
+          <div class="nav-item">
+            <button
+              class="button button-outline"
+              title="Automatically center the map view and zoom in to relevant data"
+              @click="centerView"
+            >
+              Center View
+            </button>
+          </div>
+          <div class="nav-item">
+            <span class="mdi mdi-24px mdi-layers"></span>
+            <div class="dropdown">
+              <button class="dropdown-button button" title="Show/hide layers">
+                Layer Settings
+              </button>
+              <div class="dropdown-body">
+                <label tabindex="0">
+                  <input type="checkbox" v-model="showLastLocations">
+                  Show last known locations
+                </label>
+                <label tabindex="0">
+                  <input type="checkbox" v-model="showLocationHistoryLine">
+                  Show location history (line)
+                </label>
+                <label tabindex="0">
+                  <input type="checkbox" v-model="showLocationHistoryPoints">
+                  Show location history (points)
+                </label>
+                <label tabindex="0">
+                  <input type="checkbox" v-model="showLocationHeatmap">
+                  Show location heatmap
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item">
+            <span class="mdi mdi-24px mdi-calendar-range"></span>
+            <vuejs-datepicker
+              v-model="startDate"
+              :use-utc="true"
+              :disabled-dates="startDateDisabledDates"
+              title="Select start date"
+            ></vuejs-datepicker>
+            to
+            <vuejs-datepicker
+              v-model="endDate"
+              :use-utc="true"
+              :disabled-dates="endDateDisabledDates"
+              title="Select end date"
+            ></vuejs-datepicker>
+          </div>
+          <div class="nav-item">
+            <span class="mdi mdi-24px mdi-account"></span>
+            <select v-model="selectedUser" class="dropdown-button button" title="Select user">
+              <option value="">
+                Show All
+              </option>
+              <option v-for="user in users" :value="user">
+                {{ user }}
+              </option>
+            </select>
+          </div>
+          <div v-if="selectedUser" class="nav-item">
+            <span class="mdi mdi-24px mdi-cellphone-link"></span>
+            <select v-model="selectedDevice" class="dropdown-button button" title="Select device">
+              <option value="">
+                Show All
+              </option>
+              <option v-for="device in devices[selectedUser]" :value="device">
+                {{ device }}
+              </option>
+            </select>
+          </div>
+        </nav>
+        <nav class="nav-shrink">
+          <div class="nav-item">
+            <button
+              class="button button-flat button-icon"
+              title="Download raw data"
+              @click="showDownloadModal = !showDownloadModal"
+            >
+              <span class="mdi mdi-24px mdi-download"></span>
+            </button>
+          </div>
+          <div class="nav-item">
+            <button
+              class="button button-flat button-icon"
+              title="Information"
+              @click="showInformationModal = !showInformationModal"
+            >
+              <span class="mdi mdi-24px mdi-information-outline"></span>
+            </button>
+          </div>
+        </nav>
+      </header>
+      <main>
+        <l-map ref="map" :zoom="map.zoom" :center="map.center">
+          <l-tile-layer
+            :url="map.url"
+            :attribution="map.attribution"
+            :options="{maxNativeZoom: map.maxNativeZoom, maxZoom: map.maxZoom}"
+          ></l-tile-layer>
+
+          <l-circle
+            v-if="showLastLocations"
+            v-for="l in lastLocations"
+            :key="`${l.topic}-circle`"
+            :lat-lng="{lat: l.lat, lng: l.lon}"
+            :radius="l.acc"
+            :color="map.circle.color"
+            :fill-color="map.circle.fillColor"
+            :fill-opacity="map.circle.fillOpacity"
+          ></l-circle>
+
+          <l-marker
+            v-if="showLastLocations"
+            v-for="l in lastLocations"
+            :key="`${l.topic}-marker`"
+            :lat-lng="[l.lat, l.lon]"
+          >
+            <location-popup
+              :user="l.username"
+              :device="l.device"
+              :name="l.name"
+              :face="l.face"
+              :timestamp="l.tst"
+              :lat="l.lat"
+              :lon="l.lon"
+              :alt="l.alt"
+              :battery="l.batt"
+              :speed="l.vel"
+            ></location-popup>
+          </l-marker>
+
+          <l-polyline
+            v-if="showLocationHistoryLine"
+            :lat-lngs="locationHistoryLatLngs"
+            :color="map.polyline.color"
+            :fill-color="map.polyline.fillColor"
+          ></l-polyline>
+
+          <template v-if="showLocationHistoryPoints">
+            <template v-for="(userDevices, user) in locationHistory">
+              <template v-for="(deviceLocations, device) in userDevices">
+                <l-circle-marker
+                  v-for="(l, n) in deviceLocations"
+                  :key="`${user}-${device}-${n}`"
+                  :lat-lng="[l.lat, l.lon]"
+                  :radius="map.circleMarker.radius"
+                  :color="map.circleMarker.color"
+                  :fill-color="map.circleMarker.fillColor"
+                  :fill-opacity="map.circleMarker.fillOpacity"
+                >
+                  <location-popup
+                    :user="user"
+                    :device="device"
+                    :timestamp="l.tst"
+                    :lat="l.lat"
+                    :lon="l.lon"
+                    :alt="l.alt"
+                    :battery="l.batt"
+                    :speed="l.vel"
+                  ></location-popup>
+                </l-circle-marker>
+              </template>
+            </template>
+          </template>
+
+          <template v-if="showLocationHeatmap">
+            <l-heatmap
+              v-if="locationHistoryLatLngs.length"
+              :lat-lng="locationHistoryLatLngs"
+              :max="map.heatmap.max"
+              :radius="map.heatmap.radius"
+              :blur="map.heatmap.blur"
+              :gradient="map.heatmap.gradient"
+            ></l-heatmap>
+          </template>
+
+        </l-map>
+      </main>
+
+      <modal :visible="showDownloadModal" @close="showDownloadModal = false">
+        Test
+      </modal>
+      <modal :visible="showInformationModal" @close="showInformationModal = false">
+        <b>OwnTracks {{ information.version }}</b>
+        <ul>
+          <li><a :href="information.documentationUrl">Documentation</a></li>
+          <li><a :href="information.twitterUrl">Twitter</a></li>
+          <li><a :href="information.sourceCodeUrl">Source Code</a></li>
+        </ul>
+      </modal>
+    </div>
+    <script src="static/vendor/vue@2.5.22/dist/vue.min.js"></script>
+    <script src="static/vendor/vuejs-datepicker@1.5.4/dist/vuejs-datepicker.min.js"></script>
+    <script src="static/vendor/leaflet@1.4.0/dist/leaflet.js"></script>
+    <script src="static/vendor/vue2-leaflet@1.2.2/dist/vue2-leaflet.js"></script>
+    <script src="static/vendor/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="static/vendor/deepmerge.js"></script>
+    <script src="static/components/vue-leaflet-heatmap.js"></script>
+    <script src="static/components/location-popup.js"></script>
+    <script src="static/components/modal.js"></script>
+    <script src="static/config/default.js"></script>
+    <script src="static/config/custom.js"></script>
+    <script src="static/main.js"></script>
+  </body>
+</html>

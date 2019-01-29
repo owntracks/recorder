@@ -1,0 +1,263 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-text: #333;
+  --color-background: #fff;
+  --color-accent: #3388ff;
+  --color-accent-text: #fff;
+  --drop-shadow: drop-shadow(0 10px 10px rgb(0, 0, 0, 0.2));
+  --dropdown-arrow: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2225%22%20height%3D%2210%22%3E%3Cpath%20fill%3D%22%23333%22%20fill-opacity%3D%221%22%20stroke%3D%22none%22%20d%3D%22M0%2C0%20L0%2C0%20L1%2C0%20L1%2C6%20L7%2C6%20L7%2C7%20L0%2C7%20z%22%20transform%3D%22rotate(-45%205%200)%22%20%2F%3E%3C%2Fsvg%3E");
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+ul {
+  list-style: inside;
+}
+
+#app {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+}
+
+#app > header {
+  display: flex;
+  padding: 20px;
+  white-space: nowrap;
+  overflow-x: auto;
+  color: var(--color-accent-text);
+  background: var(--color-accent);
+}
+
+#app > header > nav {
+  display: flex;
+  flex: 1;
+}
+
+#app > header > nav:not(:first-child) {
+  margin-left: 20px;
+}
+
+#app > header > nav.nav-shrink {
+  flex: 0 1 auto;
+}
+
+#app > header > nav .nav-item {
+  display: inline-block;
+}
+
+#app > header > nav .nav-item:not(:first-child) {
+  margin-left: 20px;
+}
+
+#app > main {
+  flex: 1;
+}
+
+.button,
+.vdp-datepicker input {
+  cursor: pointer;
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 0;
+  border-radius: 18px;
+  padding: 8px 16px;
+}
+
+.button-outline {
+  border: 1px solid var(--color-background);
+  color: var(--color-accent-text);
+  background: transparent;
+}
+
+.button-flat {
+  color: var(--color-accent-text);
+  background: transparent;
+}
+
+.button-icon {
+  padding: 8px 0;
+}
+
+.dropdown {
+  display: inline-block;
+}
+
+.dropdown-button,
+.vdp-datepicker input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: var(--dropdown-arrow);
+  background-repeat: no-repeat;
+  background-position-x: right;
+  background-position-y: center;
+  padding-right: 30px;
+}
+
+.dropdown-body {
+  display: none;
+  position: absolute;
+  margin-top: 12px;
+  padding: 8px 0;
+  border-radius: 3px;
+  color: var(--color-text);
+  background: var(--color-background);
+  filter: var(--drop-shadow);
+  z-index: 2000;
+}
+
+.dropdown-body::before,
+.vdp-datepicker .vdp-datepicker__calendar::before {
+  content: "";
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid var(--color-background);
+  position: absolute;
+  top: -20px;
+  left: 20px;
+}
+
+.dropdown:focus-within .dropdown-body {
+  display: block;
+}
+
+.dropdown-body label {
+  cursor: pointer;
+  display: block;
+  padding: 8px 15px;
+}
+
+.dropdown-body label:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-body label input[type=checkbox] {
+  position: relative;
+  top: 2px;
+}
+
+.modal {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  filter: var(--drop-shadow);
+  z-index: 4000;
+}
+
+.modal .modal-container {
+  min-width: 300px;
+  padding: 20px;
+  border-radius: 3px;
+  background: var(--color-background);
+}
+
+.modal .modal-container .modal-close-button {
+  display: block;
+  border: none;
+  float: right;
+  font-size: 24px;
+  line-height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.location-popup-face {
+  border-radius: 50%;
+  border: 2px solid var(--color-background);
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.location-popup-detail {
+  white-space: nowrap;
+}
+
+.leaflet-container .leaflet-popup {
+  filter: var(--drop-shadow);
+}
+
+.leaflet-container .leaflet-popup .leaflet-popup-content-wrapper {
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.leaflet-container .leaflet-popup a.leaflet-popup-close-button {
+  padding: 5px 5px 0 0;
+}
+
+.leaflet-popup-tip-container .leaflet-popup-tip {
+  box-shadow: none;
+}
+
+.vdp-datepicker {
+  position: static !important;
+  display: inline-block;
+  white-space: initial;
+  overflow: initial;
+  z-index: 3000;
+}
+
+.vdp-datepicker input {
+  width: 120px;
+}
+
+.vdp-datepicker .vdp-datepicker__calendar {
+  color: var(--color-text);
+  border: 0;
+  border-radius: 3px;
+  z-index: 4000;
+  margin-top: 12px;
+  filter: var(--drop-shadow);
+}
+
+.vdp-datepicker .vdp-datepicker__calendar .cell:not(.blank):not(.disabled).day:hover,
+.vdp-datepicker .vdp-datepicker__calendar .cell:not(.blank):not(.disabled).month:hover,
+.vdp-datepicker .vdp-datepicker__calendar .cell:not(.blank):not(.disabled).year:hover {
+  border-color: var(--color-accent);
+}
+
+.vdp-datepicker .vdp-datepicker__calendar .cell.selected,
+.vdp-datepicker .vdp-datepicker__calendar .cell.selected:hover {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+header .mdi {
+  position: relative;
+  top: 5px;
+  margin-right: 3px;
+}
+
+header .button .mdi {
+  line-height: 0;
+}
+
+.mdi-16px.mdi-set,
+.mdi-16px.mdi::before {
+  font-size: 16px;
+}
