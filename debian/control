@@ -2,7 +2,7 @@ Source: ot-recorder
 Priority: optional
 Section: net
 Maintainer: JP Mens <jpmens@gmail.com>
-Build-Depends: debhelper (>= 9), libcurl3-dev, libmosquitto-dev, liblua5.2-dev, libconfig8-dev, libsodium-dev
+Build-Depends: debhelper (>= 9), libcurl3-dev, libmosquitto-dev, liblua5.2-dev, libconfig8-dev, libsodium-dev, liblmdb-dev
 Standards-Version: 3.9.6
 Vcs-Git: https://github.com/owntracks/recorder
 Vcs-Browser: https://github.com/owntracks/recorder
