@@ -15,7 +15,7 @@ case "$1" in
         mkdir -p /var/spool/owntracks/recorder/store/ghash
         chown -R owntracks:owntracks /var/spool/owntracks/recorder/store
 	chown owntracks:owntracks /etc/default/ot-recorder
-        chgrp owntracks /var/spool/owntracks/recorder/store/ghash
+	chown -R owntracks:owntracks /var/spool/owntracks/
         chown owntracks:owntracks /usr/bin/ocat /usr/sbin/ot-recorder
         chmod 4111 /usr/bin/ocat /usr/sbin/ot-recorder
         /usr/sbin/ot-recorder --initialize
