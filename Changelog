@@ -1,4 +1,9 @@
 
+2019-02-20 version 0.8.4
+- FIX: Post-installation script fails (#291)
+- NEW: revgeod is queried with &app=recorder
+- UPD: Add `acc` field to GeoJSON point feature properties (#283)
+
 2019-01-11 version 0.8.3
 - FIX: lat,lon in leaflet views
 - FIX: fix paths to be relative to docroot for map/, views/, and  last/
