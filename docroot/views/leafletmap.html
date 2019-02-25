@@ -30,9 +30,11 @@
     <script>
 var map;
 var lastposLayer;
+var lastLatLng;
 
 function initialize_leaflet() {
   map = L.map('map-canvas').setView([0.0, 0.0], 1);
+  lastLatLng = L.latLng(0.0, 0.0);
 
   var osm_layer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -66,6 +68,9 @@ function initialize_leaflet() {
         color: "#ff0000",
         weight: 4
       }
+    },
+    coordsToLatLng: function(coords) {
+       return coordsToLatLng(coords);
     }
   });
 
@@ -101,6 +106,9 @@ function initialize_leaflet() {
           weight : 4,
         }
       }
+    },
+    coordsToLatLng: function(coords) {
+       return coordsToLatLng(coords);
     }
   });
   
@@ -144,9 +152,11 @@ function initialize_leaflet() {
       // when the button is clicked load the @@@GEO@@@ data and display it on the trackLayer passed as an option to the LoadTrackControl
       controlDiv.onclick = (function() {
         var trackLayer = this.options.trackLayer;
+        lastLatLng = L.latLng(0.0, 0.0);
         $.getJSON( "@@@GEO@@@", function( data ) {
           trackLayer.clearLayers();
           trackLayer.addData(data);
+          update_lastpos(false);
           map.fitBounds(trackLayer.getBounds());
         });
       }).bind(this);
@@ -162,11 +172,12 @@ function initialize_leaflet() {
 function update_lastpos(fitBounds) {
   $.getJSON("@@@LASTPOS@@@", function(data) {
     var latest = data["data"].forEach(function(latest) {
+      var latLng = coordsToLatLng([latest.lon, latest.lat])
       var latest_geojson = {
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [latest.lon, latest.lat]
+          "coordinates": [latLng.lng, latLng.lat]
         },
         "properties": latest
       };
@@ -178,6 +189,24 @@ function update_lastpos(fitBounds) {
       }
     });
   });
+}
+
+function coordsToLatLng(coords) {
+       var lat = coords[1];
+       var lon = coords[0];
+       var dist0 = Math.abs(lon - lastLatLng.lng);
+       var dist1 = Math.abs(lon + 360.0 - lastLatLng.lng);
+       var dist2 = Math.abs(lon - 360.0 - lastLatLng.lng);
+       if (dist0 > dist1 || dist0 > dist2) {
+	       if (dist0 > dist1) {
+		       lon = lon + 360.0;
+	       } else {
+		       lon = lon - 360.0;
+	       }
+       }
+       var latLng = L.GeoJSON.coordsToLatLng([lon, lat]);
+       lastLatLng = latLng;
+       return latLng
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {

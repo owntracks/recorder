@@ -30,6 +30,7 @@ function initialize_leaflet() {
     type: "FeatureCollection",
     features: []
   };
+  var lastLatLng = L.latLng(0.0, 0.0);
 
   var geojsonLayer = new L.GeoJSON(empty_geojson, {
     pointToLayer: function (feature, latlng) {
@@ -63,6 +64,23 @@ function initialize_leaflet() {
           weight : 4,
         }
       }
+    },
+    coordsToLatLng: function(coords) {
+       var lat = coords[1];
+       var lon = coords[0];
+       var dist0 = Math.abs(lon - lastLatLng.lng);
+       var dist1 = Math.abs(lon + 360.0 - lastLatLng.lng);
+       var dist2 = Math.abs(lon - 360.0 - lastLatLng.lng);
+       if (dist0 > dist1 || dist0 > dist2) {
+	       if (dist0 > dist1) {
+		       lon = lon + 360.0;
+	       } else {
+		       lon = lon - 360.0;
+	       }
+       }
+       var latLng = L.GeoJSON.coordsToLatLng([lon, lat]);
+       lastLatLng = latLng;
+       return latLng
     }
   });
 
