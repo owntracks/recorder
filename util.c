@@ -535,7 +535,9 @@ int safewrite(char *filename, char *buf)
         }
 	/* Ensure NL-terminated */
 	if (buf[strlen(buf) - 1] != '\n') {
-		write(fd, "\n", 1);
+          if (write(fd, "\n", 1) != 1) {
+            return (-1);
+          }
 	}
 
         close(fd);
@@ -595,7 +597,7 @@ double haversine_dist(double th1, double ph1, double th2, double ph2)
 void chomp(char *s)
 {
 	char *p;
-	
+
 	if (!s || *s == 0)
 		return;
 
