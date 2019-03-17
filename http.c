@@ -33,6 +33,7 @@
 #include "geohash.h"
 #include "udata.h"
 #include "version.h"
+#include <float.h>
 #ifdef WITH_HTTP
 # include "http.h"
 #endif
@@ -288,7 +289,8 @@ static void send_last(struct mg_connection *conn)
 	JsonNode *user_array, *o, *one;
 	char *u = NULL, *d = NULL, *ghash;
 	double lat, lon;
-
+        lat       = DBL_MAX;
+        lon       = DBL_MAX;
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
 
@@ -334,10 +336,10 @@ static void send_last(struct mg_connection *conn)
 			if ((f = json_find_member(one, "topic")) != NULL)
 				json_copy_element_to_object(o, "topic", f);
 
-			if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
+                        if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
 				json_append_member(o, "ghash", json_mkstring(ghash));
 				free(ghash);
-			}
+                        }
 
 			http_ws_push_json(ud->mgserver, o);
 			json_delete(o);
@@ -1586,4 +1588,3 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 }
 
 #endif /* WITH_HTTP */
-
