@@ -289,8 +289,8 @@ static void send_last(struct mg_connection *conn)
 	JsonNode *user_array, *o, *one;
 	char *u = NULL, *d = NULL, *ghash;
 	double lat, lon;
-        lat       = DBL_MAX;
-        lon       = DBL_MAX;
+	lat       = DBL_MAX;
+	lon       = DBL_MAX;
 	u	  = field(conn, "user");
 	d	  = field(conn, "device");
 
@@ -336,10 +336,10 @@ static void send_last(struct mg_connection *conn)
 			if ((f = json_find_member(one, "topic")) != NULL)
 				json_copy_element_to_object(o, "topic", f);
 
-                        if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
+			if ((ghash = geohash_encode(lat, lon, geohash_prec())) != NULL) {
 				json_append_member(o, "ghash", json_mkstring(ghash));
 				free(ghash);
-                        }
+			}
 
 			http_ws_push_json(ud->mgserver, o);
 			json_delete(o);
@@ -1193,7 +1193,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		obj = json_mkobject();
 		locs = json_mkarray();
 
-                if ((json = lister(u, d, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
+		if ((json = lister(u, d, s_lo, s_hi, (limit > 0) ? TRUE : FALSE)) != NULL) {
 			JsonNode *arr, *fields = NULL;
 			char *flds = field(conn, "fields");
 			int i_have = 0;
@@ -1205,7 +1205,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 
 			CLEANUP;
 
-                        if ((arr = json_find_member(json, "results")) != NULL) {
+			if ((arr = json_find_member(json, "results")) != NULL) {
 				JsonNode *f;
                                 json_foreach(f, arr) {
                                         locations(f->string_, obj, locs, s_lo, s_hi, otype, limit, fields, NULL, NULL);
@@ -1253,7 +1253,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			json_delete(obj);
 			return send_status(conn, 422, "geojson failed");
 		}
-        }
+	}
 
 	if (nparts == 1 && !strcmp(uparts[0], "q")) {
 		JsonNode *geo = NULL;
