@@ -35,11 +35,16 @@
 
 [ $# -ne 2 ] && { echo "Usage: $0 email full-name" >&2; exit 2; }
 
+md5=md5
+if [ -x /usr/bin/md5sum ]; then
+	md5=/usr/bin/md5sum
+fi
+
 email="$1"
 fullname="$2"
 tmp=$(mktemp /tmp/gravatar.XXXXXX)
 
-hash=$(echo -n "${email}" | tr '[:upper:]' '[:lower:]' | md5)
+hash=$(echo -n "${email}" | tr '[:upper:]' '[:lower:]' | $md5)
 url="http://www.gravatar.com/avatar/${hash}?s=40"
 
 
