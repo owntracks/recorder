@@ -229,6 +229,8 @@ Unless already provided by the package you installed, we recommend you create a 
 
 You also need to provide API keys for the maps.
 
+Note: all usernames and device names stored by the Recorder [are lowercased](doc/DESIGN.md) which means filenames etc. are also in lowercase. As an example, if your device publishes topics for user `Fred` (which is perfectly valid), the Recorder will turn that into `fred`, likewise for `Phone` which becomes `phone` as device name.
+
 ### `ot-recorder` options
 
 This section lists the most important options of the Recorder with their long names; check the usage (`recorder -h`) for the short versions.
