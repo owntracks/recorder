@@ -749,7 +749,7 @@ static int candidate_line(char *line, void *param)
 		time_t secs;
 
 		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
-			fprintf(stderr, "no strptime on %s", line);
+			fprintf(stderr, "invalid strptime format on %s", line);
 			return (0);
 		}
 		tmline.tm_isdst = -1; 		/* A negative value for tm_isdst causes
@@ -784,7 +784,7 @@ static int candidate_line(char *line, void *param)
 		time_t secs;
 
 		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
-			fprintf(stderr, "no strptime on %s", line);
+			fprintf(stderr, "invalid strptime format on %s", line);
 			return (0);
 		}
 		tmline.tm_isdst = -1;
