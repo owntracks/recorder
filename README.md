@@ -267,6 +267,8 @@ This section lists the most important options of the Recorder with their long na
 
 `--docroot` overrides the compile-time setting of the HTTP document root.
 
+`--viewsdir` overrides the path to the JSON views, which defaults to `<docroot>/views`.
+
 `--lua-script` specifies the path to the Lua script. If not given, Lua support is disabled.
 
 `--precision` overrides the compiled-in default. (See "Precision" later.)
@@ -830,6 +832,8 @@ All JSON elements are copied into the `lastpos` data which is returned to the ca
 ```
 
 Note how `pathname` and `port` have been copied into the object. These values can be used by the `page` served in the view.
+
+Recall that while we typically say `htdocs/views/` this path is actually configurable with the `--viewsdir` option.
 
 ### Authentication
 

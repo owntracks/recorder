@@ -48,7 +48,6 @@
 #ifdef WITH_HTTP
 
 #define MAXPARTS 40
-#define VIEWSUBDIR	"views"
 
 /* A transparent 40x40 PNG image with a black border */
 static unsigned char border40x40png[] = {
@@ -132,11 +131,10 @@ static long *field_n(struct mg_connection *conn, char *fieldname)
 static JsonNode *loadview(struct udata *ud, const char *viewname)
 {
 	static UT_string *fpath = NULL;
-	const char *doc_root = mg_get_option(ud->mgserver, "document_root");
 	JsonNode *view;
 
 	utstring_renew(fpath);
-	utstring_printf(fpath, "%s/%s/%s.json", doc_root, VIEWSUBDIR, viewname);
+	utstring_printf(fpath, "%s/%s.json", ud->viewsdir, viewname);
 	debug(ud, "loadview fpath=%s", UB(fpath));
 
 	view = json_mkobject();
@@ -905,7 +903,6 @@ static int view(struct mg_connection *conn, const char *viewname)
 	struct udata *ud = (struct udata *)conn->server_param;
 	int limit;
 	char *p, buf[BUFSIZ];
-	const char *doc_root = mg_get_option(ud->mgserver, "document_root");
 	static UT_string *fpath = NULL, *sbuf = NULL;
 	FILE *fp;
 	JsonNode *view, *j, *locarray, *obj, *loc, *geoline;
@@ -946,7 +943,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 		}
 
 		utstring_renew(fpath);
-		utstring_printf(fpath, "%s/%s/%s", doc_root, VIEWSUBDIR, j->string_);
+		utstring_printf(fpath, "%s/%s", ud->viewsdir, j->string_);
 		debug(ud, "page file=%s", UB(fpath));
 
 		if ((fp = fopen(UB(fpath), "r")) == NULL) {

@@ -1162,6 +1162,7 @@ void usage(char *prog)
 	printf("  --doc-root <directory>       document root (%s)\n", DOCROOT);
 	printf("  --http-logdir <directory>    directory in which to store access.log\n");
 	printf("  --browser-apikey <key>       Google maps browser API key\n");
+	printf("  --viewsdir <directory>       full path to JSON views. Default: (%s/views)\n", DOCROOT);
 #endif
 #ifdef WITH_LUA
 	printf("  --lua-script <script.lua>    path to Lua script. If unset, no Lua hooks\n");
@@ -1190,7 +1191,7 @@ int main(int argc, char **argv)
 {
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	UT_string *clientid;
+	UT_string *clientid, *uviewsdir;
 	int rc, i;
 	struct utsname uts;
 	bool do_tls = false;
@@ -1238,6 +1239,10 @@ int main(int argc, char **argv)
 	udata.http_port		= 8083;
 	udata.http_logdir	= NULL;
 	udata.browser_apikey	= NULL;
+	udata.viewsdir		= NULL;
+
+	utstring_new(uviewsdir);
+	utstring_printf(uviewsdir, "%s/views", DOCROOT);
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
@@ -1360,6 +1365,7 @@ int main(int argc, char **argv)
 			{ "doc-root",	required_argument,	0, 	2},
 			{ "http-logdir",	required_argument,	0, 	14},
 			{ "browser-apikey",	required_argument,	0, 	15},
+			{ "viewsdir",	required_argument,	0, 	16},
 #endif
 			{0, 0, 0, 0}
 		  };
@@ -1454,6 +1460,10 @@ int main(int argc, char **argv)
 			case 15:
 				if (ud->browser_apikey) free(ud->browser_apikey);
 				ud->browser_apikey = strdup(optarg);
+				break;
+			case 16:
+				if (ud->viewsdir) free(ud->viewsdir);
+				ud->viewsdir = strdup(optarg);
 				break;
 #endif
 			case 'D':
@@ -1804,6 +1814,7 @@ int main(int argc, char **argv)
 	mg_destroy_server(&udata.mgserver);
 	free(ud->http_host);
 	free(ud->browser_apikey);
+	free(ud->viewsdir);
 	if (ud->http_logdir) free(ud->http_logdir);
 #endif
 
