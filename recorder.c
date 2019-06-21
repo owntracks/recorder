@@ -1191,11 +1191,12 @@ int main(int argc, char **argv)
 {
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	UT_string *clientid, *uviewsdir;
+	UT_string *clientid;
 	int rc, i;
 	struct utsname uts;
 	bool do_tls = false;
 #endif /* WITH_MQTT */
+	UT_string *uviewsdir;
 	char err[1024], *p;
 	char *logfacility = "local0";
 #if WITH_MQTT
