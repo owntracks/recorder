@@ -181,7 +181,7 @@ On Ubuntu:
 ```
 sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
 sudo apt-get update
-sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-dev
+sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-dev liblmdb-dev
 ```
 
 #### Building
