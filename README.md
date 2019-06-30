@@ -102,7 +102,7 @@ Debian 7 "Wheezy" (including Rasbian):
 - we no longer build for this distribution
 
 ```
-curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
+curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
 echo "deb  http://repo.owntracks.org/debian wheezy main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
 sudo apt-get update
 sudo apt-get install ot-recorder
@@ -114,7 +114,7 @@ Debian 8 "Jessie":
 
 
 ```
-curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
+curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
 echo "deb  http://repo.owntracks.org/debian jessie main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
 sudo apt-get update
 sudo apt-get install libsodium-dev libsodium13
@@ -126,7 +126,7 @@ Debian 9 "Stretch":
 using Stretch Mosquitto packages:
 
 ```
-curl http://repo.owntracks.org/repo.owntracks.org.gpg.key | sudo apt-key add -
+curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
 echo "deb  http://repo.owntracks.org/debian stretch main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
 sudo apt-get update
 sudo apt-get install ot-recorder
