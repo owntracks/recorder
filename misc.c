@@ -62,7 +62,7 @@ void monitorhook(struct udata *userdata, time_t now, char *topic)
 	static UT_string *us = NULL;
 
 	utstring_renew(us);
-	utstring_printf(us, "%ld %s\n", now, topic);
+	utstring_printf(us, "%ld %s\n", (long)now, topic);
 
 	snprintf(mpath, sizeof(mpath), "%s/monitor", STORAGEDIR);
 	safewrite(mpath, UB(us));
