@@ -18,7 +18,7 @@
 #
 #	$ sudo pkg install lmdb curl libconfig mosquitto gmake
 #
-# Uncomment the following lines and replaced "no" with "yes":
+# Uncomment the following lines and replace "no" with "yes":
 #
 # CC      = clang
 # CFLAGS += -I/usr/local/include
