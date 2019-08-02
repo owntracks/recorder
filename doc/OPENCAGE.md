@@ -1,6 +1,6 @@
 # OpenCage
 
-We now (since May 2018) recommend using [OpenCage](https://geocoder.opencagedata.com) as reverse geo-coding provider: their [pricing](https://geocoder.opencagedata.com/pricing) is attractive and they currently offer a free tier which allows up to 2,500 requests per day.
+We now (since May 2018) recommend using [OpenCage](https://opencagedata.com) as reverse geo-coding provider: their [pricing](https://opencagedata.com/pricing) is attractive and they currently offer a free tier which allows up to 2,500 requests per day.
 
 Use the OpenCage API in Recorder simply by setting the `--geokey` option to the string `"opencage:"` with your API key concatenated to it. (Without the substring `opencage:` the Recorder falls back to using Google in order to maintain backwards-compatibility.)
 
@@ -21,7 +21,7 @@ In order to use OpenCage with the Recorder using Lua, proceed as follows:
 ```bash
 luarocks install lua-opencage-geocoder
 ```
-2. Obtain an [OpenCage API key](https://geocoder.opencagedata.com/pricing), and make careful note of that.
+2. Obtain an [OpenCage API key](https://opencagedata.com/pricing), and make careful note of that.
 3. Before launching the Recorder, export the API key to the Recorder's environment
 ```bash
 export OPENCAGE_APIKEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
