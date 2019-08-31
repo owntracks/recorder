@@ -158,10 +158,10 @@ static void http_debug(char *event_name, struct mg_connection *conn)
 		mg_parse_header(hdr, "username", authuser, sizeof(authuser));
 	}
 
-	fprintf(stderr, "--- %s --------------------------- %s (%ld) %.*s [auth=%s]\n",
+	fprintf(stderr, "--- %s --------------------------- %s (%lu) %.*s [auth=%s]\n",
 		event_name,
 		conn->uri,
-		(long)conn->content_len,
+		(unsigned long)conn->content_len,
 		(int)conn->content_len,
 		conn->content,
 		authuser);
@@ -1410,9 +1410,9 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			if (ud->debug) http_debug("REQUEST", conn);
 			if (ud->debug) {
 				int n;
-				fprintf(stderr, "------------------------------ %s (%ul) %.*s\n",
+				fprintf(stderr, "------------------------------ %s (%lu) %.*s\n",
 					conn->uri,
-					(int)conn->content_len,
+					(unsigned long)conn->content_len,
 					(int)conn->content_len,
 					conn->content);
 				for (n = 0; n < conn->num_headers; n++) {
