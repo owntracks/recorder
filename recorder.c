@@ -1191,13 +1191,12 @@ int main(int argc, char **argv)
 {
 #if WITH_MQTT
 	struct mosquitto *mosq = NULL;
-	UT_string *clientid;
+	UT_string *clientid = NULL;
 	int rc, i;
 	struct utsname uts;
 	bool do_tls = false;
 #endif /* WITH_MQTT */
-	UT_string *uviewsdir;
-	char err[1024], *p;
+	char err[1024], *p = NULL;
 	char *logfacility = "local0";
 #if WITH_MQTT
 	int loop_timeout = 1000;
@@ -1205,7 +1204,7 @@ int main(int argc, char **argv)
 	int ch, initialize = FALSE;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
-	char *doc_root		= DOCROOT;
+	char *doc_root		= strdup(DOCROOT);
 	int http_pollms		= 50;
 #endif
 	char *progname = *argv;
@@ -1242,8 +1241,6 @@ int main(int argc, char **argv)
 	udata.browser_apikey	= NULL;
 	udata.viewsdir		= NULL;
 
-	utstring_new(uviewsdir);
-	utstring_printf(uviewsdir, "%s/views", DOCROOT);
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
@@ -1448,6 +1445,7 @@ int main(int argc, char **argv)
 				ud->http_port = atoi(optarg);
 				break;
 			case 2:		/* no short char */
+				free(doc_root);
 				doc_root = strdup(optarg);
 				break;
 			case 3:		/* no short char */
@@ -1840,7 +1838,11 @@ int main(int argc, char **argv)
 	if (ud->capath) free(ud->capath);
 	if (ud->certfile) free(ud->certfile);
 	if (ud->keyfile) free(ud->keyfile);
+
+	utstring_free(clientid);
 #endif
+
+	free(doc_root);
 
 	return (0);
 }
