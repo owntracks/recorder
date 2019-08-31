@@ -43,7 +43,7 @@ char *bindump(char *buf, long buflen)
 			utstring_printf(out, " %02X ", ch & 0xFF);
 		}
 	}
-	return (UB(out));
+	return UB(out);
 }
 
 /*
@@ -91,7 +91,7 @@ char *monitor_get()
 		fclose(fp);
 	}
 
-	return (ret);
+	return ret;
 }
 
 /*

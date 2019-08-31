@@ -59,16 +59,16 @@ mkpath(char *path)
 			if (errno != ENOENT || (mkdir(path, 0777) &&
 			    errno != EEXIST)) {
 				warn("%s", path);
-				return (-1);
+				return -1;
 			}
 		} else if (!S_ISDIR(sb.st_mode)) {
 			warnx("%s: %s", path, strerror(ENOTDIR));
-			return (-1);
+			return -1;
 		}
 
 		*slash = '/';
 	}
 
-	return (0);
+	return 0;
 }
 

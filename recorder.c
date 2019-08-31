@@ -131,7 +131,7 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 		free(img);
 	}
 
-	return (rc);
+	return rc;
 }
 
 #ifdef WITH_MQTT
@@ -197,7 +197,7 @@ static int csv_looks_sane(char *payload)
 
 		if (regcomp(&regex, CSV_RE, cflags)) {
 			olog(LOG_ERR, "Cannot compile CSV RE");
-			return (FALSE);
+			return FALSE;
 		}
 	}
 
@@ -223,11 +223,11 @@ JsonNode *csv_to_json(char *payload)
 	char tmptst[40];
 
 	if (!csv_looks_sane(payload))
-		return (NULL);
+		return NULL;
 
         if (sscanf(payload, "%[^,],%[^,],%[^,],%lf,%lf,%lf,%lf,%lf,%lf,%lf", tid, tmptst, t, &lat, &lon, &cog, &vel, &alt, &dist, &trip) != 10) {
 		// fprintf(stderr, "**** payload not CSV: %s\n", payload);
-                return (NULL);
+                return NULL;
         }
 
         lat /= MILL;
@@ -252,7 +252,7 @@ JsonNode *csv_to_json(char *payload)
 	json_append_member(json, "trip",  json_mknumber(trip));
 	json_append_member(json, "csv",   json_mkbool(1));
 
-	return (json);
+	return json;
 }
 
 #define RECFORMAT "%s\t%-18s\t%s\n"
@@ -300,12 +300,12 @@ static char *prettyfy(char *payloadstring)
 
 	if ((json = json_decode(payloadstring)) == NULL) {
 		olog(LOG_ERR, "Cannot decode JSON from %s", payloadstring);
-		return (NULL);
+		return NULL;
 	}
 	pretty_js = json_stringify(json, "\t");
 	json_delete(json);
 
-	return (pretty_js);
+	return pretty_js;
 }
 
 static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, char *type, char *extension)
@@ -474,7 +474,7 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 	klen = gcache_get(ud->keydb, (char *)UB(userdev), (char *)key, sizeof(key));
 	if (klen < 1) {
 		olog(LOG_ERR, "no decryption key for %s in %s", UB(userdev), topic);
-		return (NULL);
+		return NULL;
 	}
 
 	debug(ud, "Key for %s is [%s]", UB(userdev), key);
@@ -483,14 +483,14 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 
 	if ((ciphertext = base64_decode(p64, &ciphertext_len)) == NULL) {
 		olog(LOG_ERR, "payload of %s cannot be base64-decoded", topic);
-		return (NULL);
+		return NULL;
 	}
 
 	debug(ud, "START DECRYPT. clen==%lu", ciphertext_len);
 
 	if ((cleartext = calloc(n, sizeof(unsigned char))) == NULL) {
 		free(ciphertext);
-		return (NULL);
+		return NULL;
 	}
 
 	if (crypto_secretbox_open_easy(cleartext,			// message
@@ -502,13 +502,13 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 		olog(LOG_ERR, "payload of %s cannot be decrypted; forged?", topic);
 		free(ciphertext);
 		free(cleartext);
-		return (NULL);
+		return NULL;
 	}
 
 	debug(ud, "DECRYPTED: %s", (char *)cleartext);
 	free(ciphertext);
 
-	return (cleartext);
+	return cleartext;
 }
 #endif /* ENCRYPT */
 
@@ -1551,7 +1551,7 @@ int main(int argc, char **argv)
 	if (ud->port) {
 		if (ud->topics == NULL && argc < 1) {	/* no topics set via config file */
 			usage(progname);
-			return (-1);
+			return -1;
 		}
 
 		if (argc >= 1) {			/* topics on command line override config */
@@ -1844,5 +1844,5 @@ int main(int argc, char **argv)
 
 	free(doc_root);
 
-	return (0);
+	return 0;
 }

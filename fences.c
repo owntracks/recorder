@@ -67,7 +67,7 @@ static int check_a_waypoint(char *key, wpoint *wp, double lat, double lon)
 #endif /* WITH_LUA */
 	}
 
-	return (rewrite);
+	return rewrite;
 }
 
 /*

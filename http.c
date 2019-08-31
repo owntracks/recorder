@@ -87,15 +87,15 @@ static char *field(struct mg_connection *conn, char *fieldname)
 	if ((h = (char *)mg_get_header(conn, buf)) != NULL) {
 		p = strdup(h);
 		lowercase(p);
-		return (p);
+		return p;
 	}
 
 	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) > 0) {
 		p = strdup(buf);
 		lowercase(p);
-		return (p);
+		return p;
 	}
-	return (NULL);
+	return NULL;
 }
 
 static double field_d(struct mg_connection *conn, char *fieldname)
@@ -104,9 +104,9 @@ static double field_d(struct mg_connection *conn, char *fieldname)
 	int ret;
 
 	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) < 0) {
-		return (NAN);
+		return NAN;
 	}
-	return (atof(buf));
+	return atof(buf);
 }
 
 
@@ -117,10 +117,10 @@ static long *field_n(struct mg_connection *conn, char *fieldname)
 	static long l;
 
 	if ((ret = mg_get_var(conn, fieldname, buf, sizeof(buf))) < 0) {
-		return (NULL);
+		return NULL;
 	}
 	l = atol(buf);
-	return (&l);
+	return &l;
 }
 
 /*
@@ -140,10 +140,10 @@ static JsonNode *loadview(struct udata *ud, const char *viewname)
 	view = json_mkobject();
 	if (json_copy_from_file(view, UB(fpath)) != TRUE) {
 		json_delete(view);
-		return (NULL);
+		return NULL;
 	}
 
-	return (view);
+	return view;
 }
 
 static void http_debug(char *event_name, struct mg_connection *conn)
@@ -353,7 +353,7 @@ static int monitor(struct mg_connection *conn)
 	char *m = monitor_get();
 
 	mg_printf_data(conn, "%s\n", (m) ? m : "not available");
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 static int json_response(struct mg_connection *conn, JsonNode *json)
@@ -372,7 +372,7 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 		}
 		json_delete(json);
 	}
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 static void emit_xml_line(char *line, void *param)
@@ -397,7 +397,7 @@ static int xml_response(struct mg_connection *conn, JsonNode *obj)
 	xml_output(array, XML, NULL, emit_xml_line, conn);
 
 	json_delete(obj);
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 static int csv_response(struct mg_connection *conn, JsonNode *obj)
@@ -407,7 +407,7 @@ static int csv_response(struct mg_connection *conn, JsonNode *obj)
 	csv_output(array, CSV, NULL, emit_csv_line, conn);
 
 	json_delete(obj);
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 /*
@@ -430,7 +430,7 @@ static int send_status(struct mg_connection *conn, int status, char *text)
 {
 	mg_send_status(conn, status);
 	mg_printf_data(conn, text);
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 /*
@@ -469,11 +469,11 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 	}
 
 	if (friends == NULL) {
-		return (results);
+		return results;
 	}
 	if (friends->tag != JSON_ARRAY) {
 		olog(LOG_ERR, "expecting value of friends:%s to be an array", UB(userdevice));
-		return (results);
+		return results;
 	}
 
 	/*
@@ -532,7 +532,7 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 
 	json_delete(friends);
 
-	return (results);
+	return results;
 }
 
 #ifdef WITH_ENCRYPT
@@ -547,7 +547,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 
 	if ((js_string = json_stringify(json, NULL)) == NULL) {
 		olog(LOG_ERR, "Cannot decode JSON array for encryption");
-		return (NULL);
+		return NULL;
 	}
 
 	memset(key, 0, sizeof(key));
@@ -555,7 +555,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	if (klen < 1) {
 		debug(ud, "no encryption key for %s; not encrypting response", userdevice);
 		free(js_string);
-		return (NULL);
+		return NULL;
 	}
 	debug(ud, "encryption key for %s is {%s}", userdevice, key);
 
@@ -564,14 +564,14 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	if ((ciphertext = malloc(ciphertext_len)) == NULL) {
 		olog(LOG_ERR, "out of memory in encrypt()");
 		free(js_string);
-		return (NULL);
+		return NULL;
 	}
 
 	if ((encrypted = malloc(ciphertext_len + 40)) == NULL) {
 		olog(LOG_ERR, "out of memory in encrypt() two");
 		free(ciphertext);
 		free(js_string);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Create random nonce */
@@ -582,7 +582,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 		free(js_string);
 		free(ciphertext);
 		free(encrypted);
-		return (NULL);
+		return NULL;
 	}
 
 	memcpy(encrypted, nonce, crypto_secretbox_NONCEBYTES);
@@ -592,7 +592,7 @@ char *j_encrypt(struct udata *ud, JsonNode *json, char *userdevice)
 	free(ciphertext);
 	free(encrypted);
 
-	return (b64);
+	return b64;
 
 }
 #endif /* WITH_ENCRYPT */
@@ -710,12 +710,12 @@ static int ctrl_track(struct mg_connection *conn)
 
 	if (!username || !device) {
 		send_status(conn, 416, "user and/or device missing");
-		return (MG_TRUE);
+		return MG_TRUE;
 	}
 
 	if (make_times(from, &s_lo, to, &s_hi, 0) != 1) {
 		send_status(conn, 416, "impossible date/time ranges");
-		return (MG_TRUE);
+		return MG_TRUE;
 	}
 
 	s_lo -= (30 * 24 * 60 * 60);	/* move start point to a month prior */
@@ -761,7 +761,7 @@ static int ctrl_track(struct mg_connection *conn)
 
 	json_append_member(response, "track", locs);
 
-	return (json_response(conn, response));
+	return json_response(conn, response);
 
 }
 
@@ -818,11 +818,11 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 	}
 
 	if (!ju || !jd)
-		return (NULL);
+		return NULL;
 
 	if (make_times(from, &s_lo, to, &s_hi, hours) != 1) {
 		send_status(conn, 416, "impossible date/time ranges");
-		return (NULL);
+		return NULL;
 	}
 	/*
 	 * Obtain a list of .rec files from lister(), possibly limited
@@ -871,7 +871,7 @@ static JsonNode *viewdata(struct mg_connection *conn, JsonNode *view, int limit)
 	}
 	json_delete(obj);
 
-	return (locs);
+	return locs;
 }
 
 /*
@@ -889,7 +889,7 @@ static int apikey(struct mg_connection *conn)
 
 	mg_send_header(conn, "Content-type", "application/javascript");
 	mg_printf_data(conn, "%s", UB(sbuf));
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 /*
@@ -975,7 +975,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			}
 		}
 		fclose(fp);
-		return (MG_TRUE);
+		return MG_TRUE;
 		/* NOTREACHED */
 		break;
 
@@ -986,7 +986,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			 */
 
 			if ((locarray = viewdata(conn, view, limit=0)) == NULL) {
-				return (MG_TRUE);
+				return MG_TRUE;
 			}
 
 			obj = json_mkobject();
@@ -995,12 +995,12 @@ static int view(struct mg_connection *conn, const char *viewname)
 
 			if ((geoline = geo_linestring(locarray)) != NULL) {
 				json_delete(obj);
-				return (json_response(conn, geoline));
+				return json_response(conn, geoline);
 			}
 
 			/* Return empty object */
 
-			return (json_response(conn, obj));
+			return json_response(conn, obj);
 			/* NOTREACHED */
 			break;
 
@@ -1016,7 +1016,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			 */
 
 			if ((locarray = viewdata(conn, view, limit=1)) == NULL) {
-				return (MG_TRUE);
+				return MG_TRUE;
 			}
 
 			obj = json_mkobject();
@@ -1044,12 +1044,12 @@ static int view(struct mg_connection *conn, const char *viewname)
 
 			json_delete(view);
 
-			return (json_response(conn, obj));
+			return json_response(conn, obj);
 			/* NOTREACHED */
 			break;
 	}
 
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 static int dispatch(struct mg_connection *conn, const char *uri)
@@ -1066,7 +1066,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	if ((nparts = splitter((char *)uri, "/", uparts)) == -1) {
 		mg_send_status(conn, 405);
 		mg_printf_data(conn, "no way\n");
-		return (MG_TRUE);
+		return MG_TRUE;
 	}
 
 #if 0
@@ -1089,17 +1089,17 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			CLEANUP;
 			mg_send_status(conn, 416);
 			mg_printf_data(conn, "user and device are required\n");
-			return (MG_TRUE);
+			return MG_TRUE;
 		}
 
 		if ((deleted = kill_datastore(u, d)) == NULL) {
 			mg_send_status(conn, 416);
 			mg_printf_data(conn, "cannot kill data for %s/%s\n", u, d);
 			CLEANUP;
-			return (MG_TRUE);
+			return MG_TRUE;
 		}
 		CLEANUP;
-		return (json_response(conn, deleted));
+		return json_response(conn, deleted);
 	}
 #endif /* WITH_KILL */
 
@@ -1109,7 +1109,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		json_append_member(json, "version", json_mkstring(VERSION));
 		json_append_member(json, "git", json_mkstring(GIT_VERSION));
 		CLEANUP;
-		return (json_response(conn, json));
+		return json_response(conn, json);
 	}
 
 	if (nparts == 1 && !strcmp(uparts[0], "last")) {
@@ -1125,7 +1125,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			CLEANUP;
 			json_delete(fields);
 
-			return (json_response(conn, user_array));
+			return json_response(conn, user_array);
 		}
 		json_delete(fields);
 	}
@@ -1151,14 +1151,14 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			mg_send_status(conn, 400);
 			mg_printf_data(conn, "unrecognized format\n");
 			CLEANUP;
-			return (MG_TRUE);
+			return MG_TRUE;
 		}
 	}
 
 	if (make_times(time_from, &s_lo, time_to, &s_hi, 0) != 1) {
 		mg_send_status(conn, 416);
 		mg_printf_data(conn, "impossible date/time ranges\n");
-		return (MG_TRUE);
+		return MG_TRUE;
 	}
 
 	// fprintf(stderr, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
@@ -1168,7 +1168,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	if (nparts == 1 && !strcmp(uparts[0], "list")) {
 		if ((json = lister(u, d, 0, s_hi, FALSE)) != NULL) {
 			CLEANUP;
-			return (json_response(conn, json));
+			return json_response(conn, json);
 		}
 	}
 
@@ -1179,7 +1179,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			CLEANUP;
 			mg_send_status(conn, 416);
 			mg_printf_data(conn, "user and device are required\n");
-			return (MG_TRUE);
+			return MG_TRUE;
 		}
 		/*
 		 * Obtain a list of .rec files from lister(), possibly limited
@@ -1221,11 +1221,11 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		json_append_member(obj, "status", json_mknumber(200));
 
 		if (otype == JSON) {
-			return (json_response(conn, obj));
+			return json_response(conn, obj);
 		} else if (otype == CSV) {
-			return (csv_response(conn, obj));
+			return csv_response(conn, obj);
 		} else if (otype == XML) {
-			return (xml_response(conn, obj));
+			return xml_response(conn, obj);
 		} else if (otype == GPX) {
 			char *xml = gpx_string(locs);
 
@@ -1233,19 +1233,19 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 				mg_send_data(conn, xml, strlen(xml));
 			}
 			json_delete(obj);
-			return (MG_TRUE);
+			return MG_TRUE;
 		} else if (otype == LINESTRING) {
 			JsonNode *geoline = geo_linestring(locs);
 
 			json_delete(obj);
-			return (json_response(conn, geoline));
+			return json_response(conn, geoline);
 
 		} else if (otype == GEOJSON) {
 			JsonNode *geojson = geo_json(locs);
 
 			json_delete(obj);
 			if (geojson != NULL) {
-				return (json_response(conn, geojson));
+				return json_response(conn, geojson);
 			}
 			json_delete(obj);
 			return send_status(conn, 422, "geojson failed");
@@ -1269,14 +1269,14 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 		if (lon) free(lon);
 		CLEANUP;
 
-		return (json_response(conn, geo));
+		return json_response(conn, geo);
 	}
 
 	CLEANUP;
 	// mg_printf_data(conn, "user=[%s], device=[%s]\n", (u) ? u : "<nil>", (d) ? d : "<NIL>");
 	mg_printf_data(conn, "no comprendo");
 
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 /* /api/0/photo/?user=yyyy */
@@ -1287,18 +1287,18 @@ static int photo(struct mg_connection *conn)
 	if ((u = field(conn, "user")) == NULL) {
 		mg_send_status(conn, 416);
 		mg_printf_data(conn, "missing username\n");
-		return (MG_TRUE);
+		return MG_TRUE;
 	}
 
 	if (((userphoto = storage_userphoto(u)) != NULL) && access(userphoto, R_OK) == 0) {
 		free(u);
 		mg_send_file(conn, userphoto, NULL);
-		return (MG_MORE);
+		return MG_MORE;
 	}
 	free(u);
 	mg_send_header(conn, "Content-type", "image/png");
 	mg_send_data(conn, border40x40png, sizeof(border40x40png));
-	return (MG_TRUE);
+	return MG_TRUE;
 }
 
 /*
@@ -1314,16 +1314,16 @@ static int authorize_digest(struct mg_connection *c, char *hash_ha1)
 	char ha2[32 + 1], expected_response[32 + 1], user[100], nonce[100];
 	char uri[BUFSIZ], cnonce[100], resp[100], qop[100], nc[100];
 
-	if (c == NULL || hash_ha1 == NULL) return (MG_FALSE);
+	if (c == NULL || hash_ha1 == NULL) return MG_FALSE;
 	if ((hdr = mg_get_header(c, "Authorization")) == NULL ||
-		strncasecmp(hdr, "Digest ", 7) != 0) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "username", user, sizeof(user))) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "cnonce", cnonce, sizeof(cnonce))) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "response", resp, sizeof(resp))) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "uri", uri, sizeof(uri))) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "qop", qop, sizeof(qop))) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "nc", nc, sizeof(nc))) return (MG_FALSE);
-	if (!mg_parse_header(hdr, "nonce", nonce, sizeof(nonce))) return (MG_FALSE);
+		strncasecmp(hdr, "Digest ", 7) != 0) return MG_FALSE;
+	if (!mg_parse_header(hdr, "username", user, sizeof(user))) return MG_FALSE;
+	if (!mg_parse_header(hdr, "cnonce", cnonce, sizeof(cnonce))) return MG_FALSE;
+	if (!mg_parse_header(hdr, "response", resp, sizeof(resp))) return MG_FALSE;
+	if (!mg_parse_header(hdr, "uri", uri, sizeof(uri))) return MG_FALSE;
+	if (!mg_parse_header(hdr, "qop", qop, sizeof(qop))) return MG_FALSE;
+	if (!mg_parse_header(hdr, "nc", nc, sizeof(nc))) return MG_FALSE;
+	if (!mg_parse_header(hdr, "nonce", nonce, sizeof(nonce))) return MG_FALSE;
 
 	mg_md5(ha2, c->request_method, ":", uri, NULL);
 	mg_md5(expected_response, hash_ha1, ":", nonce, ":", nc,
@@ -1341,7 +1341,7 @@ static int authorize_digest(struct mg_connection *c, char *hash_ha1)
 	printf("expected_response = %s\n", expected_response);
 #endif
 
-	return (strcasecmp(resp, expected_response) == 0 ? (MG_TRUE) : (MG_FALSE));
+	return strcasecmp(resp, expected_response) == 0 ? (MG_TRUE) : (MG_FALSE);
 }
 
 /*
@@ -1357,7 +1357,7 @@ static int authorize(struct mg_connection *conn)
 	int authorized = TRUE;
 
 	if (strncmp(conn->uri, "/view/", strlen("/view/")) != 0) {
-		return (MG_TRUE);
+		return MG_TRUE;
 	}
 
 	viewname = conn->uri + strlen("/view/");
@@ -1393,7 +1393,7 @@ static int authorize(struct mg_connection *conn)
 		json_delete(view);
 	}
 
-	return (authorized);
+	return authorized;
 }
 
 int ev_handler(struct mg_connection *conn, enum mg_event ev)
@@ -1403,7 +1403,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 	switch (ev) {
 		case MG_AUTH:
 			if (ud->debug) http_debug("AUTH", conn);
-			return (authorize(conn));
+			return authorize(conn);
 
 		case MG_REQUEST:
 
@@ -1488,7 +1488,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 						free(u);
 					}
 					mg_printf_data(conn, "User %s %s", buf, (blocked) ? "BLOCKED" : "UNblocked");
-					return (MG_TRUE);
+					return MG_TRUE;
 				}
 			}
 
@@ -1566,7 +1566,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				mg_printf_data(conn, "tak");
 				json_delete(obj);
 
-				return (MG_TRUE);
+				return MG_TRUE;
 
 			   not_traccar:
 				json_delete(obj);
@@ -1577,10 +1577,10 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 			 * to Mongoose and have it try document root.
 			 */
 
-			return (MG_FALSE);
+			return MG_FALSE;
 
 		default:
-			return (MG_FALSE);
+			return MG_FALSE;
 	}
 }
 

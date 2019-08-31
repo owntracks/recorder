@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 
 		if (!username || !device) {
 			fprintf(stderr, "%s: killdata requires username and device\n", progname);
-			return (-2);
+			return -2;
 		}
 
 		fprintf(stderr, "Storage deleted these files:\n");
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 			free(js);
 			json_delete(obj);
 		}
-		return (0);
+		return 0;
 	}
 #endif
 
@@ -360,7 +360,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "%s: unsupported output type for LAST\n", progname);
 			}
 		}
-		return (0);
+		return 0;
 	}
 
 	lowercase(username);
@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 
 	if (!username && device) {
 		fprintf(stderr, "%s: device name without username doesn't make sense\n", progname);
-		return (-2);
+		return -2;
 	}
 
 	/* If no from time specified but limit, set from to this month */
@@ -380,7 +380,7 @@ int main(int argc, char **argv)
 
 	if (make_times(time_from, &s_lo, time_to, &s_hi, 0) != 1) {
 		fprintf(stderr, "%s: bad time(s) specified\n", progname);
-		return (-2);
+		return -2;
 	}
 
 	if (list) {
@@ -407,18 +407,18 @@ int main(int argc, char **argv)
 
 		json_delete(json);
 
-		return (0);
+		return 0;
 	}
 
 	if (argc == 0 && !username && !device) {
 		fprintf(stderr, "%s: nothing to do. Specify filename or --user and --device\n", progname);
-		return (-1);
+		return -1;
 	} else if (argc == 0 && (!username || !device)) {
 		fprintf(stderr, "%s: must specify username and device\n", progname);
-		return (-1);
+		return -1;
 	} else if ((username || device) && (argc > 0)) {
 		fprintf(stderr, "%s: filename with --user and --device is not supported\n", progname);
-		return (-1);
+		return -1;
 	}
 
 
@@ -518,5 +518,5 @@ int main(int argc, char **argv)
 	if (fields)
 		json_delete(fields);
 
-	return (0);
+	return 0;
 }

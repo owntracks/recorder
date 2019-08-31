@@ -108,7 +108,7 @@ static int user_device_list(char *name, int level, JsonNode *obj)
 
 	if ((dirp = opendir(name)) == NULL) {
 		perror(name);
-		return (1);
+		return 1;
 	}
 	while ((dp = readdir(dirp)) != NULL) {
 		if (*dp->d_name != '.') {
@@ -131,7 +131,7 @@ static int user_device_list(char *name, int level, JsonNode *obj)
 		}
 	}
 	closedir(dirp);
-	return (rc);
+	return rc;
 }
 
 #if WITH_GREENWICH
@@ -263,7 +263,7 @@ JsonNode *last_users(char *in_user, char *in_device, JsonNode *fields)
 
 	if (user_device_list(path, 0, obj) == 1) {
 		json_delete(userlist);
-		return (obj);
+		return obj;
 	}
 
 	/* Loop through users, devices */
@@ -319,10 +319,10 @@ JsonNode *last_users(char *in_user, char *in_device, JsonNode *fields)
 
 
 		json_delete(userlist);
-		return (new_userlist);
+		return new_userlist;
 	}
 
-	return (userlist);
+	return userlist;
 }
 
 /*
@@ -357,7 +357,7 @@ static int str_time_to_secs(char *s, time_t *secs)
 	}
 
 	if (!success)
-		return (0);
+		return 0;
 
 	tm.tm_mday = (tm.tm_mday < 1) ? 1 : tm.tm_mday;
 	tm.tm_isdst = -1; 		/* A negative value for tm_isdst causes
@@ -371,7 +371,7 @@ static int str_time_to_secs(char *s, time_t *secs)
 	// 	tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 	// 	tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-	return (1);
+	return 1;
 }
 
 /*
@@ -389,14 +389,14 @@ int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_hi, int h
 		*s_lo = now - (60 * 60 * ((hours) ? hours : DEFAULT_HISTORY_HOURS));
 	} else {
 		if (str_time_to_secs(time_from, s_lo) == 0)
-			return (0);
+			return 0;
 	}
 
 	if (!time_to || !*time_to) {
 		*s_hi = now;
 	} else {
 		if (str_time_to_secs(time_to, s_hi) == 0)
-			return (0);
+			return 0;
 	}
 	return (*s_lo > *s_hi ? 0 : 1);
 }
@@ -468,7 +468,7 @@ static int filter_filename(const struct dirent *d)
 	/* if the filename doesn't look like YYYY-MM.rec we can safely ignore it.
 	 * Needs modifying after the year 2999 ;-) */
 	if (fnmatch("2[0-9][0-9][0-9]-[0-3][0-9].rec", d->d_name, 0) != 0)
-		return (0);
+		return 0;
 
 	/* Convert filename (YYYY-MM) to a tm; see if months falls between
 	 * from months and to months. */
@@ -476,7 +476,7 @@ static int filter_filename(const struct dirent *d)
 	memset(&tmfile, 0, sizeof(struct tm));
 	if (strptime(d->d_name, "%Y-%m", &tmfile) == NULL) {
 		fprintf(stderr, "filter: convert err");
-		return (0);
+		return 0;
 	}
 	file_months = (tmfile.tm_year + 1900) * 12 + tmfile.tm_mon;
 
@@ -495,9 +495,9 @@ static int filter_filename(const struct dirent *d)
 
 	if (file_months >= lo_months && file_months <= hi_months) {
 		// fprintf(stderr, "filter: returns: %s\n", d->d_name);
-		return (1);
+		return 1;
 	}
-	return (0);
+	return 0;
 }
 
 static int cmp( const struct dirent **a, const struct dirent **b)
@@ -593,7 +593,7 @@ JsonNode *lister(char *user, char *device, time_t s_lo, time_t s_hi, int reverse
 		lsscan(UB(path), s_lo, s_hi, json, reverse);
 	}
 
-	return (json);
+	return json;
 }
 
 /*
@@ -610,7 +610,7 @@ JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
 	int np;
 
 	if (udpairs == NULL || udpairs->tag != JSON_ARRAY) {
-		return (json);
+		return json;
 	}
 
 	json_foreach(ud, udpairs) {
@@ -627,7 +627,7 @@ JsonNode *multilister(JsonNode *udpairs, time_t s_lo, time_t s_hi, int reverse)
 		splitterfree(pairs);
 	}
 
-	return (json);
+	return json;
 }
 
 struct jparam {
@@ -659,19 +659,19 @@ static JsonNode *line_to_location(char *line)
 	snprintf(tstamp, 21, "%s", line);
 
 	if ((bp = strchr(line, '{')) == NULL)
-		return (NULL);
+		return NULL;
 
 	if ((json = json_decode(bp)) == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	if ((j = json_find_member(json, "_type")) == NULL) {
 		json_delete(json);
-		return (NULL);
+		return NULL;
 	}
 	if (j->tag != JSON_STRING || strcmp(j->string_, "location") != 0) {
 		json_delete(json);
-		return (NULL);
+		return NULL;
 	}
 
 	o = json_mkobject();
@@ -679,7 +679,7 @@ static JsonNode *line_to_location(char *line)
 	if (json_copy_to_object(o, json, FALSE) == FALSE) {
 		json_delete(o);
 		json_delete(json);
-		return (NULL);
+		return NULL;
 	}
 	json_delete(json);	/* Done with this -- we've copied it. */
 
@@ -710,7 +710,7 @@ static JsonNode *line_to_location(char *line)
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
 	json_append_member(o, "disptst", json_mkstring(disptime(tst)));
 
-	return (o);
+	return o;
 }
 
 /*
@@ -737,9 +737,9 @@ static int candidate_line(char *line, void *param)
 	char *device	= jarg->device;
 
 	if (obj == NULL || obj->tag != JSON_OBJECT)
-		return (-1);
+		return -1;
 	if (locs == NULL || locs->tag != JSON_ARRAY)
-		return (-1);
+		return -1;
 
 	if (limit == 0) {
 		/* Reading forwards; account for time */
@@ -750,7 +750,7 @@ static int candidate_line(char *line, void *param)
 
 		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
 			fprintf(stderr, "invalid strptime format on %s", line);
-			return (0);
+			return 0;
 		}
 		tmline.tm_isdst = -1; 		/* A negative value for tm_isdst causes
 						 * the mktime() function to attempt to
@@ -759,12 +759,12 @@ static int candidate_line(char *line, void *param)
 		secs = mktime(&tmline);
 
 		if (secs <= s_lo || secs >= s_hi) {
-			return (0);
+			return 0;
 		}
 
 		if (otype == RAW) {
 			printf("%s\n", line);
-			return (0);
+			return 0;
 		} else if (otype == RAWPAYLOAD) {
 			char *bp;
 
@@ -775,7 +775,7 @@ static int candidate_line(char *line, void *param)
 
 	} else if (limit > 0 && otype == RAW) {
 		printf("%s\n", line);
-		return (1); /* make it 'count' or tac() will not decrement line counter and continue until EOF */
+		return 1; /* make it 'count' or tac() will not decrement line counter and continue until EOF */
 	} else if (limit > 0) {
 		/* reading backwards; check time */
 
@@ -785,23 +785,23 @@ static int candidate_line(char *line, void *param)
 
 		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
 			fprintf(stderr, "invalid strptime format on %s", line);
-			return (0);
+			return 0;
 		}
 		tmline.tm_isdst = -1;
 		secs = mktime(&tmline);
 
 		if (secs <= s_lo || secs >= s_hi) {
-			return (0);
+			return 0;
 		}
 	}
 
 	/* Do we have location line? */
 	if ((bp = strstr(line, "Z\t* ")) == NULL) {	/* Not a location line */
-		return (0);
+		return 0;
 	}
 
 	if ((bp = strrchr(bp, '\t')) == NULL) {
-		return (0);
+		return 0;
 	}
 
 	/* Initialize our counter to what the JSON obj currently has */
@@ -846,7 +846,7 @@ static int candidate_line(char *line, void *param)
 
 	/* Add the (possibly) incremented counter back into `obj' */
 	json_append_member(obj, "count", json_mknumber(counter));
-	return (1);
+	return 1;
 }
 
 /*
@@ -951,7 +951,7 @@ JsonNode *geo_json(JsonNode *location_array)
 	JsonNode *feature_array, *fcollection;
 
 	if ((fcollection = json_mkobject()) == NULL)
-		return (NULL);
+		return NULL;
 
 	json_append_member(fcollection, "type", json_mkstring("FeatureCollection"));
 
@@ -989,7 +989,7 @@ JsonNode *geo_json(JsonNode *location_array)
 
 	json_append_member(fcollection, "features", feature_array);
 
-	return (fcollection);
+	return fcollection;
 }
 
 /*
@@ -1048,7 +1048,7 @@ JsonNode *geo_linestring(JsonNode *location_array)
 	json_append_member(geometry, "type", json_mkstring("LineString"));
 	json_append_member(top, "geometry", geometry);
 
-	return (top);
+	return top;
 }
 
 /*
@@ -1061,7 +1061,7 @@ char *gpx_string(JsonNode *location_array)
 	static UT_string *xml = NULL;
 
 	if (location_array->tag != JSON_ARRAY)
-		return (NULL);
+		return NULL;
 
 	utstring_renew(xml);
 
@@ -1089,7 +1089,7 @@ char *gpx_string(JsonNode *location_array)
 	}
 
 	utstring_printf(xml, "%s", "  </trkseg>\n</trk>\n</gpx>\n");
-	return (UB(xml));
+	return UB(xml);
 }
 
 #if WITH_KILL
@@ -1117,7 +1117,7 @@ JsonNode *kill_datastore(char *user, char *device)
 	utstring_renew(fname);
 
 	if (!user || !*user || !device || !*device)
-		return (obj);
+		return obj;
 
 	for (bp = user; bp && *bp; bp++) {
 		if (isupper(*bp))
@@ -1135,7 +1135,7 @@ JsonNode *kill_datastore(char *user, char *device)
 		json_append_member(obj, "status", json_mkstring("ERROR"));
 		json_append_member(obj, "error", json_mkstring(strerror(errno)));
 		json_append_member(obj, "reason", json_mkstring("cannot scandir"));
-		return (obj);
+		return obj;
 	}
 
 	for (i = 0; i < n; i++) {
@@ -1280,7 +1280,7 @@ JsonNode *kill_datastore(char *user, char *device)
 	}
 
 	json_append_member(obj, "killed", killed);
-	return (obj);
+	return obj;
 }
 #endif /* WITH_KILL */
 
@@ -1488,11 +1488,11 @@ char *storage_userphoto(char *username)
 	static char path[LARGEBUF];
 
 	if (!username || !*username)
-		return (NULL);
+		return NULL;
 
 	snprintf(path, sizeof(path), "%s/photos/%s/%s.png", STORAGEDIR, username, username);
 
-	return (path);
+	return path;
 }
 
 /*
@@ -1559,10 +1559,10 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 		JsonNode *rad, *lat, *lon, *desc, *tst, *type;
 
 		if ((type = json_find_member(n, "_type")) == NULL)
-			return (false);
+			return false;
 
 		if (strcmp(type->string_, "waypoint") != 0)
-			return (false);
+			return false;
 
 		json_delete(type);
 
@@ -1601,7 +1601,7 @@ static bool load_otrw_waypoints(struct udata *ud, JsonNode *wplist, char *user, 
 		gcache_json_put(ud->wpdb, UB(key), n);
 	}
 
-	return (true);
+	return true;
 }
 
 void load_otrw_from_string(struct udata *ud, char *username, char *device, char *js_string)
@@ -1626,13 +1626,13 @@ static int load_otrw_file(struct udata *ud, char *filename)
 	JsonNode *node, *wplist;
 
 	if ((js_string = slurp_file(filename, TRUE)) == NULL) {
-		return (false);
+		return false;
 	}
 
 	if ((node = json_decode(js_string)) == NULL) {
 		olog(LOG_ERR, "load_otrw_file: can't decode JSON from file s\n", filename);
 		free(js_string);
-		return (false);
+		return false;
 	}
 
 	/*
@@ -1641,9 +1641,9 @@ static int load_otrw_file(struct udata *ud, char *filename)
 	 */
 
 	if ((bp = strrchr(filename, '/')) == NULL)
-		return (false);
+		return false;
 	if (splitter(bp+1, "-.", parts) != 3)
-		return (false);
+		return false;
 
 	user = parts[0];
 	device = parts[1];
@@ -1656,7 +1656,7 @@ static int load_otrw_file(struct udata *ud, char *filename)
 	free(js_string);
 	json_delete(node);
 
-	return (true);
+	return true;
 }
 
 bool load_fences(struct udata *ud)
@@ -1679,5 +1679,5 @@ bool load_fences(struct udata *ud)
 	}
 	globfree(&results);
 
-	return (true);
+	return true;
 }

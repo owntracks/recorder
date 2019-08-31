@@ -39,11 +39,11 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	if (!is_directory(path)) {
 		olog(LOG_ERR, "gcache_open: %s is not a directory", path);
-		return (NULL);
+		return NULL;
 	}
 
 	if ((gc = malloc(sizeof (struct gcache))) == NULL)
-		return (NULL);
+		return NULL;
 
 	memset(gc, 0, sizeof(struct gcache));
 
@@ -59,7 +59,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 	if (rc != 0) {
 		olog(LOG_ERR, "gcache_open: mdb_env_create: %s", mdb_strerror(rc));
 		free(gc);
-		return (NULL);
+		return NULL;
 	}
 
 	mdb_env_set_mapsize(gc->env, LMDB_DB_SIZE);
@@ -68,14 +68,14 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 	if (rc != 0) {
 		olog(LOG_ERR, "gcache_open: mdb_env_set_maxdbs%s", mdb_strerror(rc));
 		free(gc);
-		return (NULL);
+		return NULL;
 	}
 
 	rc = mdb_env_open(gc->env, path, flags, perms);
 	if (rc != 0) {
 		olog(LOG_ERR, "gcache_open: mdb_env_open: %s", mdb_strerror(rc));
 		free(gc);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Open a pseudo TX so that we can open DBI */
@@ -85,7 +85,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 		olog(LOG_ERR, "gcache_open: mdb_txn_begin: %s", mdb_strerror(rc));
 		mdb_env_close(gc->env);
 		free(gc);
-		return (NULL);
+		return NULL;
 	}
 
 	rc = mdb_dbi_open(txn, dbname, dbiflags, &gc->dbi);
@@ -94,7 +94,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 		mdb_txn_abort(txn);
 		mdb_env_close(gc->env);
 		free(gc);
-		return (NULL);
+		return NULL;
 	}
 
 	rc = mdb_txn_commit(txn);
@@ -102,10 +102,10 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 		olog(LOG_ERR, "cogcache_open: commit after open %s", mdb_strerror(rc));
 		mdb_env_close(gc->env);
 		free(gc);
-		return (NULL);
+		return NULL;
 	}
 
-	return (gc);
+	return gc;
 }
 
 void gcache_close(struct gcache *gc)
@@ -126,7 +126,7 @@ int gcache_del(struct gcache *gc, char *keystr)
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0) {
 		olog(LOG_ERR, "gcache_del: mdb_txn_begin: %s", mdb_strerror(rc));
-		return (rc);
+		return rc;
 	}
 
 	key.mv_data	= keystr;
@@ -143,7 +143,7 @@ int gcache_del(struct gcache *gc, char *keystr)
 		olog(LOG_ERR, "gcache_del: mdb_txn_commit: (%d) %s", rc, mdb_strerror(rc));
 		mdb_txn_abort(txn);
 	}
-	return (rc);
+	return rc;
 }
 
 int gcache_put(struct gcache *gc, char *keystr, char *payload)
@@ -153,7 +153,7 @@ int gcache_put(struct gcache *gc, char *keystr, char *payload)
 	MDB_txn *txn;
 
 	if (gc == NULL)
-		return (1);
+		return 1;
 
 	if (strcmp(payload, "DELETE") == 0)
 		return gcache_del(gc, keystr);
@@ -161,7 +161,7 @@ int gcache_put(struct gcache *gc, char *keystr, char *payload)
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0) {
 		olog(LOG_ERR, "gcache_put: mdb_txn_begin: %s", mdb_strerror(rc));
-		return (-1);
+		return -1;
 	}
 
 	key.mv_data	= keystr;
@@ -182,7 +182,7 @@ int gcache_put(struct gcache *gc, char *keystr, char *payload)
 		olog(LOG_ERR, "gcache_put: mdb_txn_commit: (%d) %s", rc, mdb_strerror(rc));
 		mdb_txn_abort(txn);
 	}
-	return (rc);
+	return rc;
 }
 
 int gcache_json_put(struct gcache *gc, char *keystr, JsonNode *json)
@@ -191,16 +191,16 @@ int gcache_json_put(struct gcache *gc, char *keystr, JsonNode *json)
 	char *js;
 
 	if (gc == NULL)
-		return (1);
+		return 1;
 
 	if ((js = json_stringify(json, NULL)) == NULL) {
 		olog(LOG_ERR, "gcache_json_put: CAN'T stringify JSON");
-		return (1);
+		return 1;
 	}
 
 	rc = gcache_put(gc, keystr, js);
 	free(js);
-	return (rc);
+	return rc;
 }
 
 long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
@@ -211,12 +211,12 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 	long len = -1;
 
 	if (gc == NULL)
-		return (-1);
+		return -1;
 
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
 		olog(LOG_ERR, "gcache_get: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
-		return (-1);
+		return -1;
 	}
 
 	key.mv_data = k;
@@ -235,7 +235,7 @@ long gcache_get(struct gcache *gc, char *k, char *buf, long buflen)
 		// printf("%s\n", (char *)data.mv_data);
 	}
 	mdb_txn_commit(txn);
-	return (len);
+	return len;
 }
 
 /*
@@ -251,12 +251,12 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 	JsonNode *json = NULL;
 
 	if (gc == NULL)
-		return (NULL);
+		return NULL;
 
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
 		olog(LOG_ERR, "gcache_json_get: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
-		return (NULL);
+		return NULL;
 	}
 
 	key.mv_data = k;
@@ -279,7 +279,7 @@ JsonNode *gcache_json_get(struct gcache *gc, char *k)
 
 	mdb_txn_commit(txn);
 
-	return (json);
+	return json;
 }
 
 void gcache_dump(char *path, char *lmdbname)
@@ -363,12 +363,12 @@ bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, in
 	wpoint wp;
 
 	if (gc == NULL)
-		return (NULL);
+		return NULL;
 
 	rc = mdb_txn_begin(gc->env, NULL, MDB_RDONLY, &txn);
 	if (rc) {
 		olog(LOG_ERR, "gcache_enum: mdb_txn_begin: (%d) %s", rc, mdb_strerror(rc));
-		return (NULL);
+		return NULL;
 	}
 
 	key.mv_data = key_part;
@@ -439,5 +439,5 @@ bool gcache_enum(char *user, char *device, struct gcache *gc, char *key_part, in
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
 
-	return (true);
+	return true;
 }

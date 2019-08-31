@@ -70,7 +70,7 @@ static int l_function(lua_State *L, char *name)
 		lua_pop(L, 1);
 	}
 	lua_settop(L, 0);
-	return (rc);
+	return rc;
 }
 
 struct luadata *hooks_init(struct udata *ud, char *script)
@@ -79,7 +79,7 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 	int rc;
 
 	if ((ld = malloc(sizeof(struct luadata))) == NULL)
-		return (NULL);
+		return NULL;
 
 	ld->script = strdup(script);
 	// ld->L = lua_open();
@@ -126,7 +126,7 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 	if (luaL_dofile(ld->L, ld->script)) {
 		olog(LOG_ERR, "Cannot load Lua from %s: %s", ld->script, lua_tostring(ld->L, -1));
 		hooks_exit(ld, "failed to load script");
-		return (NULL);
+		return NULL;
 	}
 
 	rc = l_function(ld->L, "otr_init");
@@ -141,7 +141,7 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 		ld = NULL;
 	}
 
-	return (ld);
+	return ld;
 }
 
 
@@ -238,12 +238,12 @@ int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
 	int rc;
 
 	if (ld == NULL || !ld->script)
-		return (0);
+		return 0;
 
 	lua_settop(ld->L, 0);
 	lua_getglobal(ld->L, "otr_putrec");
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
-		return (0);
+		return 0;
 	}
 
 	lua_pushstring(ld->L, user);
@@ -257,7 +257,7 @@ int hooks_norec(struct udata *ud, char *user, char *device, char *payload)
 	}
 
 	rc = (int)lua_tonumber(ld->L, -1);
-	return (rc);
+	return rc;
 }
 
 
@@ -273,7 +273,7 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 
 	debug(ud, "in hooks_http()");
 	if (ld == NULL || !ld->script)
-		return (0);
+		return 0;
 
 	fullo = json_decode(payload);
 
@@ -281,7 +281,7 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 	lua_getglobal(ld->L, "otr_httpobject");
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
 		debug(ud, "no otr_httpobject function in Lua file: returning");
-		return (0);
+		return 0;
 	}
 
 	lua_pushstring(ld->L, user);			/* arg1 */
@@ -370,7 +370,7 @@ JsonNode *hooks_http(struct udata *ud, char *user, char *device, char *payload)
 	}
 	lua_settop(ld->L, 0);
 
-	return (obj);
+	return obj;
 }
 
 void hooks_hook(struct udata *ud, char *topic, JsonNode *fullo)
@@ -420,13 +420,13 @@ JsonNode *hook_revgeo(struct udata *ud, char *luafunc, char *topic, char *user, 
 
 	debug(ud, "in hook_revgeo()");
 	if (ld == NULL || !ld->script)
-		return (0);
+		return 0;
 
 	lua_settop(ld->L, 0);
 	lua_getglobal(ld->L, luafunc);
 	if (lua_type(ld->L, -1) != LUA_TFUNCTION) {
 		debug(ud, "no %s function in Lua file: returning", luafunc);
-		return (0);
+		return 0;
 	}
 
 	lua_pushstring(ld->L, topic);			/* arg1 */
@@ -488,7 +488,7 @@ JsonNode *hook_revgeo(struct udata *ud, char *luafunc, char *topic, char *user, 
 		}
 	}
 	lua_settop(ld->L, 0);
-	return (obj);
+	return obj;
 }
 
 
@@ -531,10 +531,10 @@ static int otr_strftime(lua_State *lua)
 			strftime(buf, sizeof(buf), fmt, tm);
 
 			lua_pushstring(lua, buf);
-			return (1);
+			return 1;
 		}
 	}
-	return (0);
+	return 0;
 }
 
 /*
@@ -555,7 +555,7 @@ static int otr_putdb(lua_State *lua)
 		rc = gcache_put(LuaDB, (char *)key, (char *)value);
 		// olog(LOG_DEBUG, "LUA_PUT (%s, %s) == %d\n", key, value, rc);
 	}
-	return (rc);
+	return rc;
 }
 
 static int otr_getdb(lua_State *lua)
@@ -574,7 +574,7 @@ static int otr_getdb(lua_State *lua)
 		lua_pushstring(lua, buf);
 		rc = 1;
 	}
-	return (rc);
+	return rc;
 }
 
 #ifdef WITH_MQTT
@@ -607,7 +607,7 @@ int otr_publish(lua_State *lua)
 			olog(LOG_DEBUG, "otr_publish(%s, %s, %d, %d) == %d\n", topic, payload, qos, retain, rc);
 		}
 	}
-	return (rc);
+	return rc;
 }
 #endif
 

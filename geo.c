@@ -48,7 +48,7 @@ static size_t writemem(void *contents, size_t size, size_t nmemb, void *userp)
 
 	utstring_bincpy(cbuf, contents, realsize);
 
-	return (realsize);
+	return realsize;
 }
 
 static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
@@ -73,7 +73,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_st
 	*/
 
 	if ((json = json_decode(UB(geodata))) == NULL) {
-		return (0);
+		return 0;
 	}
 
 	/*
@@ -91,7 +91,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_st
 		if (strcmp(j->string_, "OK") != 0) {
 			fprintf(stderr, "revgeo: %s (%s)\n", j->string_, UB(geodata));
 			json_delete(json);
-			return (0);
+			return 0;
 		}
 	}
 
@@ -139,7 +139,7 @@ static int goog_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_st
 	}
 
 	json_delete(json);
-	return (1);
+	return 1;
 }
 
 static int revgeod_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
@@ -154,7 +154,7 @@ static int revgeod_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT
 	*/
 
 	if ((json = json_decode(UB(geodata))) == NULL) {
-		return (0);
+		return 0;
 	}
 
 	if ((a = json_find_member(json, "address")) != NULL) {
@@ -176,7 +176,7 @@ static int revgeod_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT
 	}
 
 	json_delete(json);
-	return (1);
+	return 1;
 }
 
 static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
@@ -217,7 +217,7 @@ static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, U
 	*/
 
 	if ((json = json_decode(UB(geodata))) == NULL) {
-		return (0);
+		return 0;
 	}
 
 	if ((results = json_find_member(json, "results")) != NULL) {
@@ -269,7 +269,7 @@ static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, U
 	}
 
 	json_delete(json);
-	return (1);
+	return 1;
 }
 
 JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_string *cc)
@@ -285,13 +285,13 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	geocoder geocoder;
 
 	if ((geo = json_mkobject()) == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	if (lat == 0.0L && lon == 0.0L) {
 		utstring_printf(addr, "Unknown (%lf,%lf)", lat, lon);
 		utstring_printf(cc, "__");
-		return (geo);
+		return geo;
 	}
 	
 	utstring_renew(url);
@@ -301,7 +301,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	if (!ud->geokey || !*ud->geokey) {
 		utstring_printf(addr, "Unknown (%lf,%lf)", lat, lon);
 		utstring_printf(cc, "__");
-		return (geo);
+		return geo;
 	}
 
 	if (strncmp(ud->geokey, "opencage:", strlen("opencage:")) == 0) {
@@ -336,7 +336,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 		fprintf(stderr, "curl_easy_perform() failed: %s\n",
 		              curl_easy_strerror(res));
 		json_delete(geo);
-		return (NULL);
+		return NULL;
 	}
 
 	switch (geocoder) {
@@ -353,7 +353,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 
 	if (!rc) {
 		json_delete(geo);
-		return (NULL);
+		return NULL;
 	}
 
 	// fprintf(stderr, "revgeo returns %d: %s\n", rc, UB(addr));
@@ -365,7 +365,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	json_append_member(geo, "tst", json_mknumber((double)now));
 	json_append_member(geo, "locality", (utstring_len(locality) > 0) ?
 		json_mkstring(UB(locality)) : json_mknull());
-	return (geo);
+	return geo;
 }
 
 void revgeo_init()
@@ -411,7 +411,7 @@ int main()
 
 	curl_easy_cleanup(curl);
 
-	return (0);
+	return 0;
 
 }
 #endif
