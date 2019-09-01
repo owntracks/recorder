@@ -1815,6 +1815,7 @@ int main(int argc, char **argv)
 	free(ud->browser_apikey);
 	free(ud->viewsdir);
 	if (ud->http_logdir) free(ud->http_logdir);
+	free(doc_root);
 #endif
 
 #if WITH_LUA
@@ -1841,8 +1842,6 @@ int main(int argc, char **argv)
 
 	utstring_free(clientid);
 #endif
-
-	free(doc_root);
 
 	return 0;
 }
