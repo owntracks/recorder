@@ -86,7 +86,9 @@ struct luadata *hooks_init(struct udata *ud, char *script)
 	ld->L = luaL_newstate();
 	luaL_openlibs(ld->L);
 
+#ifdef WITH_MQTT
 	MQTTconn = ud->mosq;
+#endif
 
 	/*
 	 * Set up a global with some values.
