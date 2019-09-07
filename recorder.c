@@ -1196,7 +1196,9 @@ int main(int argc, char **argv)
 	struct utsname uts;
 	bool do_tls = false;
 #endif /* WITH_MQTT */
+#if WITH_HTTP
 	UT_string *uviewsdir;
+#endif /* WITH_HTTP */
 	char err[1024], *p;
 	char *logfacility = "local0";
 #if WITH_MQTT
@@ -1327,11 +1329,13 @@ int main(int argc, char **argv)
 		ud->geokey = strdup(p);
 	}
 
+#if WITH_HTTP
 	if ((p = getenv("OTR_BROWSERAPIKEY")) != NULL) {
 		if (ud->browser_apikey)
 			free(ud->browser_apikey);
 		ud->browser_apikey = strdup(p);
 	}
+#endif
 
 	while (1) {
 		static struct option long_options[] = {
@@ -1786,7 +1790,9 @@ int main(int argc, char **argv)
 				mosquitto_reconnect(mosq);
 			}
 		} else {
+#if WITH_HTTP
 			http_pollms = 10000;
+#endif
 		}
 #endif
 #ifdef WITH_HTTP
