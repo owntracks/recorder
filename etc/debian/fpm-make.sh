@@ -22,10 +22,15 @@ debfile="${name}_${version}_${arch}.deb"
 
 rm -f "${debfile}"
 
+libcurl='libcurl3'
 libsodium='libsodium13'
 case $(cat /etc/debian_version) in
 	8.8) ;;
 	9.*) libsodium="libsodium18" ;;
+	10.*)
+		libsodium="libsodium23"
+		libcurl="libcurl3-gnutls"
+		;;
 esac
 
 fpm -s dir \
@@ -40,7 +45,7 @@ fpm -s dir \
         --url "http://owntracks.org" \
         -C $tempdir \
         -p ${debfile} \
-        -d "libcurl3" \
+        -d "${libcurl}" \
         -d "libmosquitto1" \
         -d "liblua5.2-0" \
         -d "libconfig9" \
