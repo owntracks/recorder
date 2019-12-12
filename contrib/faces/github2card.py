@@ -41,7 +41,7 @@ def user_profile(username):
     url = "https://api.github.com/users/" + username
     r = requests.get(url)
     if r.status_code != 200:
-        print "User not found; response:", r
+        print("User not found; response:", r)
         sys.exit(1)
 
     profile = json.loads(r.content)
@@ -49,20 +49,20 @@ def user_profile(username):
     avatar_url = profile.get('avatar_url', None)
 
     if name is None:
-        print "User has no name; stopping"
+        print("User has no name; stopping")
         sys.exit(1)
 
     if avatar_url is None:
-        print "No avatar for this user"
+        print("No avatar for this user")
         sys.exit(1)
 
     # sizing an avatar works only for "real" avatars; not
     # for the github-generated thingies (identicons)
-    avatar_url = avatar_url + '&size=40'
+    avatar_url = avatar_url + '&size=80'
 
     r = requests.get(avatar_url)
     if r.status_code != 200:
-        print "Cannot retrieve avatar for this user:", r
+        print("Cannot retrieve avatar for this user:", r)
         sys.exit(1)
 
     f = open(username + ".png", "wb")
@@ -72,10 +72,10 @@ def user_profile(username):
     card = {
         '_type': 'card',
         'name' : name,
-        'face' : base64.b64encode(r.content)
+        'face' : base64.b64encode(r.content).decode('utf-8')
     }
 
-    print json.dumps(card)
+    print(json.dumps(card))
 
 
 if __name__ == '__main__':
