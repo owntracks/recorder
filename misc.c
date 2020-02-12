@@ -157,6 +157,11 @@ void get_defaults(char *filename, struct udata *ud)
 		ud->clientid = (value) ? strdup(value) : NULL;
 	}
 
+	if (config_lookup_string(cf, "OTR_CAPATH", &value) != CONFIG_FALSE) {
+		if (ud->capath) free(ud->capath);
+		ud->capath = (value) ? strdup(value) : NULL;
+	}
+
 	if (config_lookup_string(cf, "OTR_CAFILE", &value) != CONFIG_FALSE) {
 		if (ud->cafile) free(ud->cafile);
 		ud->cafile = (value) ? strdup(value) : NULL;
