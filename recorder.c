@@ -583,7 +583,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	/*
 	 * Determine "relative topic", relative to base, i.e. whatever comes
-	 * behind ownntracks/user/device/. If it's the base topic, use "*".
+	 * behind owntracks/user/device/. If it's the base topic, use "*".
 	 */
 
 	utstring_renew(reltopic);
