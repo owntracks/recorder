@@ -1,4 +1,16 @@
 
+2020-03-09 version 0.8.5
+- FIX: OTR_CAPATH wasn't recognized in defaults (#336)
+- UPD: support for Debian 10 (Buster) packages
+- FIX: compilation with HTTP=no
+- FIX: compilation with WITH_MQTT = no and WITH_HTTP = yes (#308)
+- NEW: ot-recorder option --viewsdir overrides <docroot>/views (#305)
+- FIX: fix misleading error message (#302)
+- UPD: document that user/device names are always lowercased (#300)
+- FIX: fix unused result warning on debian stretch, (fixes #290)
+- FIX: Leaflet map and view wrap around antimeridian (±180°) #293
+
+
 2019-02-20 version 0.8.4
 - FIX: Post-installation script fails (#291)
 - NEW: revgeod is queried with &app=recorder
