@@ -1,0 +1,29 @@
+#(@)config.mk for Debian 8 (x86_64)
+
+CC = arm-linux-gnueabihf-gcc
+INSTALLDIR = /usr/
+CONFIGFILE = /etc/default/ot-recorder
+FREEBSD ?= no
+
+WITH_MQTT ?= yes
+WITH_HTTP ?= yes
+WITH_LUA ?= yes
+WITH_PING ?= yes
+WITH_KILL ?= yes
+WITH_ENCRYPT ?= yes
+WITH_GREENWICH ?= yes
+
+STORAGEDEFAULT = /var/spool/owntracks/recorder/store
+DOCROOT = /usr/share/owntracks/recorder/htdocs
+GHASHPREC = 7
+JSON_INDENT ?= no
+MOSQUITTO_INC = -I/usr/include
+MOSQUITTO_LIB = -L/usr/lib
+MORELIBS = 
+
+LUA_CFLAGS = -I/usr/include/lua5.2 -llua5.2
+LUA_LIBS   = -L /usr/lib/arm-linux-gnueabihf/
+SODIUM_CFLAGS = 
+SODIUM_LIBS   = -lsodium
+
+GEOCODE_TIMEOUT = 4000
