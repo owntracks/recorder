@@ -1,4 +1,7 @@
 
+2020-03-10 version 0.8.6
+- FIX: default views directory results in view not found (#338)
+
 2020-03-09 version 0.8.5
 - FIX: OTR_CAPATH wasn't recognized in defaults (#336)
 - UPD: support for Debian 10 (Buster) packages
