@@ -1246,6 +1246,7 @@ int main(int argc, char **argv)
 
 	utstring_new(uviewsdir);
 	utstring_printf(uviewsdir, "%s/views", DOCROOT);
+	udata.viewsdir = strdup(UB(uviewsdir));
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
