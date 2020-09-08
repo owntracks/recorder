@@ -364,7 +364,7 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 	mg_send_header(conn, "Access-Control-Allow-Origin", "*");
 
 	if (json == NULL) {
-		mg_send_header(conn, "Content-Length", "2");
+		mg_send_header(conn, "X-Content-Length", "2");
 		mg_printf_data(conn, "{}");
 	} else {
 		if ((js = json_stringify(json, JSON_INDENT)) != NULL) {
@@ -372,7 +372,7 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 			int length = snprintf(NULL, 0, "%zu", content_length);
 			char buffer[length + 1];
 			snprintf(buffer, length + 1, "%zu", content_length);
-			mg_send_header(conn, "Content-Length", buffer);
+			mg_send_header(conn, "X-Content-Length", buffer);
 			mg_printf_data(conn, js);
 			free(js);
 		}
