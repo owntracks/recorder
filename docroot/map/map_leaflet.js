@@ -43,13 +43,16 @@ function initialize_leaflet() {
         data.lat = feature.geometry.coordinates[1].toFixed(5);
         data.lon = feature.geometry.coordinates[0].toFixed(5);
         data.vel = feature.properties.vel;
+        data.acc = feature.properties.acc;
         data.tst = feature.properties.tst;
         var localtime = moment.utc(data.tst * 1000).local();
         data.timestring = localtime.format('YYYY-MM-DD, ddd, HH:mm:ss Z');
 
         var text = [];
+        data.accstring = "";
         if(data.timestring) {text.push('{{ timestring }}')}
-        if(data.lat && data.lon) {text.push('<span class="latlon">{{ lat }},{{ lon }}</span>')}
+        if(data.acc !== undefined) {data.accstring="acc: " + data.acc};
+        if(data.lat && data.lon) {text.push('<span class="latlon">{{ lat }},{{ lon }} {{ accstring }}</span>')}
         if(data.address) {text.push('{{ address }}')}
         if(data.vel !== undefined) {text.push('{{ vel }} km/h')}
         layer.bindPopup(Mustache.render(text.join('<br/>'), data));
