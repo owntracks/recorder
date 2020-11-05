@@ -419,6 +419,18 @@ ProxyPassReverse /owntracks           http://127.0.0.1:8083/
 # TODO: add views
 ```
 
+### [Caddy](https://caddyserver.com)
+```
+recorder.example.org {
+    encode gzip
+    reverse_proxy http://localhost:8083
+    basicauth * {
+        # create new password hashes with `caddy hash-password --plaintext yourpasswordhere`
+        john_doe JDJhJDE0JDBNc0FyNGd3b3JzejBTaExUZnkxdnV2THZSUUdHNzJYZmdVTzN3NlZXcjh2YXJLQi5KY04u
+    }
+}
+```
+
 ## The HTTP server
 
 The Recorder has a built-in HTTP server with which it servers static files from either the compiled-in default `DOCROOT` directory or that specified at run-time with the `--doc-root` option. Furthermore, it serves JSON data from the API end-point at `/api/0/` and it has a built-in WebSocket server for the live map.
