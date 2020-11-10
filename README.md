@@ -132,9 +132,9 @@ sudo apt-get update
 sudo apt-get install ot-recorder
 ```
 
-Debian 9 "Stretch":
+Debian 10 "Buster":
 
-using Stretch Mosquitto packages:
+using Buster Mosquitto packages:
 
 ```
 curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
