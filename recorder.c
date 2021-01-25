@@ -671,7 +671,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			else if (!strcmp(j->string_, "card"))		_type = T_CARD;
 			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
 			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
-			else if (!strcmp(j->string_, "step"))		_type = T_STEPS;
+			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
 			else if (!strcmp(j->string_, "transition"))	_type = T_TRANSITION;
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
