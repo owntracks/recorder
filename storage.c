@@ -1009,7 +1009,8 @@ JsonNode *geo_json(JsonNode *location_array)
  *	        ],
  *	        "type": "LineString"
  *	    },
- *	    "type": "Feature"
+ *	    "type": "Feature",
+ *	    "properties": {}
  *	}
  *
  */
@@ -1018,6 +1019,7 @@ JsonNode *geo_linestring(JsonNode *location_array)
 	JsonNode *top = json_mkobject(), *sorted;
 
 	json_append_member(top, "type", json_mkstring("Feature"));
+	json_append_member(top, "properties", json_mkobject());
 
 	JsonNode *c, *coords = json_mkarray();
 
