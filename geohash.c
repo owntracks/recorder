@@ -47,6 +47,13 @@
 
 #define LENGTH_OF_DEGREE	111100				// meters
 
+/*
+ * From Elasticsearch Guide:
+ * The highest-precision geohash of length 12 produces cells
+ * that cover less than a square metre of land.
+ */
+#define MAX_GEOHASH_LENGTH	12
+
 typedef struct IntervalStruct {
     
     double high;
@@ -105,9 +112,8 @@ char* get_neighbor(char *hash, int direction) {
     char **border = is_odd ? odd_borders : even_borders;
     char **neighbor = is_odd ? odd_neighbors : even_neighbors; 
     
-    char *base = malloc(sizeof(char) * 1);
-    base[0] = '\0';
-    strncat(base, hash, hash_length - 1);
+    char *base = malloc(sizeof(char) * (MAX_GEOHASH_LENGTH + 1));
+    snprintf(base, MAX_GEOHASH_LENGTH, "%s", hash);
     
 	if(index_for_char(last_char, border[direction]) != -1)
 		base = get_neighbor(base, direction);
