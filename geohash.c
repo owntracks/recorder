@@ -112,8 +112,9 @@ char* get_neighbor(char *hash, int direction) {
     char **border = is_odd ? odd_borders : even_borders;
     char **neighbor = is_odd ? odd_neighbors : even_neighbors; 
     
-    char *base = malloc(sizeof(char) * (MAX_GEOHASH_LENGTH + 1));
-    snprintf(base, MAX_GEOHASH_LENGTH, "%s", hash);
+    size_t geohash_b_size = MAX_GEOHASH_LENGTH + 1;
+    char *base = malloc(sizeof(char) * geohash_b_size);
+    snprintf(base, geohash_b_size, "%s", hash);
     
 	if(index_for_char(last_char, border[direction]) != -1)
 		base = get_neighbor(base, direction);
