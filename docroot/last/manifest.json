@@ -2,7 +2,7 @@
   "name" : "Recorder map",
   "icons" : [
   	{
-		"src" : "pista-micro.png",
+		"src" : "recorder-logo-192.png",
 		"sizes" : "192x192",
 		"type" : "image/png",
 		"density" : "4.0"
