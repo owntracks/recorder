@@ -520,13 +520,13 @@ static int otr_log(lua_State *lua)
 static int otr_strftime(lua_State *lua)
 {
 	const char *fmt;
-	long secs;
+	time_t secs;
 	struct tm *tm;
 	char buf[BUFSIZ];
 
 	if (lua_gettop(lua) >= 1) {
 		fmt =  lua_tostring(lua, 1);
-		if ((secs =  lua_tonumber(lua, 2)) < 1)
+		if ((secs =  (time_t)lua_tonumber(lua, 2)) < 1)
 			secs = time(0);
 
 		if ((tm = gmtime(&secs)) != NULL) {
