@@ -1,4 +1,10 @@
 
+2022-03-14 version 0.8.8
+- FIX: make secs time_t in otr_strftime() (#375)
+- FIX: inaccurate logo name in manifest and missing image (#372)
+- FIX: Alpine compiler warning on strncpy in geohash.c (#369)
+- FIX: ocat outputs GeoJSON Feature with properties{} (#367)
+
 2021-06-29 version 0.8.7
 - UPD: Leaflet GeoJSON map point popups now contain accuracy if available (#352)
 - FIX: prefix Content-Length by X- to avoid issues with chunked encoding #350
