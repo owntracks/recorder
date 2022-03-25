@@ -1,5 +1,5 @@
 # gpx-to-rec.py
-This script attempts to convert a `gpx` file into `rec` files to be used with `recorder`. I've only tested this script with gpx files with only one track and one segment.
+This script attempts to convert a `gpx` file into `rec` files to be used with `recorder`. I've only tested this script with gpx files with only one track and one segment from Phonetrack.
 
 ## Installation
 `gpx-to-rec.py` depends on [`gpxpy`](https://github.com/tkrajina/gpxpy) which you can install with `pip`:
