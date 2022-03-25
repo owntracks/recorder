@@ -25,7 +25,7 @@ for track in gpx.tracks:
             output = ""
             for point in segment.points:
                 if point.time.strftime("%Y-%m") == month:
-                    point_json = {'_type' : point.type, 'lat' : point.latitude, 'lon' : point.longitude, 'tst' : int(point.time.timestamp()), '_http' : True, 'alt' : point.elevation}
+                    point_json = {'_type' : 'location', 'lat' : point.latitude, 'lon' : point.longitude, 'tst' : int(point.time.timestamp()), '_http' : True, 'alt' : point.elevation}
                     output += point.time.strftime("%Y-%m-%dT%XZ") + "\t*" + (18 * " ") + "\t" + json.dumps(point_json) + "\n"
             rec_file = open(month + ".rec", "w")
             print("Saving file ", month, ".rec...", sep="")
