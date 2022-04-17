@@ -1,0 +1,50 @@
+
+/**
+ * @file
+ * Contains common styles used when showing a map.
+ */
+
+html {
+    height: 100%;
+}
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+#wrapper {
+    position: relative;
+    height: 100%;
+}
+#map-canvas {
+    height: 100%;
+}
+#maplabel {
+    position: absolute;
+    top: 10px;
+    left: 120px;
+    padding: 4px;
+    border: 2px solid gray;
+    font-size: 1.2em;
+    z-index: 99;
+    background: white;
+  }
+
+/* Marker popups */
+.block1 {
+    float: left;
+}
+.block2 {
+    float: right;
+    width: 40px;
+    height: 40px;
+    margin-left: 20px;
+    margin-right: 0;
+    padding-right: 0;
+    background-color: white;
+}
+.face {
+    float: right;
+    border: 1px solid #CACACA;
+    border-radius: 50%;
+}
