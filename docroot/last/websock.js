@@ -1,81 +1,64 @@
-var reconnectTimeout = 3000;
-var ws_url;
-var ws;
-var ws_callback = map_marker;
+
+import { debug } from "../utils/debug.js";
+
+const reconnectTimeout = 3000;
 
 function setColor(element, color) {
-	element.style.border = '2px solid ' + color;
+  element.style.border = `2px solid ${color}`;
 }
 
-var out = function(message) {
-	var div = document.createElement('div');
-	div.innerHTML = message;
-	document.getElementById('output').appendChild(div);
+/*
+function out(message) {
+  const div = document.createElement('div');
+  div.innerHTML = message;
+  document.getElementById('output').appendChild(div);
 };
+*/
 
-function ws_connect() {
+export function ws_connect(ws_url, callback) {
 
-	console.log("Connecting to websocket at " + ws_url);
+  debug("Connecting to websocket at:", ws_url);
 
-	ws = new WebSocket(ws_url);
+  const ws = new WebSocket(ws_url);
 
-	ws.onopen = function(ev) {
-		setColor(maplabel, 'green');
-		var msg = 'LAST';
-		// out('SENT: ' + msg);
-		ws.send(msg);
-	};
+  ws.onopen = function() {
+    setColor(maplabel, 'green');
+    const msg = 'LAST';
+    // out('SENT: ' + msg);
+    debug("SENT:", msg);
+    ws.send(msg);
+  };
 
-	ws.onclose = function(ev) {
-		setColor(maplabel, 'red');
-		setTimeout(ws_connect, reconnectTimeout);
-	};
+  ws.onclose = function() {
+    setColor(maplabel, 'red');
+    setTimeout(ws_connect(ws_url, callback), reconnectTimeout, ws_url, callback);
+  };
 
-	ws.onmessage = function(ev) {
-		if (!ev.data) {
-			// out('<span style="color: blue;">PING... </span>');
-		} else {
-			// out('<span style="color: blue;">RESPONSE: ' + ev.data + ' </span>');
-			try {
-				var loc = JSON.parse(ev.data);
+  ws.onmessage = function(event) {
+    if (!event.data) {
+      // out('<span style="color: blue;">PING... </span>');
+      debug("PING... ");
+    } else {
+      // out('<span style="color: blue;">RESPONSE: ' + ev.data + ' </span>');
+      try {
+        const loc = JSON.parse(event.data);
+        debug("RESPONSE:", loc);
 
-				if (loc['_label']) {
-					document.getElementById('maplabel').textContent = loc['_label'];
-				}
+        if (loc._label) {
+          document.getElementById('maplabel').textContent = loc._label;
+        }
 
-				if (loc['_type'] == 'location') {
-					ws_callback(loc);
-				}
-			} catch (x) {
-				;
-			}
-		}
-	};
+        if (loc._type === 'location') {
+          callback(loc);
+        }
+      } catch (error) {
+        debug("Could not parse:", event.data, error);
+      }
+    }
+  };
 
-	ws.onerror = function(ev) {
-		// out('<span style="color: red; ">ERROR: </span> ' + ev.data);
-	};
+  ws.onerror = function(event) {
+    // out('<span style="color: red; ">ERROR: </span> ' + ev.data);
+    console.error("ERROR:", event.data);
+  };
 }
-
-function ws_go(callback) {
-	// var url = 'ws://' + location.host + '/ws/last';
-	// console.log(JSON.stringify(location));
-  
-        if (typeof callback != 'undefined') {
-          ws_callback=callback;
-        } 
-
-	var url = ("https:" == document.location.protocol ? "wss://" : "ws://") + location.host + "/";
-	var parts = location.pathname.split('/');
-	for (var i = 1; i < parts.length - 2; i++) {
-		url = url + parts[i] + "/";
-	}
-	url = url + "ws/last";
-
-	console.log("Websocket URI: " + url);
-
-
-	ws_url = url;
-	ws_connect();
-
-};

@@ -1,47 +1,71 @@
 <!DOCTYPE html>
-<meta charset="utf-8" />
-<title>WebSocket Test</title>
-<script language="javascript" type="text/javascript">
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="static/recorder.png">
+    <link rel="apple-touch-icon" href="static/recorder.png">
+    
+    <script type="module">
 
-  var out = function(message) {
-    var div = document.createElement('div');
-    div.innerHTML = message;
-    document.getElementById('output').appendChild(div);
-  };
+      import { debug } from "../utils/debug.js";
+      
+      import { getApiUrl } from "../utils/network.js";
+      import { escapeHTML } from "../utils/misc.js";
 
-  window.onload = function() {
-    var url = 'ws://' + location.host + '/ws/last';
-    var num_messages = 0;
+      function displayMessage(message) {
+        const div = document.createElement('div');
+        div.innerHTML = message;
+        document.getElementById('output').appendChild(div);
+      };
 
-    websocket = new WebSocket(url);
-    websocket.onopen = function(ev) {
-      out('CONNECTED');
-      var msg = 'LAST';
-      out('SENT: ' + msg);
-      websocket.send(msg);
-    };
-    websocket.onclose = function(ev) {
-      out('DISCONNECTED');
-    };
-    websocket.onmessage = function(ev) {
-      if (!ev.data) {
-        out('<span style="color: blue;">PING... </span>');
-      } else {
-        out('<span style="color: blue;">RESPONSE: ' + ev.data + ' </span>');
-        num_messages++;
-      }
-      /*
-      if (num_messages > 3) {
-        websocket.send('exit');
-      } */
-    };
-    websocket.onerror = function(ev) {
-      out('<span style="color: red; ">ERROR: </span> ' + ev.data);
-    };
-  };
-</script>
-<style> div {font: small Verdana; } </style>
-<h2>OwnTracks Recorder WebSocket Test</h2>
 
-<div id="output"></div>
+      //let num_messages = 0;
+
+      // location.host		localhost:8080		localhost:8083
+      // location.pathname	/otr/ws.html		/ws.html
+
+      const url = getApiUrl("last", { useWebsocket: true });
+
+      displayMessage(`CONNECTING TO: ${url.href}`);
+
+      const websocket = new WebSocket(url);
+      websocket.addEventListener("open", () => {
+        displayMessage('CONNECTED');
+        const msg = 'LAST';
+        displayMessage('SENT: ' + msg);
+        websocket.send(msg);
+      });
+      websocket.addEventListener("close", () => {
+        displayMessage('DISCONNECTED');
+      });
+      websocket.addEventListener("message", event => {
+        if (!event.data) {
+          displayMessage('<span style="color: blue;">PING... </span>');
+        } else {
+          displayMessage(escapeHTML `<span style="color: blue;">RESPONSE: ${ event.data } </span>`);
+          debug("RESPONSE:", event.data);
+          //num_messages++;
+        }
+        /*
+        if (num_messages > 3) {
+          websocket.send('exit');
+        } */
+      });
+      websocket.addEventListener("error", event => {
+        console.error(event);
+        displayMessage(escapeHTML `<span style="color: red;">ERROR: ${ event.data } </span>`);
+      });
+
+    </script>
+    <style> div {font: small Verdana; } </style>
+  </head>
+  <body>
+    <h2>OwnTracks Recorder WebSocket Test</h2>
+
+    <div id="output"></div>
+  </body>
 </html>
