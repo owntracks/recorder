@@ -20,7 +20,7 @@
 # Usage: image2card imagefile "full name"
 #
 # Requires `convert' from ImageMagick.
-# Read image, convert to PNG, forcing a 40x40 size and encode
+# Read image, convert to PNG, forcing a 192x192 size and encode
 # to BASE64. Create a JSON payload to be published to
 # owntracks/username/device/info
 #
@@ -41,7 +41,7 @@ fullname="$2"
 base64switch=""
 base64check=$(echo "jj" | base64 -w 0 > /dev/null 2>&1)
 [ "$?" -eq "0" ] && base64switch="-w 0"
-imgdata=$(convert "${imagefile}" -resize '40x40!' - | base64 $base64switch)
+imgdata=$(convert "${imagefile}" -resize '192x192!' - | base64 $base64switch)
 
 cat <<EndOfFile
 {"_type":"card","name":"${fullname}","face":"${imgdata}"}
