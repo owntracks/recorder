@@ -1,331 +1,308 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en-US">
   <head>
+    <meta charset="UTF-8">
     <title>OwnTracks Recorder Table</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="icon" sizes="192x192" href="../static/recorder.png" />
-    <link rel="apple-touch-icon" href="../static/recorder.png" />
-    <script src="../static/js/jquery-1.12.0.min.js" type="text/javascript"></script>
-    <script src="../static/js/mustache.js"></script>
-    <script src="../static/js/moment.min.js"></script>
-    <script src="defaultface.js"></script>
-    <script src="config.js"></script>
+    <link rel="icon" sizes="192x192" href="../static/recorder.png">
+    <link rel="apple-touch-icon" href="../static/recorder.png">
 
-    <link rel="stylesheet" type="text/css" href="js/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="../static/datatables/css/jquery.dataTables.min.css">
+    <script src="../static/datatables/js/jquery.min.js"></script>
+    <script src="../static/datatables/js/jquery.dataTables.min.js"></script>
 
-    <script type="text/javascript" charset="utf8" src="js/jquery.dataTables.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="otable.css">
+    <link rel="stylesheet" href="otable.css">
 
+    <script type="module">
 
-    <script type="text/javascript">
+      import config from "./config.js";
+      
+      import { debug } from "../utils/debug.js";
+      import { fetchApiData } from "../utils/network.js";
+      import { escapeHTML } from "../utils/misc.js";
 
-    	var tab;
+      /*
+      * Insert data object into table or update existing row. `data' must
+      * have 'topic', as that is the key into column 0 of the datatable.
+      */
 
-	/*
-	 * Insert data object into table or update existing row. `data' must
-	 * have 'topic', as that is the key into column 0 of the datatable.
-	 */
+      function upsert(data) {
 
-	function upsert(data) {
+        let found = false;
+        let idx;
 
-	    var found = false;
-	    var idx;
-
-	    tab.rows().indexes().each( function(idx) {
-		var d = tab.row(idx).data();
-		if (d && (d.topic == data.topic)) {
-			found = true;
-			/* idx is index of updated row (0--n) */
-			idx = tab.row(idx).data(data);
-			/* Highlight */
-			var row = tab.rows(idx, {order:'index'}).nodes().to$();
-			$(row).animate({ 'backgroundColor': '#FF9900' }, 650, function(){
-				$(row).animate({'backgroundColor': 'white'}, 650);
-			});
-		    }
-	    });
-
-	    if (!found) {
-		    idx = tab.row.add(data);
-	    }
-	    tab.draw();
-}
-
-
-    function listusers(data) {
-	for (i in data) {
-		var d = data[i];
-
-		if (d.username == 'ping' && d.device == 'ping') {
-			continue;
-		}
-
-		if (!d.topic) {
-			console.log("SKIP " + JSON.stringify(d));
-			continue;
-		}
-
-		var dt = moment.utc(d.tst * 1000).local();
-		d['fulldate']	= dt.format("DD MMM YYYY HH:mm:ss");
-		d['addr']	= d['addr'] || '(' + d['lat'] + ',' + d['lon'] + ')';
-		d['cc']		= d['cc'] || '__';
-		d['tid']	= d['tid'] || d.topic.substr(d.topic.length - 2, d.topic.length);
-
-		upsert(d);
-	}
-    }
-
-
-    function getuserlist() {
-        var dataURI = location.protocol + "//" + location.host;
-
-        var parts = location.pathname.split('/');
-        for (var i = 1; i < parts.length - 2; i++) {
-                dataURI = dataURI + "/" + parts[i];
-        }
-        dataURI = dataURI + "/api/0/last" + location.search;
-
-        console.log("dataURI = " + dataURI);
-
-	$.ajax({
-		url: dataURI,
-		type: "GET",
-		dataType: 'json',
-		success: function(data) {
-			// console.log(JSON.stringify(data));
-			listusers(data);
-		},
-		error: function(jqXHR, textstatus, errorthrown) {
-			console.log(textstatus, errorthrown);
-			console.log(jqXHR.status + " " + jqXHR.responseText);
-		},
-	});
-    }
-
-    $(document).ready(function() {
-	getuserlist();
-
-	console.log(JSON.stringify(location));
-
-        var counter = 0;
-        tab = $('#livetable').DataTable({
-            paging: false,
-            searching: true,
-            ordering: true,
-            autoWidth: false,
-	    order: [[ 2, "desc" ]],
-            columnDefs: [
-		    { orderable : true, targets: [0, 1, 3, 4, 5] },
-
-                    {
-                            className: 'topic',
-                            name: 'topic',
-                            title: config.column_titles.topic,
-                            visible: false,
-                            data: null,
-                            render: 'topic',
-                            "targets" : [0],
-                    },
-                {
-                        className: 'face',
-                        name: 'face',
-                        title: config.column_titles.face,
-                        visible: true,
-                        data: null,
-                        "targets" : [1],
-                        render : function(data, type, row) {
-
-				data['face'] = data['face'] || defaultface;
-
-				var t = "<img class='img-circle' src='data:image/png;base64,{{ face }}' height='20' width='20' />";
-                                return Mustache.render(t, data);
-                        }
-                },
-                    {
-                            className: 'fulldate',
-                            name: 'fulldate',
-                            title: config.column_titles.fulldate,
-                            visible: true,
-                            data: null,
-                            render: 'fulldate',
-                            "targets" : [2],
-                    },
-                    {
-                            className: 'name',
-                            name: 'name',
-                            title: config.column_titles.name,
-                            visible: true,
-                            data: null,
-                            render: function(data, type, row) {
-			    	var t = data['name'] || data['topic'];
-
-				return t;
-			    },
-                            "targets" : [3],
-                    },
-                    {
-                            className: 'user',
-                            name: 'user',
-                            title: config.column_titles.user,
-                            visible: true,
-                            data: null,
-			    createdCell: function(td, cellData, rowData, row, col) {
-				if (rowData._http) {
-					$(td).css('color', 'gray');
-				}
-			    },
-                            render: function(data, type, row) {
-			    	var t = "{{username}}/{{device}}";
-				return Mustache.render(t, data);
-			    },
-                            "targets" : [4],
-                    },
-                    {
-                            className: 'tid',
-                            name: 'tid',
-                            title: config.column_titles.tid,
-                            visible: true,
-                            data: null,
-                            render: 'tid',
-                            "targets" : [5],
-                    },
-                    {
-                            className: 'batt',
-                            name: 'batt',
-                            title: config.column_titles.batt,
-                            visible: true,
-			    data: null,
-			    render: function(data, type, row) {
-				if (typeof data.batt === 'undefined' || data.batt === null) {
-					return '-';
-				}
-				if (typeof data.batt === 'object') {
-					// console.log(JSON.stringify(data.batt));
-					return data.batt[data.batt.length - 1]['batt'] + "v";
-				}
-
-				var t = "{{batt}}%";
-				if (data.batt < 25) {
-					t = '<span class="warning">' + t + '</span>';
-				}
-				return Mustache.render(t, data);
-			    },
-			   "targets" : [6],
-                    },
-                    {
-                            className: 'vel',
-                            name: 'vel',
-                            title: config.column_titles.vel,
-                            visible: true,
-			    data: null,
-			    render: function(data, type, row) {
-				if (typeof data.vel === 'undefined' || data.vel === null) {
-					return '';
-				}
-
-				try {
-					var v = parseInt(data.vel, 10);
-					if (v < 0) {
-						return '';
-					}
-				} catch(err) {
-					return '';
-				}
-
-				var t = "{{vel}}";
-				return Mustache.render(t, data);
-			    },
-			   "targets" : [7],
-                    },
-                    {
-                            className: 'cog',
-                            name: 'cog',
-                            title: config.column_titles.cog,
-                            visible: true,
-			    data: null,
-			    render: function(data, type, row) {
-				if (typeof data.cog === 'undefined' || data.cog === null) {
-					return '';
-				}
-
-				try {
-					var c = parseInt(data.cog, 10);
-					if (c < 0) {
-						return '';
-					}
-				} catch(err) {
-					return '';
-				}
-
-				var t = "{{cog}}";
-				return Mustache.render(t, data);
-			    },
-			   "targets" : [8],
-                    },
-                    {
-                            className: 'cc',
-                            name: 'cc',
-                            title: config.column_titles.cc,
-                            visible: true,
-                            data: null,
-                            render: function(data, type, row) {
-			    	var t = "<img src='flags/{{cc}}.png' title='{{cc}}'/>";
-				return Mustache.render(t, data);
-			    },
-                            "targets" : [9],
-                    },
-                    {
-                            className: 'addr',
-                            name: 'addr',
-                            title: config.column_titles.addr,
-                            visible: true,
-                            data: null,
-                            render : function(data, type, row) {
-				var t = "<a target='_new' href='http://www.openstreetmap.org/?mlat={{lat}}&mlon={{lon}}'>{{addr}}</a>";
-				return Mustache.render(t, data);
-			    },
-                            "targets" : [10],
-                    },
-            ],
-
+        tab.rows().indexes().each( function(idx) {
+          const d = tab.row(idx).data();
+          if (d && (d.topic == data.topic)) {
+            found = true;
+            /* idx is index of updated row (0--n) */
+            idx = tab.row(idx).data(data);
+            /* Highlight */
+            const row = tab.rows(idx, {order:'index'}).nodes().to$();
+            $(row).animate({ 'backgroundColor': '#FF9900' }, 650, function(){
+              $(row).animate({'backgroundColor': 'white'}, 650);
+            });
+          }
         });
 
+        if (!found) {
+          idx = tab.row.add(data);
+        }
+        tab.draw();
+      }
 
-    $('button.toggle-vis').on('click', function (e) {
-        e.preventDefault();
-        // Get column API object
-        var column = tab.column( $(this).attr('data-column') );
-        column.visible( ! column.visible() );
-    });
 
-    $('#dataload').on('click', function(e) {
-        e.preventDefault();
-	getuserlist();
-    });
+      function listusers(data) {
 
-    /* Click on a row should show object; remove `face' */
-    // $('#livetable tbody').on("click", "tr", function(ev){
-    $('#livetable tbody').on("click", "td", function(ev){
-    	// alert( "Index: " + tab.row(this).index() );
+        for (const d of data) {
 
-	var aPos = $('#livetable').dataTable().fnGetPosition(this);
-	var aData = $('#livetable').dataTable().fnGetData(aPos[0]);
+          if (d.username == 'ping' && d.device == 'ping') {
+            debug("Skipping ping entry:", d);
+            continue;
+          }
 
-	var column = aPos[1];
+          if (!d.topic) {
+            debug("Skipping unknown entry:", d);
+            continue;
+          }
 
-	if (column == 1) {
+          d.fulldate = new Date(d.tst * 1000).toLocaleDateString(undefined, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+          });
+          d.addr ||= `(${ d.lat },${ d.lon })`;
+          d.cc   ||= '__';
+          d.tid	 ||= d.topic.slice(-2);
 
-		// var o = tab.row(this).data();
-		var o = aData;
-		delete o.face;
-		alert(JSON.stringify(o));
-	}
-    });
+          upsert(d);
+        }
+      }
 
-    });
+
+      async function getuserlist() {
+
+        const data = await fetchApiData({ endpoint: "last", includeSearchParams: true });
+
+        listusers(data);
+      }
+
+      
+      getuserlist();
+
+      const tab = $('#livetable').DataTable({
+        paging: false,
+        searching: true,
+        ordering: true,
+        autoWidth: false,
+        order: [[ 2, "desc" ]],
+        columnDefs: [
+          { 
+            orderable: true,
+            targets: [ 0, 1, 3, 4, 5 ],
+          },
+          {
+            className: 'topic',
+            name: 'topic',
+            title: config.column_titles.topic,
+            visible: false,
+            data: null,
+            render: 'topic',
+            targets : [0],
+          },
+          {
+            className: 'face',
+            name: 'face',
+            title: config.column_titles.face,
+            visible: true,
+            data: null,
+            targets : [1],
+            render : function(data, type, row) {
+
+              let src;
+              if(data.face){
+                src = `'data:image/png;base64,${ data.face.replaceAll("'", "") }'`;
+              }else{
+                src = `'../static/defaultface.svg'`;
+              }
+
+              return escapeHTML `<img class='face' alt='' src=${ src } height='20' width='20'>`;
+            }
+          },
+          {
+            className: 'fulldate',
+            name: 'fulldate',
+            title: config.column_titles.fulldate,
+            visible: true,
+            data: null,
+            render: 'fulldate',
+            targets : [2],
+          },
+          {
+            className: 'name',
+            name: 'name',
+            title: config.column_titles.name,
+            visible: true,
+            data: null,
+            render: function(data, type, row) {
+              return escapeHTML `${data.name || data.topic}`;
+            },
+            targets : [3],
+          },
+          {
+            className: 'user',
+            name: 'user',
+            title: config.column_titles.user,
+            visible: true,
+            data: null,
+            createdCell: function(td, cellData, rowData, row, col) {
+              if (rowData._http) {
+                $(td).css('color', 'gray');
+              }
+            },
+            render: function(data, type, row) {
+              return escapeHTML `${ data.username }/${ data.device }`;
+            },
+            targets : [4],
+          },
+          {
+            className: 'tid',
+            name: 'tid',
+            title: config.column_titles.tid,
+            visible: true,
+            data: null,
+            render: 'tid',
+            targets : [5],
+          },
+          {
+            className: 'batt',
+            name: 'batt',
+            title: config.column_titles.batt,
+            visible: true,
+            data: null,
+            render: function(data, type, row) {
+              if (typeof data.batt === 'undefined' || data.batt === null) {
+                return '-';
+              }
+              if (typeof data.batt === 'object') {
+                return escapeHTML `${ data.batt[data.batt.length - 1].batt }v`;
+              }
+
+              let t = escapeHTML `${ data.batt }%`;
+              if (data.batt < 25) {
+                t = escapeHTML `<span class="warning">${ t }</span>`;
+              }
+              return t;
+            },
+            targets : [6],
+          },
+          {
+            className: 'vel',
+            name: 'vel',
+            title: config.column_titles.vel,
+            visible: true,
+            data: null,
+            render: function(data, type, row) {
+              if (typeof data.vel === 'undefined' || data.vel === null) {
+                return '';
+              }
+
+              try {
+                const v = parseInt(data.vel, 10);
+                if (v < 0) {
+                  return '';
+                }
+              } catch(error) {
+                return '';
+              }
+
+              return escapeHTML `${data.vel}`;
+            },
+            targets : [7],
+          },
+          {
+            className: 'cog',
+            name: 'cog',
+            title: config.column_titles.cog,
+            visible: true,
+            data: null,
+            render: function(data, type, row) {
+              if (typeof data.cog === 'undefined' || data.cog === null) {
+                return '';
+              }
+
+              try {
+                const c = parseInt(data.cog, 10);
+                if (c < 0) {
+                  return '';
+                }
+              } catch(error) {
+                return '';
+              }
+
+              return escapeHTML `${data.cog}`;
+            },
+            targets : [8],
+          },
+          {
+            className: 'cc',
+            name: 'cc',
+            title: config.column_titles.cc,
+            visible: true,
+            data: null,
+            render: function(data, type, row) {
+              return escapeHTML `<img src='../static/flags/${ data.cc }.png' title='${ data.cc }'/>`;
+            },
+            targets : [9],
+          },
+          {
+            className: 'addr',
+            name: 'addr',
+            title: config.column_titles.addr,
+            visible: true,
+            data: null,
+            render : function(data, type, row) {
+              return escapeHTML `<a target='_new' href='https://www.openstreetmap.org/?mlat=${ data.lat }&mlon=${ data.lon }'>${ data.addr }</a>`;
+            },
+            targets : [10],
+          },
+        ],
+
+      });
+
+
+      $('button.toggle-vis').on('click', function (event) {
+          event.preventDefault();
+          // Get column API object
+          const column = tab.column( $(this).attr('data-column') );
+          column.visible( ! column.visible() );
+      });
+
+      $("#dataload").on('click', function(event) {
+          event.preventDefault();
+          getuserlist();
+      });
+
+      /* Click on a row should show object; remove `face' */
+      $('#livetable tbody').on("click", "td", function(event){
+        // alert( "Index: " + tab.row(this).index() );
+
+        const aPos = $('#livetable').dataTable().fnGetPosition(this);
+        const aData = $('#livetable').dataTable().fnGetData(aPos[0]);
+
+        if (aPos[1] === 1) {
+
+          // const displayData = tab.row(this).data();
+          const displayData = aData;
+          delete displayData.face;
+          alert(JSON.stringify(displayData));
+        }
+      });
 
     </script>
   </head>
@@ -335,17 +312,18 @@
     	<li><button id='dataload'>Reload data</button></li>
     </ul>
     <div id='header'>
-	<table id="livetable" class="display compact hover" cellspacing="0" width="100%">
-        </table>
+	    <table id="livetable" class="display compact hover">
+      </table>
     </div>
 
     <div id='togglers'>
-    <ul>
+      <ul>
         <li>Toggle</li>
-    	<li><button class='toggle-vis' data-column='0'>topic</button></li>
-    	<li><button class='toggle-vis' data-column='4'>user</button></li>
-    	<li><button class='toggle-vis' data-column='6'>battery</button></li>
-    </ul>
+        <li><button class='toggle-vis' data-column='0'>topic</button></li>
+        <li><button class='toggle-vis' data-column='4'>user</button></li>
+        <li><button class='toggle-vis' data-column='6'>battery</button></li>
+      </ul>
+    </div>
 
   </body>
 </html>

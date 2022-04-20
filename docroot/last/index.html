@@ -1,90 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
   <head>
+    <meta charset="UTF-8">
     <title>Recorder Map</title>
     <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0" />
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" sizes="192x192" href="../static/recorder.png" />
-    <link rel="apple-touch-icon" href="../static/recorder.png" />
-    <style type="text/css">
-     html { height: 100% }
-     body { height: 100%; margin: 0px; padding: 0px }
-      body {  font-size: 80%; margin: 0; padding: 0; }
-
-      td { border-bottom: 1px solid; border-right: 1px dotted;}
-
-      #map-canvas { height: 100% }
-      #wrapper { position: relative; height: 100%; }
-      #maplabel { position: absolute; top: 10px; left: 120px; z-index: 99;
-	background: white;
-	font-size: 1.2em;
-	padding: 4px;
-	border: 2px solid gray;
-      }
-      .extrainfo { font-size: 80%; }
-      .latlon { color: gray; }
-      .block1 { float: left; }
-      .block2 { border 1px solid; background-color: white; width: 40px; height: 40px; float: right; margin-left: 20px; margin-right: 0px; padding-right: 0; }
-      .img-circle { border-radius: 50%; border: 1px solid #CACACA; }
-      .latlon { color: gray; }
-
+    <link rel="icon" sizes="192x192" href="../static/recorder.png">
+    <link rel="apple-touch-icon" href="../static/recorder.png">
+    <style>
+      body { font-size: 80%; }
+      td { border-bottom: 1px solid; border-right: 1px dotted; }
     </style>
+    <link rel="stylesheet" href="../utils/map.css">
 
-     <script
-       src="https://code.jquery.com/jquery-3.1.1.min.js"
-       integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-       crossorigin="anonymous">
-     </script>
-     <script src="../static/apikey.js"></script>
-     <script src="map_google.js"></script>
-     <script src="map_leaflet.js"></script>
-     <script src="websock.js"></script>
-     <script src="config.js"></script>
-     <script src="../static/js/moment.min.js"></script>
-     <script src="../static/js/mustache.js"></script>
-     <script>
-     	function loadMapsAPI() {
-	  var script = document.createElement('script');
-	  script.type = 'text/javascript';
-	  if (typeof apiKey != 'undefined' && apiKey != "" ) {
-            script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
-	      '&key=' + apiKey +'&callback=initialize_googlemaps';
-          } else {
-            $("head").append("<link rel='stylesheet' href='../static/leaflet/leaflet.css' type='text/css' />");
-            
-            // Dynamic script loading from http://stackoverflow.com/a/8578840
-            (function(d, s, id){
-              var js, fjs = d.getElementsByTagName(s)[0];
-              if (d.getElementById(id)){ return; }
-              js = d.createElement(s); js.id = id;
-              js.onload = function(){
-                initialize_leaflet();
-              };
-              js.src = "../static/leaflet/leaflet.js";
-              fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'leaflet'));
-          }
-          
-          document.body.appendChild(script);
+    <script src="../static/apikey.js"></script>
+    <script type="module">
+      import { getApiUrl } from "../utils/network.js";
+      import { loadMapSolution } from "../utils/map.js";
 
-
-	}
-
-	document.addEventListener("DOMContentLoaded", function(event) {
-		loadMapsAPI();
-	});
-
-     </script>
-
+      const ws_url = getApiUrl("last", { useWebsocket: true });
+      loadMapSolution(ws_url);
+    </script>
   </head>
   <body>
       <div id="output"></div>
       <div id="wrapper">
-	      <div id="map-canvas"></div>
-	      <div id="maplabel"></div>
+        <div id="map-canvas"></div>
+        <div id="maplabel"></div>
       </div>
   </body>
 </html>

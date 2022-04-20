@@ -1,220 +1,184 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
   <head>
+    <meta charset="UTF-8">
     <title>OwnTracks View</title>
-    <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0">
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" sizes="192x192" href="../static/recorder.png" />
-    <link rel="apple-touch-icon" href="../static/recorder.png" />
-    <style type="text/css">
-	html { height: 100%; }
-	body { height: 100%; margin: 0px; padding: 0px; }
-	#map-canvas { height: 100%; }
+    <link rel="icon" sizes="192x192" href="../static/recorder.png">
+    <link rel="apple-touch-icon" href="../static/recorder.png">
 
-      .extrainfo { font-size: 80%; }
-      .latlon { color: gray; }
-      .block1 { float: left; }
-      .block2 { border 1px solid; background-color: white; width: 40px; height: 40px; float: right; margin-left: 20px; margin-right: 0px; padding-right: 0; }
-      .img-circle { border-radius: 50%; border: 1px solid #CACACA; }
-    </style>
-     <script src="../static/js/jquery-1.12.0.min.js"></script>
-     <script src="../static/js/jquery-migrate-1.2.1.min.js"></script>
-     <script src="../static/js/moment.min.js"></script>
-     <script src="../static/js/mustache.js"></script>
-     <link rel="stylesheet" href="../static/leaflet/leaflet.css" />
-<script src="../static/leaflet/leaflet.js" ></script>
+    <link rel="stylesheet" href="../utils/map.css">
 
-    <script>
-var map;
-var lastposLayer;
-var lastLatLng;
+    <link rel="stylesheet" href="../static/leaflet/leaflet.css">
+    <script src="../static/leaflet/leaflet.js"></script>
 
-function initialize_leaflet() {
-  map = L.map('map-canvas').setView([0.0, 0.0], 1);
-  lastLatLng = L.latLng(0.0, 0.0);
+    <script type="module">
+      import { fetchApiData } from "../utils/network.js";
+      import { generatePopupHTML } from "../utils/map.js";
+      import { markerStyle, strokeStyle } from "../utils/map_leaflet.js";
 
-  var osm_layer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+      const map = L.map('map-canvas').setView([0.0, 0.0], 1);
+      let lastLatLng = L.latLng(0.0, 0.0);
 
-  var hikebike_layer = L.tileLayer('https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png', {
-    attribution: 'Map Data &copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors, Hillshading: SRTM3 v2 (<a href="http://www2.jpl.nasa.gov/srtm/">NASA</a>)'
-  });
+      const osm_layer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
 
-  var baseMaps = { "OpenStreetMap": osm_layer, "HikeBikeMap": hikebike_layer};
+      const hikebike_layer = L.tileLayer('https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png', {
+        attribution: 'Map Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Hillshading: SRTM3 v2 (<a href="https://www2.jpl.nasa.gov/srtm/">NASA</a>)',
+      });
 
-  L.control.layers(baseMaps).addTo(map);
+      const baseMaps = { "OpenStreetMap": osm_layer, "HikeBikeMap": hikebike_layer};
 
-  var geojsonMarkerOptions = {
-    radius: 5,
-    fillColor: "#ff0000",
-    color: "#ffffff",
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 0.9
-  };
+      L.control.layers(baseMaps).addTo(map);
 
-  var empty_geojson = {
-    type: "FeatureCollection",
-    features: []
-  };
-
-  var trackLayer = new L.GeoJSON( empty_geojson, {
-    style: function(feature) {
-      return {
-        color: "#ff0000",
-        weight: 4
-      }
-    },
-    coordsToLatLng: function(coords) {
-       return coordsToLatLng(coords);
-    }
-  });
-
-  // this defines how the data obtained from @@@LASTPOS@@@ will be rendered
-  lastposLayer = new L.GeoJSON( empty_geojson , {
-    pointToLayer: function (feature, latlng) {
-      return L.circleMarker(latlng, geojsonMarkerOptions);
-    },
-    onEachFeature: function(feature, layer) {
-      if (feature.geometry.type == "Point") { 
-        var data ={}
-        data.lat = feature.geometry.coordinates[1].toFixed(4);
-        data.lon = feature.geometry.coordinates[0].toFixed(4);
-        data.addr = feature.properties.addr;
-        data.label = feature.properties.label ? feature.properties.label : (feature.properties.user + "/" + feature.properties.device);
-
-        var tst = feature.properties.tst;
-        var dt = moment.utc(tst * 1000).local();
-        data.tst = tst;
-        data.fulldate = dt.format("DD MMM YYYY HH:mm:ss")
-
-        var t = "<b>{{label}}</b><br/>{{ addr }}<br/><span class='latlon'>({{ lat }}, {{lon}})</span> {{ fulldate }}";
-
-        layer.bindPopup(Mustache.render(t, data));
-      }
-    },
-    style : function(feature) {
-      if (feature.geometry.type == "Point") {
-        return {}
-      } else {
-        return {
-          color : "#ff0000",
-          weight : 4,
-        }
-      }
-    },
-    coordsToLatLng: function(coords) {
-       return coordsToLatLng(coords);
-    }
-  });
-  
-  map.addLayer(trackLayer);
-  map.addLayer(lastposLayer);
-  lastposLayer.bringToFront();
-
-  update_lastpos(true);
-
-  // define the "Load track" button in the bottom left corner, design copied from vmap.html
-  var LoadTrackControl = L.Control.extend({
-    options: {
-      position: 'bottomleft'
-    },
-
-    onAdd: function (map) {
-      var controlDiv = L.DomUtil.create('div', 'leaflet-control-button');
-
-  	  controlUI = document.createElement('div');
-      controlUI.style.backgroundColor = '#fff';
-      controlUI.style.border = '2px solid #fff';
-      controlUI.style.borderRadius = '3px';
-      controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-      controlUI.style.cursor = 'pointer';
-      controlUI.style.marginBottom = '22px';
-      controlUI.style.textAlign = 'center';
-      controlUI.title = 'Click to load the track onto the map';
-      controlDiv.appendChild(controlUI);
-
-      // Set CSS for the control interior
-      var controlText = document.createElement('div');
-      controlText.style.color = 'rgb(25,25,25)';
-      controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-      controlText.style.fontSize = '16px';
-      controlText.style.lineHeight = '38px';
-      controlText.style.paddingLeft = '5px';
-      controlText.style.paddingRight = '5px';
-      controlText.innerHTML = 'Load track';
-      controlUI.appendChild(controlText);
-
-      // when the button is clicked load the @@@GEO@@@ data and display it on the trackLayer passed as an option to the LoadTrackControl
-      controlDiv.onclick = (function() {
-        var trackLayer = this.options.trackLayer;
-        lastLatLng = L.latLng(0.0, 0.0);
-        $.getJSON( "@@@GEO@@@", function( data ) {
-          trackLayer.clearLayers();
-          trackLayer.addData(data);
-          update_lastpos(false);
-          map.fitBounds(trackLayer.getBounds());
-        });
-      }).bind(this);
-      
-      return controlDiv;
-    }
-  });
-
-  map.addControl(new LoadTrackControl({ trackLayer: trackLayer }));
-}
-
-// this will update the lastposLayer to fetch and show updated latest positions
-function update_lastpos(fitBounds) {
-  $.getJSON("@@@LASTPOS@@@", function(data) {
-    var latest = data["data"].forEach(function(latest) {
-      var latLng = coordsToLatLng([latest.lon, latest.lat])
-      var latest_geojson = {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [latLng.lng, latLng.lat]
-        },
-        "properties": latest
+      const empty_geojson = {
+        type: "FeatureCollection",
+        features: [],
       };
 
-      lastposLayer.clearLayers();
-      lastposLayer.addData(latest_geojson);
-      if(fitBounds) {
-        map.fitBounds(lastposLayer.getBounds());
+      const trackLayer = new L.GeoJSON( empty_geojson, {
+        style: function(feature) {
+          return strokeStyle;
+        },
+        coordsToLatLng: function(coords) {
+          return coordsToLatLng(coords);
+        },
+      });
+
+      // this defines how the data obtained from @@@LASTPOS@@@ will be rendered
+      const lastposLayer = new L.GeoJSON( empty_geojson , {
+        pointToLayer: function (feature, latlng) {
+          return L.circleMarker(latlng, markerStyle);
+        },
+        onEachFeature: function(feature, layer) {
+          if (feature.geometry.type === "Point") { 
+            const description = generatePopupHTML({
+              ...feature.properties,
+              lat: feature.geometry.coordinates[1].toFixed(4),
+              lon: feature.geometry.coordinates[0].toFixed(4),
+            });
+
+            layer.bindPopup(description);
+          }
+        },
+        style: function(feature) {
+          if (feature.geometry.type === "Point") {
+            return {};
+          } else {
+            return strokeStyle;
+          }
+        },
+        coordsToLatLng: function(coords) {
+          return coordsToLatLng(coords);
+        },
+      });
+      
+      map.addLayer(trackLayer);
+      map.addLayer(lastposLayer);
+      lastposLayer.bringToFront();
+
+      update_lastpos(true);
+
+      // define the "Load track" button in the bottom left corner, design copied from vmap.html
+      const LoadTrackControl = L.Control.extend({
+        options: {
+          position: 'bottomleft',
+        },
+
+        onAdd: function (map) {
+          const controlDiv = L.DomUtil.create('div', 'leaflet-control-button');
+
+          const controlUI = document.createElement('div');
+          controlUI.style.backgroundColor = '#fff';
+          controlUI.style.border = '2px solid #fff';
+          controlUI.style.borderRadius = '3px';
+          controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+          controlUI.style.cursor = 'pointer';
+          controlUI.style.marginBottom = '22px';
+          controlUI.style.textAlign = 'center';
+          controlUI.title = 'Click to load the track onto the map';
+          controlDiv.appendChild(controlUI);
+
+          // Set CSS for the control interior
+          const controlText = document.createElement('div');
+          controlText.style.color = 'rgb(25,25,25)';
+          controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+          controlText.style.fontSize = '16px';
+          controlText.style.lineHeight = '38px';
+          controlText.style.paddingLeft = '5px';
+          controlText.style.paddingRight = '5px';
+          controlText.innerHTML = 'Load track';
+          controlUI.appendChild(controlText);
+
+          // when the button is clicked load the @@@GEO@@@ data and display it on the trackLayer passed as an option to the LoadTrackControl
+          controlDiv.onclick = (async function() {
+
+            const trackLayer = this.options.trackLayer;
+            lastLatLng = L.latLng(0.0, 0.0);
+
+            const data = await fetchApiData({ url: "@@@GEO@@@" });
+            
+            trackLayer.clearLayers();
+            trackLayer.addData(data);
+            update_lastpos(false);
+            map.fitBounds(trackLayer.getBounds());
+
+          }).bind(this);
+          
+          return controlDiv;
+        },
+      });
+
+      map.addControl(new LoadTrackControl({ trackLayer: trackLayer }));
+
+      // this will update the lastposLayer to fetch and show updated latest positions
+      async function update_lastpos(fitBounds) {
+
+        const data = await fetchApiData({ url: "@@@LASTPOS@@@" });
+
+        data.data.forEach(function(latest) {
+          const latLng = coordsToLatLng([latest.lon, latest.lat]);
+          const latest_geojson = {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [ latLng.lng, latLng.lat ],
+            },
+            "properties": latest,
+          };
+
+          lastposLayer.clearLayers();
+          lastposLayer.addData(latest_geojson);
+          if(fitBounds) {
+            map.fitBounds(lastposLayer.getBounds());
+          }
+        });
       }
-    });
-  });
-}
 
-function coordsToLatLng(coords) {
-       var lat = coords[1];
-       var lon = coords[0];
-       var dist0 = Math.abs(lon - lastLatLng.lng);
-       var dist1 = Math.abs(lon + 360.0 - lastLatLng.lng);
-       var dist2 = Math.abs(lon - 360.0 - lastLatLng.lng);
-       if (dist0 > dist1 || dist0 > dist2) {
-	       if (dist0 > dist1) {
-		       lon = lon + 360.0;
-	       } else {
-		       lon = lon - 360.0;
-	       }
-       }
-       var latLng = L.GeoJSON.coordsToLatLng([lon, lat]);
-       lastLatLng = latLng;
-       return latLng
-}
+      function coordsToLatLng([ lon, lat ]) {
+        const dist0 = Math.abs(lon - lastLatLng.lng);
+        const dist1 = Math.abs(lon + 360.0 - lastLatLng.lng);
+        const dist2 = Math.abs(lon - 360.0 - lastLatLng.lng);
+        if (dist0 > dist1 || dist0 > dist2) {
+          if (dist0 > dist1) {
+            lon += 360.0;
+          } else {
+            lon -= 360.0;
+          }
+        }
+        const latLng = L.GeoJSON.coordsToLatLng([lon, lat]);
+        lastLatLng = latLng;
+        return latLng;
+      }
 
-document.addEventListener("DOMContentLoaded", function(event) {
-  initialize_leaflet();
-});
     </script>
+    
   </head>
   <body>
-      <div id="map-canvas"></div>
+    <div id="map-canvas"></div>
   </body>
 </html>
