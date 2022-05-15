@@ -293,6 +293,8 @@ This section lists the most important options of the Recorder with their long na
 
 (The rules of the game for using Google as reverse geocoder changed in May 2018; make sure to check Google's Map Project documentation before using this)
 
+Note that if you are testing reverse geo lookups, even with different providers, the data is cached; using identical location publishes will not trigger a fresh lookup.
+
 `--debug` enables a bit of additional debugging on stderr.
 
 ## Configuration file
