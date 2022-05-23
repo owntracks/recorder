@@ -1,4 +1,6 @@
 
+- UPD: modernize Recorder UI (not the actual Frontend project) (#386)
+
 2022-03-14 version 0.8.8
 - FIX: make secs time_t in otr_strftime() (#375)
 - FIX: inaccurate logo name in manifest and missing image (#372)
