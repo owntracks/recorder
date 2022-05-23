@@ -123,6 +123,8 @@ sudo apt-get install ot-recorder
 
 Debian 9 "Stretch":
 
+- we no longer build for this distribution
+
 using Stretch Mosquitto packages:
 
 ```
@@ -134,6 +136,8 @@ sudo apt-get install ot-recorder
 
 Debian 10 "Buster":
 
+- we no longer build for this distribution
+
 using Buster Mosquitto packages:
 
 ```
@@ -141,6 +145,15 @@ curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntra
 echo "deb  http://repo.owntracks.org/debian buster main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
 sudo apt-get update
 sudo apt-get install ot-recorder
+```
+
+Debian 11 "Bullseye":
+
+```
+curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
+echo "deb  http://repo.owntracks.org/debian bullseye main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+sudo apt update
+sudo apt install ot-recorder
 ```
 
 #### systemd service
