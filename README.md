@@ -87,53 +87,6 @@ We create packages for releases for a few distributions. Please note:
 
 Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
 
-If you're on CentOS 7, you can install with:
-
-```
-sudo curl -o /etc/yum.repos.d/mosquitto.repo http://download.opensuse.org/repositories/home:/oojah:/mqtt/CentOS_CentOS-7/home:oojah:mqtt.repo
-
-sudo curl -o /etc/yum.repos.d/owntracks.repo http://repo.owntracks.org/centos/owntracks.repo
-
-sudo yum install ot-recorder
-```
-
-Debian 7 "Wheezy" (including Rasbian):
-
-- we no longer build for this distribution
-
-```
-curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-echo "deb  http://repo.owntracks.org/debian wheezy main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-sudo apt-get update
-sudo apt-get install ot-recorder
-```
-
-Debian 8 "Jessie":
-
-- we no longer build for this distribution
-
-
-```
-curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-echo "deb  http://repo.owntracks.org/debian jessie main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-sudo apt-get update
-sudo apt-get install libsodium-dev libsodium13
-sudo apt-get install ot-recorder
-```
-
-Debian 9 "Stretch":
-
-- we no longer build for this distribution
-
-using Stretch Mosquitto packages:
-
-```
-curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-echo "deb  http://repo.owntracks.org/debian stretch main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-sudo apt-get update
-sudo apt-get install ot-recorder
-```
-
 Debian 10 "Buster":
 
 - we no longer build for this distribution
