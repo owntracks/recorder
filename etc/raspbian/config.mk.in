@@ -1,4 +1,4 @@
-#(@)config.mk for Debian 8 (x86_64)
+#(@)config.mk for Debian 8-10 (x86_64)
 
 CC = arm-linux-gnueabihf-gcc
 INSTALLDIR = /usr/
