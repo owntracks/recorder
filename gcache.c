@@ -32,10 +32,19 @@
 
 struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 {
+	size_t lmdb_size = LMDB_DB_SIZE;
 	MDB_txn *txn = NULL;
 	int rc;
 	unsigned int flags = 0, dbiflags = 0, perms = 0664;
 	struct gcache *gc;
+	char *p;
+
+	if ((p = getenv("OTR_LMDBSIZE")) != NULL) {
+		lmdb_size = atol(p);
+		if (lmdb_size < 10485760) { // 10 MB
+			lmdb_size = 10485760;
+		}
+	}
 
 	if (!is_directory(path)) {
 		olog(LOG_ERR, "gcache_open: %s is not a directory", path);
@@ -62,7 +71,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 		return (NULL);
 	}
 
-	mdb_env_set_mapsize(gc->env, LMDB_DB_SIZE);
+	mdb_env_set_mapsize(gc->env, lmdb_size);
 
 	rc = mdb_env_set_maxdbs(gc->env, 10);
 	if (rc != 0) {

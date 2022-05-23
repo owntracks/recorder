@@ -294,6 +294,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_CAPATH`          |  Y    |               | Directory of c_rehashed PEM certificates
 | `OTR_CERTFILE`        |  Y    |               | Path to PEM-encoded client certificate for MQTT
 | `OTR_KEYFILE`         |  Y    |               | Path to PEM-encoded client key for MQTT
+| `OTR_LMDBSIZE`        |  Y    | `104857600000` | size of the LMDB database. If less than 10485760 (10 MB) it will be set to 10485760.
 
 
 Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
