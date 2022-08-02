@@ -1,6 +1,6 @@
 /*
  * OwnTracks Recorder
- * Copyright (C) 2015-2020 Jan-Piet Mens <jpmens@gmail.com>
+ * Copyright (C) 2015-2022 Jan-Piet Mens <jpmens@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1335,6 +1335,13 @@ int main(int argc, char **argv)
 		if (ud->browser_apikey)
 			free(ud->browser_apikey);
 		ud->browser_apikey = strdup(p);
+	}
+	if ((p = getenv("OTR_HTTPHOST")) != NULL) {
+		ud->http_host = strdup(p);
+	}
+
+	if ((p = getenv("OTR_HTTPPORT")) != NULL) {
+		ud->http_port = atoi(p);
 	}
 #endif
 

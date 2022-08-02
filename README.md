@@ -282,8 +282,8 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_PASS`            |  Y    |               | MQTT password
 | `OTR_QOS`             |       | `2`           | MQTT QoS
 | `OTR_CLIENTID`        |       | hostname+pid  | MQTT ClientID (override with -i)
-| `OTR_HTTPHOST`        |       | `localhost`   | Address for the HTTP module to bind to
-| `OTR_HTTPPORT`        |       | `8083`        | Port number of the HTTP module to bind to
+| `OTR_HTTPHOST`        |  Y    | `localhost`   | Address for the HTTP module to bind to
+| `OTR_HTTPPORT`        |  Y    | `8083`        | Port number of the HTTP module to bind to
 | `OTR_HTTPLOGDIR`      |       |               | Directory in which to store access.log. Override with --http-logdir
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
