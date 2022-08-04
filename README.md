@@ -770,6 +770,7 @@ The `page` is a single HTML file which must be located in the `views/` directory
 
 * `@@@LASTPOS@@@` is converted to a URI on which the Recorder will serve the last position data
 * `@@@GEO@@@` is converted to a URI on which the Recorder will serve GeoJSON data from its storage.
+* `@@@LABEL@@@` is replaced with the `label` attribute from the page's JSON or the empty string if that doesn't exist.
 
 The default `page` we provide is called `vmap.html`; by default it refreshes the last position every 60 seconds, and clicking on "Load track" loads the GeoJSON track for the time frame specified by `from` and `to`.
 

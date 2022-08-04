@@ -985,6 +985,21 @@ static int view(struct mg_connection *conn, const char *viewname)
 					viewname, // conn->uri,
 					p+strlen("@@@LASTPOS@@@"));
 				mg_printf_data(conn, "%s", UB(sbuf));
+			} else if ((p = strstr(buf, "@@@LABEL@@@")) != NULL) {
+				char *label;
+				JsonNode *t;
+				if ((t = json_find_member(view, "label")) == NULL) {
+					label = "";
+				} else {
+					label = t->string_;
+				}
+				*p = 0;
+				utstring_clear(sbuf);
+				utstring_printf(sbuf, "%s%s%s",
+					buf,
+					label,
+					p+strlen("@@@LABEL@@@"));
+				mg_printf_data(conn, "%s", UB(sbuf));
 			} else {
 				mg_printf_data(conn, "%s", buf);
 			}
