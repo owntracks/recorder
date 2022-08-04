@@ -1429,7 +1429,7 @@ int main(int argc, char **argv)
 	UT_string *uhttp_prefix;
 # endif /* WITH_SHARES */
 #endif /* WITH_HTTP */
-	char err[1024], *p;
+	char err[1024];
 	char *logfacility = "local0";
 #if WITH_MQTT
 	int loop_timeout = 1000;
@@ -1511,84 +1511,6 @@ int main(int argc, char **argv)
 
 	get_defaults(CONFIGFILE, &udata);
 
-
-#if WITH_MQTT
-	if ((p = getenv("OTR_HOST")) != NULL) {
-		ud->hostname = strdup(p);
-	}
-
-	if ((p = getenv("OTR_PORT")) != NULL) {
-		ud->port = atoi(p);
-	}
-#endif
-
-	if ((p = getenv("OTR_STORAGEDIR")) != NULL) {
-		strcpy(STORAGEDIR, p);
-	}
-
-#if WITH_MQTT
-	if ((p = getenv("OTR_USER")) != NULL) {
-		if (ud->username)
-			free(ud->username);
-		ud->username = strdup(p);
-	}
-	if ((p = getenv("OTR_PASS")) != NULL) {
-		if (ud->password)
-			free(ud->password);
-		ud->password = strdup(p);
-	}
-
-	if ((p = getenv("OTR_CAFILE")) != NULL) {
-		if (ud->cafile)
-			free(ud->cafile);
-		ud->cafile = strdup(p);
-	}
-
-	if ((p = getenv("OTR_CAPATH")) != NULL) {
-		if (ud->capath)
-			free(ud->capath);
-		ud->capath = strdup(p);
-	}
-
-	if ((p = getenv("OTR_CERTFILE")) != NULL) {
-		if (ud->certfile)
-			free(ud->certfile);
-		ud->certfile = strdup(p);
-	}
-
-	if ((p = getenv("OTR_KEYFILE")) != NULL) {
-		if (ud->keyfile)
-			free(ud->keyfile);
-		ud->keyfile = strdup(p);
-	}
-
-#endif
-	if ((p = getenv("OTR_GEOKEY")) != NULL) {
-		if (ud->geokey)
-			free(ud->geokey);
-		ud->geokey = strdup(p);
-	}
-
-#if WITH_HTTP
-	if ((p = getenv("OTR_BROWSERAPIKEY")) != NULL) {
-		if (ud->browser_apikey)
-			free(ud->browser_apikey);
-		ud->browser_apikey = strdup(p);
-	}
-	if ((p = getenv("OTR_HTTPHOST")) != NULL) {
-		ud->http_host = strdup(p);
-	}
-
-	if ((p = getenv("OTR_HTTPPORT")) != NULL) {
-		ud->http_port = atoi(p);
-	}
-
-#ifdef WITH_SHARES
-	if ((p = getenv("OTR_HTTPPREFIX")) != NULL) {
-		udata.http_prefix = strdup(p);
-	}
-# endif /* WITH_SHARES */
-#endif
 
 	while (1) {
 		static struct option long_options[] = {

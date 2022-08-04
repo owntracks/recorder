@@ -271,34 +271,32 @@ The Recorder attempts to read its startup configuration from a configuration fil
 OTR_STORAGEDIR="/var/spool/owntracks/recorder/store"
 ```
 
-The following configuration settings may be applied (a `Y` in column `$` means an environment variable of the same name overrides a setting in the config file):
+The following configuration variables can be used to tweak settings. Defaults are used if nothing is specified, the defaults can be overriden through the configuration file, and those can be overriden from environment variables of the same name (a `Y` in column `$`). Finally, command-line options override all other methods.
 
 | Variable              |  $    | Default       | Usage
 | --------------------- | :---  | :------------ | ---------------
-| `OTR_STORAGEDIR`      |  Y    | compiled in   | Pathname to the storage directory
-| `OTR_HOST`            |  Y    | `localhost`   | MQTT hostname/address to connect to
+| `OTR_STORAGEDIR`      |  Y    | compiled in   | Pathname to the storage directory (`-S`)
+| `OTR_HOST`            |  Y    | `localhost`   | MQTT hostname/address to connect to 
 | `OTR_PORT`            |  Y    | `1883`        | MQTT port number to connect to
 | `OTR_USER`            |  Y    |               | MQTT username
 | `OTR_PASS`            |  Y    |               | MQTT password
-| `OTR_QOS`             |       | `2`           | MQTT QoS
-| `OTR_CLIENTID`        |       | hostname+pid  | MQTT ClientID (override with -i)
+| `OTR_QOS`             |  Y    | `2`           | MQTT QoS
+| `OTR_CLIENTID`        |  Y    | hostname+pid  | MQTT ClientID (override with -i)
 | `OTR_HTTPHOST`        |  Y    | `localhost`   | Address for the HTTP module to bind to
 | `OTR_HTTPPORT`        |  Y    | `8083`        | Port number of the HTTP module to bind to
 | `OTR_HTTPPREFIX`      |  Y    |               | Prefix of URL of this Recorder (e.g. `https://example.com/recorder/`
-| `OTR_HTTPLOGDIR`      |       |               | Directory in which to store access.log. Override with --http-logdir
-| `OTR_LUASCRIPT`       |       |               | Path to the Lua script
-| `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
-| `OTR_GEOKEY`          |       |               | API key for reverse-geo lookups
+| `OTR_HTTPLOGDIR`      |  Y    |               | Directory in which to store access.log. Override with --http-logdir
+| `OTR_LUASCRIPT`       |  Y    |               | Path to the Lua script
+| `OTR_PRECISION`       |  Y    | `7`           | Reverse-geo precision
+| `OTR_GEOKEY`          |  Y    |               | API key for reverse-geo lookups
 | `OTR_BROWSERAPIKEY`   |  Y    |               | Google maps browser API key
-| `OTR_TOPICS`          |       |               | String containing a space-separated list of topics to subscribe to for MQTT (overridden by command-line arguments)
+| `OTR_TOPICS`          |  Y    |               | String containing a space-separated list of topics to subscribe to for MQTT (overridden by command-line arguments)
 | `OTR_CAFILE`          |  Y    |               | Path to PEM-encoded CA certificate file for MQTT (implicitly enables TLS)
 | `OTR_CAPATH`          |  Y    |               | Directory of c_rehashed PEM certificates
 | `OTR_CERTFILE`        |  Y    |               | Path to PEM-encoded client certificate for MQTT
 | `OTR_KEYFILE`         |  Y    |               | Path to PEM-encoded client key for MQTT
 | `OTR_LMDBSIZE`        |  Y    | `104857600000` | size of the LMDB database. If less than 10485760 (10 MB) it will be set to 10485760.
 
-
-Note that options passed to `ot-recorder` override both configuration file settings and environment variables.
 
 ## Reverse proxy
 

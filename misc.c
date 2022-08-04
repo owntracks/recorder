@@ -95,13 +95,28 @@ char *monitor_get()
 }
 
 /*
- * Fill in some defaults
+ * Set the value of configuration `property' to the optional default
+ * at `def', then try to find it in the open config file at `cf',
+ * and finally the environment. Return a new copy.
  */
 
-void get_defaults(char *filename, struct udata *ud)
+static char *c_str(config_t *cf, char *property, char *def)
 {
-	config_t cfg, *cf;
 	const char *value;
+	char *val = def, *p;
+
+	if (config_lookup_string(cf, property, &value) != CONFIG_FALSE) {
+		val = (char *)value;
+	}
+
+	if ((p = getenv(property)) != NULL) {
+		val = p;
+	}
+	return val ? strdup(val) : val;
+}
+
+static int c_int(config_t *cf, char *property, int def)
+{
 #if LIBCONFIG_VER_MAJOR == 1
 # if LIBCONFIG_VER_MINOR >= 4
 	int ival;
@@ -109,6 +124,29 @@ void get_defaults(char *filename, struct udata *ud)
 # else
 	long ival;
 #endif
+
+	int val = def;
+	char *p;
+
+	if (config_lookup_int(cf, property, &ival) != CONFIG_FALSE) {
+		val = (int)ival;
+	}
+
+	if ((p = getenv(property)) != NULL) {
+		val = atol(p);
+	}
+	return val;
+}
+
+/*
+ * Fill in some defaults
+ */
+
+void get_defaults(char *filename, struct udata *ud)
+{
+	config_t cfg, *cf;
+	char *v;
+	int iv;
 
 	if (access(filename, R_OK) == -1) {
 		olog(LOG_ERR, "Cannot read defaults from %s: %s", filename, strerror(errno));
@@ -126,64 +164,35 @@ void get_defaults(char *filename, struct udata *ud)
 		exit(2);
 	}
 
-	if (config_lookup_string(cf, "OTR_STORAGEDIR", &value) != CONFIG_FALSE)
-		strcpy(STORAGEDIR, value);
+	v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
+	strcpy(STORAGEDIR, v);
 
 	if (ud == NULL) {
 		/* being invoked by ocat; return */
 		return;
 	}
 #if WITH_MQTT
-	if (config_lookup_string(cf, "OTR_HOST", &value) != CONFIG_FALSE) {
-		if (ud->hostname) free(ud->hostname);
-		ud->hostname = (value) ? strdup(value) : NULL;
-	}
-	if (config_lookup_int(cf, "OTR_PORT", &ival) != CONFIG_FALSE) {
-		ud->port = ival;
-	}
-	if (config_lookup_string(cf, "OTR_USER", &value) != CONFIG_FALSE) {
-		if (ud->username) free(ud->username);
-		ud->username = (value) ? strdup(value) : NULL;
-	}
-	if (config_lookup_string(cf, "OTR_PASS", &value) != CONFIG_FALSE) {
-		if (ud->password) free(ud->password);
-		ud->password = (value) ? strdup(value) : NULL;
-	}
-	if (config_lookup_int(cf, "OTR_QOS", &ival) != CONFIG_FALSE) {
-		ud->qos = ival;
-	}
-	if (config_lookup_string(cf, "OTR_CLIENTID", &value) != CONFIG_FALSE) {
-		if (ud->clientid) free(ud->clientid);
-		ud->clientid = (value) ? strdup(value) : NULL;
-	}
 
-	if (config_lookup_string(cf, "OTR_CAPATH", &value) != CONFIG_FALSE) {
-		if (ud->capath) free(ud->capath);
-		ud->capath = (value) ? strdup(value) : NULL;
-	}
+	ud->hostname		= c_str(cf, "OTR_HOST", "localhost");
+	ud->username		= c_str(cf, "OTR_USER", NULL);
+	ud->password		= c_str(cf, "OTR_PASS", NULL);
+	ud->clientid		= c_str(cf, "OTR_CLIENTID", ud->clientid);
+	ud->capath		= c_str(cf, "OTR_CAPATH", NULL);
+	ud->cafile		= c_str(cf, "OTR_CAFILE", NULL);
+	ud->certfile		= c_str(cf, "OTR_CERTFILE", NULL);
+	ud->keyfile		= c_str(cf, "OTR_KEYFILE", NULL);
 
-	if (config_lookup_string(cf, "OTR_CAFILE", &value) != CONFIG_FALSE) {
-		if (ud->cafile) free(ud->cafile);
-		ud->cafile = (value) ? strdup(value) : NULL;
-	}
+	ud->port 		= c_int(cf, "OTR_PORT", 1883);
+	ud->qos 		= c_int(cf, "OTR_QOS", ud->qos);
 
-	if (config_lookup_string(cf, "OTR_KEYFILE", &value) != CONFIG_FALSE) {
-		if (ud->keyfile) free(ud->keyfile);
-		ud->keyfile = (value) ? strdup(value) : NULL;
-	}
-
-	if (config_lookup_string(cf, "OTR_CERTFILE", &value) != CONFIG_FALSE) {
-		if (ud->certfile) free(ud->certfile);
-		ud->certfile = (value) ? strdup(value) : NULL;
-	}
 
 	/* Topics is a blank-separated string of words; split and add to JSON array */
-	if (config_lookup_string(cf, "OTR_TOPICS", &value) != CONFIG_FALSE) {
+	if ((v = c_str(cf, "OTR_TOPICS", NULL)) != NULL) {
 		char *parts[40];
 		int np, n;
 		if (ud->topics) json_delete(ud->topics);
 
-		if ((np = splitter((char *)value, " ", parts)) < 1) {
+		if ((np = splitter((char *)v, " ", parts)) < 1) {
 			olog(LOG_ERR, "Illegal value in OTR_TOPICS");
 			exit(2);
 		}
@@ -196,44 +205,24 @@ void get_defaults(char *filename, struct udata *ud)
 	}
 #endif /* WITH_MQTT */
 
-	if (config_lookup_string(cf, "OTR_GEOKEY", &value) != CONFIG_FALSE) {
-		if (ud->geokey) free(ud->geokey);
-		ud->geokey = (value) ? strdup(value) : NULL;
-	}
-
-	if (config_lookup_int(cf, "OTR_PRECISION", &ival) != CONFIG_FALSE) {
-		geohash_setprec(ival);
-	}
+	ud->geokey		= c_str(cf, "OTR_GEOKEY", NULL);
+	iv			= c_int(cf, "OTR_PRECISION", GHASHPREC);
+	geohash_setprec(iv);
 
 #if WITH_HTTP
-	if (config_lookup_string(cf, "OTR_HTTPHOST", &value) != CONFIG_FALSE) {
-		if (ud->http_host) free(ud->http_host);
-		ud->http_host = (value) ? strdup(value) : NULL;
-	}
-	if (config_lookup_int(cf, "OTR_HTTPPORT", &ival) != CONFIG_FALSE) {
-		ud->http_port = ival;
-	}
+	ud->http_host		= c_str(cf, "OTR_HTTPHOST", NULL);
+	ud->http_logdir		= c_str(cf, "OTR_HTTPLOGDIR", NULL);
+	ud->browser_apikey	= c_str(cf, "OTR_BROWSERAPIKEY", NULL);
+
+	ud->http_port		= c_int(cf, "OTR_HTTPPORT", ud->http_port);
+
 #ifdef WITH_SHARES
-	if (config_lookup_string(cf, "OTR_HTTPPREFIX", &value) != CONFIG_FALSE) {
-		if (ud->http_prefix) free(ud->http_prefix);
-		ud->http_prefix = (value) ? strdup(value) : NULL;
-	}
+	ud->http_prefix		= c_str(cf, "OTR_HTTPPREFIX", NULL);
 # endif /* WITH_SHARES */
-	if (config_lookup_string(cf, "OTR_HTTPLOGDIR", &value) != CONFIG_FALSE) {
-		if (ud->http_logdir) free(ud->http_logdir);
-		ud->http_logdir = (value) ? strdup(value) : NULL;
-	}
-	if (config_lookup_string(cf, "OTR_BROWSERAPIKEY", &value) != CONFIG_FALSE) {
-		if (ud->browser_apikey) free(ud->browser_apikey);
-		ud->browser_apikey = (value) ? strdup(value) : NULL;
-	}
 #endif /* WITH_HTTP */
 
 #if WITH_LUA
-	if (config_lookup_string(cf, "OTR_LUASCRIPT", &value) != CONFIG_FALSE) {
-		if (ud->luascript) free(ud->luascript);
-		ud->luascript = (value) ? strdup(value) : NULL;
-	}
+	ud->luascript		= c_str(cf, "OTR_LUASCRIPT", NULL);
 #endif
 
 	config_destroy(cf);
