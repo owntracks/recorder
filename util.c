@@ -32,6 +32,9 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <math.h>
+#ifdef WITH_SHARES
+# include <uuid/uuid.h>
+#endif
 #include "udata.h"
 
 #ifndef LINESIZE
@@ -627,3 +630,16 @@ double number(JsonNode *j, char *element)
 
 	return (NAN);
 }
+
+#ifdef WITH_SHARES
+char *uuid4()
+{
+        static char uustr[37];
+        uuid_t uu;
+
+        uuid_generate(uu);
+        uuid_unparse_lower(uu, uustr);
+
+        return (uustr);
+}
+#endif

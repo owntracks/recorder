@@ -42,6 +42,9 @@ struct udata {
 	char *http_logdir;		/* full path to http access log */
 	char *browser_apikey;		/* Google maps browser API key */
 	char *viewsdir;			/* path to views directory */
+# ifdef WITH_SHARES
+	char *http_prefix;		/* prefix URL to this Recorder */
+# endif /* SHARES */
 #endif
 #ifdef WITH_LUA
 	char *luascript;		/* Path to Lua script */

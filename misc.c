@@ -213,6 +213,12 @@ void get_defaults(char *filename, struct udata *ud)
 	if (config_lookup_int(cf, "OTR_HTTPPORT", &ival) != CONFIG_FALSE) {
 		ud->http_port = ival;
 	}
+#ifdef WITH_SHARES
+	if (config_lookup_string(cf, "OTR_HTTPPREFIX", &value) != CONFIG_FALSE) {
+		if (ud->http_prefix) free(ud->http_prefix);
+		ud->http_prefix = (value) ? strdup(value) : NULL;
+	}
+# endif /* WITH_SHARES */
 	if (config_lookup_string(cf, "OTR_HTTPLOGDIR", &value) != CONFIG_FALSE) {
 		if (ud->http_logdir) free(ud->http_logdir);
 		ud->http_logdir = (value) ? strdup(value) : NULL;

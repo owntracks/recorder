@@ -284,6 +284,7 @@ The following configuration settings may be applied (a `Y` in column `$` means a
 | `OTR_CLIENTID`        |       | hostname+pid  | MQTT ClientID (override with -i)
 | `OTR_HTTPHOST`        |  Y    | `localhost`   | Address for the HTTP module to bind to
 | `OTR_HTTPPORT`        |  Y    | `8083`        | Port number of the HTTP module to bind to
+| `OTR_HTTPPREFIX`      |  Y    |               | Prefix of URL of this Recorder (e.g. `https://example.com/recorder/`
 | `OTR_HTTPLOGDIR`      |       |               | Directory in which to store access.log. Override with --http-logdir
 | `OTR_LUASCRIPT`       |       |               | Path to the Lua script
 | `OTR_PRECISION`       |       | `7`           | Reverse-geo precision
@@ -334,7 +335,7 @@ server {
         proxy_set_header    X-Real-IP $remote_addr;
     }
 
-    # OwnTracks Recorder Views
+    # OwnTracks Recorder Views (requires /view, /static, /utils)
     location /owntracks/view/ {
          proxy_buffering         off;            # Chrome
          proxy_pass              http://127.0.0.1:8083/view/;
@@ -345,6 +346,13 @@ server {
     }
     location /owntracks/static/ {
          proxy_pass              http://127.0.0.1:8083/static/;
+         proxy_http_version      1.1;
+         proxy_set_header        Host $host;
+         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header        X-Real-IP $remote_addr;
+    }
+    location /o/utils/ {
+         proxy_pass              http://127.0.0.1:8083/utils/;
          proxy_http_version      1.1;
          proxy_set_header        Host $host;
          proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;

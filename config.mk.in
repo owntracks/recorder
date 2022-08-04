@@ -39,6 +39,9 @@ WITH_MQTT ?= yes
 # Do you want recorder's built-in HTTP REST API?
 WITH_HTTP ?= yes
 
+# Do you want recorder support for shared views? Requires WITH_HTTP
+WITH_SHARES ?= no
+
 # Do you have Lua libraries installed and want the Lua hook integration?
 WITH_LUA ?= no
 

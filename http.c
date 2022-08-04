@@ -618,7 +618,7 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 	char *enc;
 #endif
 	static UT_string *topic = NULL, *userdevice = NULL;
-	JsonNode *jarray;
+	JsonNode *jarray, *jnode = NULL;
 #if WITH_LUA
 	JsonNode *htobj;
 #endif
@@ -643,11 +643,20 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	debug(ud, "HTTPPUB clen=%zu, topic=%s", conn->content_len, UB(topic));
 
-	handle_message(ud, UB(topic), payload, conn->content_len, 0, TRUE, FALSE);
+	handle_message(ud, UB(topic), payload, conn->content_len, 0, TRUE, FALSE, &jnode);
 
 
 	jarray = populate_friends(conn, u, d);
 	extra_http_json(jarray, u, d);
+
+	if (jnode != NULL) {
+		/*
+		 * Response data for share/shares is available; add it to
+		 * the outgoing JSON which will be returned to the HTTP
+		 * client.
+		 */
+		json_append_element(jarray, jnode);
+	}
 #if WITH_LUA
 	if ((htobj = hooks_http(ud, u, d, payload)) != NULL) {
 		json_append_element(jarray, htobj);
@@ -1565,7 +1574,7 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 				if ((js = json_stringify(obj, NULL)) != NULL) {
 					fprintf(stderr, "Traccar: %s\n", js);
-					handle_message(ud, UB(topic), js, strlen(js), 0, TRUE, FALSE);
+					handle_message(ud, UB(topic), js, strlen(js), 0, TRUE, FALSE, NULL);
 					free(js);
 				}
 

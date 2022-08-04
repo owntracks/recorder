@@ -40,5 +40,8 @@ double haversine_dist(double th1, double ph1, double th2, double ph2);
 void debug(struct udata *, char *fmt, ...);
 void chomp(char *s);
 double number(JsonNode *j, char *element);
+#ifdef WITH_SHARES
+char *uuid4(void);
+#endif
 
 #endif

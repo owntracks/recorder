@@ -54,6 +54,7 @@
 # include <sodium.h>
 #endif
 #include "version.h"
+#include <dirent.h>
 
 
 #define SSL_VERIFY_PEER (1)
@@ -135,6 +136,17 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 }
 
 #ifdef WITH_MQTT
+void publish(struct udata *userdata, char *topic, char *payload)
+{
+	struct udata *ud = (struct udata *)userdata;
+	int qos = 2;
+
+	// FIXME: what about HTTP ??
+
+	mosquitto_publish(ud->mosq, NULL, topic, strlen(payload), payload, qos, false);
+
+}
+
 void republish(struct mosquitto *mosq, struct udata *userdata, char *username, char *topic, double lat, double lon, char *cc, char *addr, long tst, char *t)
 {
 	struct udata *ud = (struct udata *)userdata;
@@ -374,6 +386,206 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 		free(js);
 }
 
+#ifdef WITH_SHARES
+static char *elem(JsonNode *json, char *e)
+{
+        JsonNode *j;
+        char *val = "-";
+
+        if ((j = json_find_member(json, e)) != NULL) {
+                if (j->tag == JSON_STRING) {
+                        val = j->string_;
+                }
+        }
+        return (val);
+}
+# endif /* WITH_SHARES */
+
+#ifdef WITH_SHARES
+void do_request(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, bool httpmode, JsonNode **jnode)
+{
+	JsonNode *json = json_decode(payloadstring), *j, *r, *resp;
+	char *request_type = NULL, *js;
+	static UT_string *url, *fulltopic;
+	static int virgin = 1;
+	static regex_t regex;
+	int cflags = REG_EXTENDED | REG_ICASE | REG_NOSUB;
+
+	if (json == NULL)
+		return;
+
+	utstring_renew(url);
+	utstring_renew(fulltopic);
+
+	utstring_printf(fulltopic, "owntracks/%s/%s/cmd", UB(username), UB(device));
+
+// 3d9d97d4-a27e-4cd1-842f-6bf51c18a5c2.json
+#define UUID_RE "^([[:alnum:]]{8})-([[:alnum:]]{4})-([[:alnum:]]{4})-([[:alnum:]]{4})-([[:alnum:]]{12})\\.json"
+
+	if (virgin) {
+		virgin = !virgin;
+		if (regcomp(&regex, UUID_RE, cflags)) {
+			olog(LOG_ERR, "Cannot compile UUID RE");
+			return;
+		}
+	}
+
+	if ((j = json_find_member(json, "request")) != NULL) {
+		request_type = j->string_;
+	}
+
+	if (strcmp(request_type, "share") == 0) {
+		FILE *fp;
+		char path[BUFSIZ];
+
+		if ((r = json_find_member(json, "share")) == NULL) {
+			return;
+		}
+
+		char *uuid = uuid4();
+
+		utstring_printf(url, "%s/view/%s", ud->http_prefix, uuid);
+
+		JsonNode *o = json_mkobject();
+		json_append_member(o, "page", json_mkstring("leafletmap.html"));
+		json_append_member(o, "user", json_mkstring(UB(username)));
+		json_append_member(o, "device", json_mkstring(UB(device)));
+		json_append_member(o, "label", json_mkstring(elem(r, "label")));
+		json_append_member(o, "zoom", json_mknumber(6));
+		json_append_member(o, "from", json_mkstring(elem(r, "from")));
+		json_append_member(o, "to", json_mkstring(elem(r, "to")));
+		json_append_member(o, "uuid", json_mkstring(uuid));
+		json_append_member(o, "url", json_mkstring(UB(url)));
+
+		snprintf(path, sizeof(path), "%s/%s.json", ud->viewsdir, uuid);
+
+		olog(LOG_DEBUG, "New share %s for %s/%s", uuid, UB(username), UB(device));
+
+		if ((fp = fopen(path, "w")) != NULL) {
+			char *js = json_stringify(o, "  ");
+			fprintf(fp, "%s\n", js);
+			free(js);
+			fclose(fp);
+		} else {
+			olog(LOG_ERR, "Can't create at share %s: %m", path);
+			json_delete(o);
+			return;
+		}
+
+		json_delete(o);
+
+		resp = json_mkobject();
+		json_append_member(resp, "_type", json_mkstring("cmd"));
+		json_append_member(resp, "action", json_mkstring("response"));
+		json_append_member(resp, "request", json_mkstring("share"));
+		json_append_member(resp, "status", json_mknumber(200));
+
+		JsonNode *nshare = json_mkobject();
+		json_copy_to_object(nshare, r, false);
+		json_append_member(nshare, "uuid", json_mkstring(uuid));
+		json_append_member(nshare, "url", json_mkstring(UB(url)));
+
+		json_append_member(resp, "share", nshare);
+
+		if (httpmode) {
+			*jnode = resp;		// caller will delete `resp'
+			return;
+		}
+
+		if ((js = json_stringify(resp, "  ")) != NULL) {
+			publish(ud, UB(fulltopic), js);
+			free(js);
+		}
+		json_delete(resp);
+
+	} else if (strcmp(request_type, "shares") == 0) {
+
+		//FILE *fp;
+		JsonNode *arr, *o;
+		char path[BUFSIZ];
+		DIR *dirp;
+		struct dirent *dp;
+		int nomatch, nshare = 0;
+
+		resp = json_mkobject();
+		json_append_member(resp, "_type", json_mkstring("cmd"));
+		json_append_member(resp, "action", json_mkstring("response"));
+		json_append_member(resp, "request", json_mkstring("shares"));
+
+		arr = json_mkarray();
+
+		if ((dirp = opendir(ud->viewsdir)) != NULL) {
+			while ((dp = readdir(dirp)) != NULL) {
+				char *fn = dp->d_name;
+
+				if (dp->d_type != DT_REG)
+					continue;
+
+				nomatch = regexec(&regex, fn, 0, NULL, 0);
+				if (nomatch)
+					continue;
+
+				o = json_mkobject();
+				snprintf(path, sizeof(path), "%s/%s", ud->viewsdir, fn);
+				if (json_copy_from_file(o, path) == false) {
+					olog(LOG_ERR, "Can't copy JSON from %s", path);
+					json_delete(o);
+					continue;
+				}
+				if (strcmp(elem(o, "user"), UB(username)) != 0 ||
+				    strcmp(elem(o, "device"), UB(device)) != 0) {
+					olog(LOG_DEBUG, "Skipping %s: owner mismatch", path);
+					json_delete(o);
+					continue;
+				}
+
+				json_append_element(arr, o);
+				++nshare;
+			}
+			closedir(dirp);
+		} else {
+			perror(ud->viewsdir);
+		}
+
+		json_append_member(resp, "shares", arr);
+		json_append_member(resp, "nshares", json_mknumber(nshare));
+
+		olog(LOG_DEBUG, "Returning nshares=%d for %s/%s", nshare, UB(username), UB(device));
+
+		if (httpmode) {
+			*jnode = resp;		// caller will delete `resp'
+			return;
+		}
+
+		if ((js = json_stringify(resp, "  ")) != NULL) {
+			publish(ud, UB(fulltopic), js);
+			free(js);
+		}
+
+		json_delete(resp);
+
+	} else if (strcmp(request_type, "unshare") == 0) {
+		JsonNode *r;
+		char path[BUFSIZ];
+
+		if ((r = json_find_member(json, "uuid")) == NULL) {
+			fprintf(stderr, "No uuid in unshare request\n");
+			return;
+		}
+
+		olog(LOG_DEBUG, "Unshare %s for %s/%s", r->string_, UB(username), UB(device));
+
+		snprintf(path, sizeof(path), "%s/%s.json", ud->viewsdir, r->string_);
+		if (access(path, R_OK) < 0) {
+			olog(LOG_ERR, "Can't find share %s: %m", r->string_);
+		}
+		if (remove(path) != 0) {
+			olog(LOG_ERR, "Can't delete share %s: %m", r->string_);
+		}
+	}
+}
+#endif /* WITH_SHARES */
+
 #ifdef WITH_GREENWICH
 
 /*
@@ -512,7 +724,13 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 }
 #endif /* ENCRYPT */
 
-void handle_message(void *userdata, char *topic, char *payload, size_t payloadlen, int retain, int httpmode, int was_encrypted)
+/*
+ * if `jnode' will be set to a JsonNode object with results added to the
+ * outgoing HTTP payload; the caller (in http.c) will delete the object
+ * when it returns the payload to the client.
+ */
+
+void handle_message(void *userdata, char *topic, char *payload, size_t payloadlen, int retain, int httpmode, int was_encrypted, JsonNode **jnode)
 {
 	JsonNode *json, *j, *geo = NULL;
 	char *tid = NULL, *t = NULL, *p;
@@ -676,6 +894,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
 			else if (!strcmp(j->string_, "dump"))		_type = T_CONFIG;
+#ifdef WITH_SHARES
+			else if (!strcmp(j->string_, "request"))	_type = T_REQUEST;
+#endif /* WITH_SHARES */
 #if WITH_ENCRYPT
 			else if (!strcmp(j->string_, "encrypted"))	_type = T_ENCRYPTED;
 #endif /* WITH_ENCRYPT */
@@ -744,7 +965,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 					cleartext = (char *)decrypt(ud, topic, j->string_, UB(username), UB(device));
 					if (cleartext != NULL) {
-						handle_message(ud, topic, cleartext, strlen(cleartext), retain, httpmode, TRUE);
+						handle_message(ud, topic, cleartext, strlen(cleartext), retain, httpmode, TRUE, NULL);
 						free(cleartext);
 					}
 					if (_typestr) free(_typestr);
@@ -757,6 +978,12 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			return;
 			break;
 #endif /* WITH_ENCRYPT */
+#ifdef WITH_SHARES
+		case T_REQUEST:
+			do_request(ud, username, device, payload, httpmode, jnode);
+			goto cleanup;
+			break;
+#endif /* WITH_SHARES */
 		default:
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
@@ -882,9 +1109,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 #endif /* WITH_LUA */
 			if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
 				/* Habemus cached data */
-				
+
 				cached = TRUE;
-	
+
 				if ((j = json_find_member(geo, "cc")) != NULL) {
 					utstring_printf(cc, "%s", j->string_);
 				}
@@ -898,10 +1125,10 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 					} else {
 						/* We didn't obtain reverse Geo, maybe because of over
 						 * quota; make a note of the missing geohash */
-	
+
 						char gfile[BUFSIZ];
 						FILE *fp;
-	
+
 						snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
 						if ((fp = fopen(gfile, "a")) != NULL) {
 							fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
@@ -1076,7 +1303,7 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 {
 	struct udata *ud = (struct udata *)userdata;
 
-	handle_message(ud, m->topic, m->payload, m->payloadlen, m->retain, FALSE, FALSE);
+	handle_message(ud, m->topic, m->payload, m->payloadlen, m->retain, FALSE, FALSE, NULL);
 }
 
 
@@ -1198,6 +1425,9 @@ int main(int argc, char **argv)
 #endif /* WITH_MQTT */
 #if WITH_HTTP
 	UT_string *uviewsdir;
+# if WITH_SHARES
+	UT_string *uhttp_prefix;
+# endif /* WITH_SHARES */
 #endif /* WITH_HTTP */
 	char err[1024], *p;
 	char *logfacility = "local0";
@@ -1243,10 +1473,19 @@ int main(int argc, char **argv)
 	udata.http_logdir	= NULL;
 	udata.browser_apikey	= NULL;
 	udata.viewsdir		= NULL;
+#ifdef WITH_SHARES
+	udata.http_prefix	= NULL;
+# endif /* WITH_SHARES */
 
 	utstring_new(uviewsdir);
 	utstring_printf(uviewsdir, "%s/views", DOCROOT);
 	udata.viewsdir = strdup(UB(uviewsdir));
+
+#ifdef WITH_SHARES
+	utstring_new(uhttp_prefix);
+	utstring_printf(uhttp_prefix, "%s", "http://localhost:8083");
+	udata.http_prefix = strdup(UB(uhttp_prefix));
+# endif /* WITH_SHARES */
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
@@ -1343,6 +1582,12 @@ int main(int argc, char **argv)
 	if ((p = getenv("OTR_HTTPPORT")) != NULL) {
 		ud->http_port = atoi(p);
 	}
+
+#ifdef WITH_SHARES
+	if ((p = getenv("OTR_HTTPPREFIX")) != NULL) {
+		udata.http_prefix = strdup(p);
+	}
+# endif /* WITH_SHARES */
 #endif
 
 	while (1) {
@@ -1773,11 +2018,16 @@ int main(int argc, char **argv)
 		// mg_set_option(udata.mgserver, "cgi_pattern", "**.cgi");
 
 		addressinfo = mg_get_option(udata.mgserver, "listening_port");
-		olog(LOG_INFO, "HTTP listener started on %s", addressinfo);
+		olog(LOG_INFO, "HTTP listener started on %s, %s browser-apikey",
+			addressinfo,
+			ud->browser_apikey ? "with" : "without");
 		if (addressinfo == NULL || *addressinfo == 0) {
 			olog(LOG_ERR, "HTTP port is in use. Exiting.");
 			exit(2);
 		}
+#ifdef WITH_SHARES
+		olog(LOG_INFO, "HTTP prefix is %s", ud->http_prefix);
+# endif /* WITH_SHARES */
 
 	}
 #endif
@@ -1830,6 +2080,9 @@ int main(int argc, char **argv)
 	free(ud->http_host);
 	free(ud->browser_apikey);
 	free(ud->viewsdir);
+# ifdef WITH_SHARES
+	free(ud->http_prefix);
+# endif /* WITH_SHARES */
 	if (ud->http_logdir) free(ud->http_logdir);
 #endif
 
