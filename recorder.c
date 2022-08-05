@@ -141,8 +141,6 @@ void publish(struct udata *userdata, char *topic, char *payload)
 	struct udata *ud = (struct udata *)userdata;
 	int qos = 2;
 
-	// FIXME: what about HTTP ??
-
 	mosquitto_publish(ud->mosq, NULL, topic, strlen(payload), payload, qos, false);
 
 }
