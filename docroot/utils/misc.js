@@ -1,5 +1,5 @@
 
-import { renames } from "../config.js";
+import { renames } from "../utils/config.js";
 
 /**
  * Use this as a template literal tag to escape all variables for use as text inside HTML elements.
