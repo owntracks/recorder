@@ -91,7 +91,7 @@ CONFIGFILE = /etc/default/ot-recorder
 # Optionally specify the path to the Mosquitto libs, include here
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
-MORELIBS += # -lssl
+MORELIBS += # -luuid -lssl
 
 # Milliseconds (ms) timeout for reverse geocoding
 GEOCODE_TIMEOUT = 4000

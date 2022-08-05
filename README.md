@@ -141,7 +141,7 @@ You need a current version of libmosquitto (and you probably require the Mosquit
 On Debian, you can install the needed packages with:
 
 ```
-apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev
+apt-get install build-essential linux-headers-$(uname -r) libcurl4-openssl-dev libmosquitto-dev liblua5.2-dev libsodium-dev libconfig-dev uuid-dev
 ```
 
 On CentOS 7:
@@ -158,7 +158,7 @@ On Ubuntu:
 ```
 sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
 sudo apt-get update
-sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-dev liblmdb-dev
+sudo apt-get install libmosquitto-dev libcurl3 libcurl4-openssl-dev libconfig-dev liblmdb-dev uuid-dev
 ```
 
 #### Building
