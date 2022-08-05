@@ -139,8 +139,17 @@ static JsonNode *loadview(struct udata *ud, const char *viewname)
 
 	view = json_mkobject();
 	if (json_copy_from_file(view, UB(fpath)) != TRUE) {
+#ifdef WITH_SHARES
+		/* Now try second possibility */
+		utstring_renew(fpath);
+		utstring_printf(fpath, "%s/%s.json", toursdir(), viewname);
+		if (json_copy_from_file(view, UB(fpath)) != TRUE) {
+#endif
 		json_delete(view);
 		return (NULL);
+#ifdef WITH_SHARES
+		}
+#endif
 	}
 
 	return (view);
@@ -962,8 +971,17 @@ static int view(struct mg_connection *conn, const char *viewname)
 		debug(ud, "page file=%s", UB(fpath));
 
 		if ((fp = fopen(UB(fpath), "r")) == NULL) {
+#ifdef WITH_SHARES
+			utstring_renew(fpath);
+			utstring_printf(fpath, "%s/%s", toursdir(), j->string_);
+			debug(ud, "page file=%s", UB(fpath));
+			if ((fp = fopen(UB(fpath), "r")) == NULL) {
+#endif
 			json_delete(view);
 			return send_status(conn, 404, "Cannot open view page");
+#ifdef WITH_SHARES
+			}
+#endif
 		}
 
 		mg_send_header(conn, "Content-type", "text/html");

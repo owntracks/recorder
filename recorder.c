@@ -460,11 +460,8 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		json_append_member(o, "uuid", json_mkstring(uuid));
 		json_append_member(o, "url", json_mkstring(UB(url)));
 
-		snprintf(path, sizeof(path), "%s/%s.json", ud->viewsdir, uuid);
-
-		olog(LOG_DEBUG, "New share %s for %s/%s", uuid, UB(username), UB(device));
-
-		if ((fp = fopen(path, "w")) != NULL) {
+		snprintf(path, sizeof(path), "%s.json", uuid);
+		if ((fp = tourfile(ud, path, "w")) != NULL) {
 			char *js = json_stringify(o, "  ");
 			fprintf(fp, "%s\n", js);
 			free(js);
@@ -503,7 +500,6 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 	} else if (strcmp(request_type, "shares") == 0) {
 
-		//FILE *fp;
 		JsonNode *arr, *o;
 		char path[BUFSIZ];
 		DIR *dirp;
@@ -517,7 +513,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		arr = json_mkarray();
 
-		if ((dirp = opendir(ud->viewsdir)) != NULL) {
+		if ((dirp = opendir(toursdir())) != NULL) {
 			while ((dp = readdir(dirp)) != NULL) {
 				char *fn = dp->d_name;
 
@@ -529,7 +525,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 					continue;
 
 				o = json_mkobject();
-				snprintf(path, sizeof(path), "%s/%s", ud->viewsdir, fn);
+				snprintf(path, sizeof(path), "%s/%s", toursdir(), fn);
 				if (json_copy_from_file(o, path) == false) {
 					olog(LOG_ERR, "Can't copy JSON from %s", path);
 					json_delete(o);
@@ -578,7 +574,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		olog(LOG_DEBUG, "Unshare %s for %s/%s", r->string_, UB(username), UB(device));
 
-		snprintf(path, sizeof(path), "%s/%s.json", ud->viewsdir, r->string_);
+		snprintf(path, sizeof(path), "%s/%s.json", toursdir(), r->string_);
 		if (access(path, R_OK) < 0) {
 			olog(LOG_ERR, "Can't find share %s: %m", r->string_);
 		}

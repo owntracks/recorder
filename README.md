@@ -244,7 +244,7 @@ This section lists the most important options of the Recorder with their long na
 
 `--docroot` overrides the compile-time setting of the HTTP document root.
 
-`--viewsdir` overrides the path to the JSON views, which defaults to `<docroot>/views`.
+`--viewsdir` overrides the path to the JSON views, which defaults to `<docroot>/views`. (Note that for the experimental _tours_ functionality the directory for the _tour views_ is in `<STORAGEDIR>/tours`.)
 
 `--lua-script` specifies the path to the Lua script. If not given, Lua support is disabled.
 

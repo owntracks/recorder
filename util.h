@@ -42,6 +42,8 @@ void chomp(char *s);
 double number(JsonNode *j, char *element);
 #ifdef WITH_SHARES
 char *uuid4(void);
+char *toursdir(void);
+FILE *tourfile(struct udata *ud, char *filename, char *mode);
 #endif
 
 #endif

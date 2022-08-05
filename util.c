@@ -642,4 +642,32 @@ char *uuid4()
 
         return (uustr);
 }
+
+char *toursdir()
+{
+        static UT_string *path = NULL;
+
+        utstring_renew(path);
+	utstring_printf(path, "%s/tours", STORAGEDIR);
+
+	return (UB(path));
+}
+
+FILE *tourfile(struct udata *ud, char *filename, char *mode)
+{
+        static UT_string *path = NULL;
+
+        utstring_renew(path);
+
+	utstring_printf(path, "%s", toursdir());
+
+        ut_clean(path);
+
+        if (mkpath(UB(path)) < 0) {
+                olog(LOG_ERR, "Cannot create directory at %s: %m", UB(path));
+                return (NULL);
+        }
+	utstring_printf(path, "/%s", filename);
+        return (fopen(UB(path), mode));
+}
 #endif
