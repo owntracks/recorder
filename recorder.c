@@ -419,6 +419,11 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 	utstring_printf(fulltopic, "owntracks/%s/%s/cmd", UB(username), UB(device));
 
+	if ((js = json_stringify(json, NULL)) != NULL) {
+		olog(LOG_DEBUG, "do_request gets: %s", js);
+		free(js);
+	}
+
 // 3d9d97d4-a27e-4cd1-842f-6bf51c18a5c2.json
 #define UUID_RE "^([[:alnum:]]{8})-([[:alnum:]]{4})-([[:alnum:]]{4})-([[:alnum:]]{4})-([[:alnum:]]{12})\\.json"
 
