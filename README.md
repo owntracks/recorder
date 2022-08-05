@@ -295,6 +295,9 @@ The following configuration variables can be used to tweak settings. Defaults ar
 | `OTR_CAPATH`          |  Y    |               | Directory of c_rehashed PEM certificates
 | `OTR_CERTFILE`        |  Y    |               | Path to PEM-encoded client certificate for MQTT
 | `OTR_KEYFILE`         |  Y    |               | Path to PEM-encoded client key for MQTT
+| `OTR_IDENTITY`        |  Y    |               | MQTT identity for PSK
+| `OTR_PSK`             |  Y    |               | MQTT PSK
+| `OTR_SERVERLABEL`     |  Y    |  `OwnTracks`  | server label for Web
 | `OTR_LMDBSIZE`        |  Y    | `104857600000` | size of the LMDB database. If less than 10485760 (10 MB) it will be set to 10485760.
 
 

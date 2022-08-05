@@ -189,6 +189,8 @@ void get_defaults(char *filename, struct udata *ud)
 	ud->cafile		= c_str(cf, "OTR_CAFILE", NULL);
 	ud->certfile		= c_str(cf, "OTR_CERTFILE", NULL);
 	ud->keyfile		= c_str(cf, "OTR_KEYFILE", NULL);
+	ud->identity		= c_str(cf, "OTR_IDENTITY", ud->identity);
+	ud->psk			= c_str(cf, "OTR_PSK", ud->psk);
 
 	ud->port 		= c_int(cf, "OTR_PORT", 1883);
 	ud->qos 		= c_int(cf, "OTR_QOS", ud->qos);
@@ -223,6 +225,7 @@ void get_defaults(char *filename, struct udata *ud)
 	ud->http_host		= c_str(cf, "OTR_HTTPHOST", NULL);
 	ud->http_logdir		= c_str(cf, "OTR_HTTPLOGDIR", NULL);
 	ud->browser_apikey	= c_str(cf, "OTR_BROWSERAPIKEY", NULL);
+	ud->viewsdir		= c_str(cf, "OTR_VIEWSDIR", ud->viewsdir);
 
 	ud->http_port		= c_int(cf, "OTR_HTTPPORT", ud->http_port);
 
@@ -234,8 +237,64 @@ void get_defaults(char *filename, struct udata *ud)
 #if WITH_LUA
 	ud->luascript		= c_str(cf, "OTR_LUASCRIPT", NULL);
 #endif
+	ud->label		= c_str(cf, "OTR_SERVERLABEL", ud->label);
 
 	if (cf) {
 		config_destroy(cf);
 	}
+}
+
+static void d_int(char *property, int ival)
+{
+	printf("%-25s %d\n", property, ival);
+}
+
+static void d_str(char *property, char *val)
+{
+	printf("%-25s %s\n", property, val ? val : "<null>");
+}
+
+static void d_bool(char *property, bool tf)
+{
+	printf("%-25s %s\n", property, tf ? "true" : "false");
+}
+
+void display_variables(struct udata *ud)
+{
+	d_str("OTR_STORAGEDIR", STORAGEDIR);
+#if WITH_MQTT
+	// char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
+
+	d_str("OTR_HOST",	ud->hostname);
+	d_int("OTR_PORT", 	ud->port);
+	d_str("OTR_USER",	ud->username);
+	d_str("OTR_PASS",	ud->password);
+	d_int("OTR_QOS",	ud->qos);
+	d_str("OTR_CLIENTID",	ud->clientid);
+	d_str("OTR_CAFILE",	ud->cafile);
+	d_str("OTR_CAPATH",	ud->capath);
+	d_str("OTR_CERTFILE",	ud->certfile);
+	d_str("OTR_KEYFILE",	ud->keyfile);
+	d_str("OTR_IDENTITY",	ud->identity);
+	d_str("OTR_PSK",	ud->psk);
+#endif
+	d_bool("skip _demo",	ud->skipdemo);
+	d_bool("perform reverse geo",	ud->revgeo);
+	d_str("OTR_GEOKEY",		ud->geokey);
+	d_bool("do not write .rec",	ud->norec);
+
+#ifdef WITH_HTTP
+	d_str("OTR_HTTPHOST",		ud->http_host);
+	d_int("OTR_HTTPPORT",		ud->http_port);
+	d_str("OTR_HTTPLOGDIR",		ud->http_logdir);
+	d_str("OTR_BROWSERAPIKEY",	ud->browser_apikey);
+	d_str("OTR_VIEWSDIR",		ud->viewsdir);
+# ifdef WITH_SHARES
+	d_str("OTR_HTTPPREFIX",		ud->http_prefix);
+# endif /* SHARES */
+#endif
+#ifdef WITH_LUA
+	d_str("OTR_LUASCRIPT",		ud->luascript);
+#endif
+	d_str("OTR_SERVERLABEL",	ud->label);
 }

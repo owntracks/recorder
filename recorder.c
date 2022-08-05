@@ -1403,17 +1403,8 @@ void usage(char *prog)
 	printf("  --norec		       don't maintain REC files\n");
 	printf("  --geokey		       optional reverse-geo API key\n");
 	printf("  --debug  		       additional debugging\n");
+	printf("  --variables  		-V     show settings and exit\n");
 	printf("\n");
-	printf("Options override these environment variables:\n");
-	printf("  $OTR_STORAGEDIR\n");
-	printf("  $OTR_BROWSERAPIKEY\n");
-#ifdef WITH_MQTT
-	printf("  $OTR_HOST		MQTT hostname\n");
-	printf("  $OTR_PORT		MQTT port\n");
-	printf("  $OTR_USER\n");
-	printf("  $OTR_PASS\n");
-	printf("  $OTR_CAFILE		PEM CA certificate chain\n");
-#endif
 
 	exit(1);
 }
@@ -1440,6 +1431,7 @@ int main(int argc, char **argv)
 	int loop_timeout = 1000;
 #endif
 	int ch, initialize = FALSE;
+	bool show_variables = false;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
 	char *doc_root		= DOCROOT;
@@ -1552,11 +1544,12 @@ int main(int argc, char **argv)
 			{ "browser-apikey",	required_argument,	0, 	15},
 			{ "viewsdir",	required_argument,	0, 	16},
 #endif
+			{ "variables",	no_argument,		0, 	'V'},
 			{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		ch = getopt_long(argc, argv, "hDGRi:P:q:S:H:p:A:", long_options, &optindex);
+		ch = getopt_long(argc, argv, "hDGRi:P:q:S:H:p:A:V", long_options, &optindex);
 		if (ch == -1)
 			break;
 
@@ -1660,6 +1653,9 @@ int main(int argc, char **argv)
 			case 'S':
 				strcpy(STORAGEDIR, optarg);
 				break;
+			case 'V':
+				show_variables = true;
+				break;
 			case 'h':
 				usage(progname);
 				exit(0);
@@ -1667,6 +1663,11 @@ int main(int argc, char **argv)
 				exit(1);
 		}
 
+	}
+
+	if (show_variables) {
+		display_variables(ud);
+		exit(0);
 	}
 
 	/*

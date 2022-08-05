@@ -18,5 +18,6 @@ char *bindump(char *buf, long buflen);
 void monitorhook(struct udata *userdata, time_t now, char *topic);
 char *monitor_get();
 void get_defaults(char *filename, struct udata *userdata);
+void display_variables(struct udata *userdata);
 
 #endif
