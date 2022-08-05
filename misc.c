@@ -98,6 +98,8 @@ char *monitor_get()
  * Set the value of configuration `property' to the optional default
  * at `def', then try to find it in the open config file at `cf',
  * and finally the environment. Return a new copy.
+ * `cf' is NULL if the config file couldn't be read, in which case
+ * we check environment only.
  */
 
 static char *c_str(config_t *cf, char *property, char *def)
@@ -105,8 +107,10 @@ static char *c_str(config_t *cf, char *property, char *def)
 	const char *value;
 	char *val = def, *p;
 
-	if (config_lookup_string(cf, property, &value) != CONFIG_FALSE) {
-		val = (char *)value;
+	if (cf) {
+		if (config_lookup_string(cf, property, &value) != CONFIG_FALSE) {
+			val = (char *)value;
+		}
 	}
 
 	if ((p = getenv(property)) != NULL) {
@@ -128,8 +132,10 @@ static int c_int(config_t *cf, char *property, int def)
 	int val = def;
 	char *p;
 
-	if (config_lookup_int(cf, property, &ival) != CONFIG_FALSE) {
-		val = (int)ival;
+	if (cf) {
+		if (config_lookup_int(cf, property, &ival) != CONFIG_FALSE) {
+			val = (int)ival;
+		}
 	}
 
 	if ((p = getenv(property)) != NULL) {
@@ -144,33 +150,35 @@ static int c_int(config_t *cf, char *property, int def)
 
 void get_defaults(char *filename, struct udata *ud)
 {
-	config_t cfg, *cf;
+	config_t cfg, *cf = NULL;
 	char *v;
 	int iv;
 
 	if (access(filename, R_OK) == -1) {
-		olog(LOG_ERR, "Cannot read defaults from %s: %s", filename, strerror(errno));
-		return;
+		olog(LOG_ERR, "Skipping open defaults file %s: %s", filename, strerror(errno));
+		cf = NULL;
+	} else {
+
+		config_init(cf = &cfg);
+
+		if (!config_read_file(cf, filename)) {
+			olog(LOG_ERR, "Syntax error in %s:%d - %s",
+				filename,
+				config_error_line(cf),
+				config_error_text(cf));
+			config_destroy(cf);
+			exit(2);
+		}
+
+		v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
+		strcpy(STORAGEDIR, v);
 	}
-
-	config_init(cf = &cfg);
-
-	if (!config_read_file(cf, filename)) {
-		olog(LOG_ERR, "Syntax error in %s:%d - %s",
-			filename,
-			config_error_line(cf),
-			config_error_text(cf));
-		config_destroy(cf);
-		exit(2);
-	}
-
-	v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
-	strcpy(STORAGEDIR, v);
 
 	if (ud == NULL) {
 		/* being invoked by ocat; return */
 		return;
 	}
+
 #if WITH_MQTT
 
 	ud->hostname		= c_str(cf, "OTR_HOST", "localhost");
@@ -187,21 +195,23 @@ void get_defaults(char *filename, struct udata *ud)
 
 
 	/* Topics is a blank-separated string of words; split and add to JSON array */
-	if ((v = c_str(cf, "OTR_TOPICS", NULL)) != NULL) {
-		char *parts[40];
-		int np, n;
-		if (ud->topics) json_delete(ud->topics);
+	if (cf) {
+		if ((v = c_str(cf, "OTR_TOPICS", NULL)) != NULL) {
+			char *parts[40];
+			int np, n;
+			if (ud->topics) json_delete(ud->topics);
 
-		if ((np = splitter((char *)v, " ", parts)) < 1) {
-			olog(LOG_ERR, "Illegal value in OTR_TOPICS");
-			exit(2);
-		}
-		ud->topics = json_mkarray();
+			if ((np = splitter((char *)v, " ", parts)) < 1) {
+				olog(LOG_ERR, "Illegal value in OTR_TOPICS");
+				exit(2);
+			}
+			ud->topics = json_mkarray();
 
-		for (n = 0; n < np; n++) {
-			json_append_element(ud->topics, json_mkstring(parts[n]));
+			for (n = 0; n < np; n++) {
+				json_append_element(ud->topics, json_mkstring(parts[n]));
+			}
+			splitterfree(parts);
 		}
-		splitterfree(parts);
 	}
 #endif /* WITH_MQTT */
 
@@ -225,5 +235,7 @@ void get_defaults(char *filename, struct udata *ud)
 	ud->luascript		= c_str(cf, "OTR_LUASCRIPT", NULL);
 #endif
 
-	config_destroy(cf);
+	if (cf) {
+		config_destroy(cf);
+	}
 }
