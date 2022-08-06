@@ -1,6 +1,6 @@
 include config.mk
 
-CFLAGS	+=-Wall -Werror
+CFLAGS	+=-Wall -Werror -DNS_ENABLE_IPV6
 LIBS	= $(MORELIBS) -lm
 LIBS 	+= -lcurl -lconfig
 
