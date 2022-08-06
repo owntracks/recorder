@@ -1948,7 +1948,8 @@ int main(int argc, char **argv)
 			exit(2);
 		}
 #ifdef WITH_SHARES
-		olog(LOG_INFO, "HTTP prefix is %s", ud->http_prefix);
+		olog(LOG_INFO, "HTTP prefix is %s",
+			ud->http_prefix ? ud->http_prefix : "unset");
 # endif /* WITH_SHARES */
 
 	}
