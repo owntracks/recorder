@@ -36,7 +36,7 @@ typedef enum {
 #if WITH_ENCRYPT
 	T_ENCRYPTED,
 #endif
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 	T_REQUEST,
 #endif
 } payload_type;

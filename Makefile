@@ -53,8 +53,8 @@ ifeq ($(WITH_HTTP),yes)
 	OTR_EXTRA_OBJS += mongoose.o http.o
 endif
 
-ifeq ($(WITH_SHARES),yes)
-	CFLAGS += -DWITH_SHARES
+ifeq ($(WITH_TOURS),yes)
+	CFLAGS += -DWITH_TOURS
 	OTR_EXTRA_OBJS +=
 endif
 

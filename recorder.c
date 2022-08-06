@@ -384,7 +384,7 @@ void waypoints_dump(struct udata *ud, UT_string *username, UT_string *device, ch
 		free(js);
 }
 
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 static char *elem(JsonNode *json, char *e)
 {
         JsonNode *j;
@@ -397,9 +397,9 @@ static char *elem(JsonNode *json, char *e)
         }
         return (val);
 }
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 void do_request(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, bool httpmode, JsonNode **jnode)
 {
 	JsonNode *json = json_decode(payloadstring), *j, *r, *resp;
@@ -437,11 +437,11 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		request_type = j->string_;
 	}
 
-	if (strcmp(request_type, "share") == 0) {
+	if (strcmp(request_type, "tour") == 0) {
 		FILE *fp;
 		char path[BUFSIZ];
 
-		if ((r = json_find_member(json, "share")) == NULL) {
+		if ((r = json_find_member(json, "tour")) == NULL) {
 			return;
 		}
 
@@ -467,7 +467,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 			free(js);
 			fclose(fp);
 		} else {
-			olog(LOG_ERR, "Can't create at share %s: %m", path);
+			olog(LOG_ERR, "Can't create tour at %s: %m", path);
 			json_delete(o);
 			return;
 		}
@@ -477,15 +477,15 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		resp = json_mkobject();
 		json_append_member(resp, "_type", json_mkstring("cmd"));
 		json_append_member(resp, "action", json_mkstring("response"));
-		json_append_member(resp, "request", json_mkstring("share"));
+		json_append_member(resp, "request", json_mkstring("tour"));
 		json_append_member(resp, "status", json_mknumber(200));
 
-		JsonNode *nshare = json_mkobject();
-		json_copy_to_object(nshare, r, false);
-		json_append_member(nshare, "uuid", json_mkstring(uuid));
-		json_append_member(nshare, "url", json_mkstring(UB(url)));
+		JsonNode *nt = json_mkobject();
+		json_copy_to_object(nt, r, false);
+		json_append_member(nt, "uuid", json_mkstring(uuid));
+		json_append_member(nt, "url", json_mkstring(UB(url)));
 
-		json_append_member(resp, "share", nshare);
+		json_append_member(resp, "tour", nt);
 
 		if (httpmode) {
 			*jnode = resp;		// caller will delete `resp'
@@ -498,18 +498,18 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		}
 		json_delete(resp);
 
-	} else if (strcmp(request_type, "shares") == 0) {
+	} else if (strcmp(request_type, "tours") == 0) {
 
 		JsonNode *arr, *o;
 		char path[BUFSIZ];
 		DIR *dirp;
 		struct dirent *dp;
-		int nomatch, nshare = 0;
+		int nomatch, ntour = 0;
 
 		resp = json_mkobject();
 		json_append_member(resp, "_type", json_mkstring("cmd"));
 		json_append_member(resp, "action", json_mkstring("response"));
-		json_append_member(resp, "request", json_mkstring("shares"));
+		json_append_member(resp, "request", json_mkstring("tours"));
 
 		arr = json_mkarray();
 
@@ -539,17 +539,17 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 				}
 
 				json_append_element(arr, o);
-				++nshare;
+				++ntour;
 			}
 			closedir(dirp);
 		} else {
 			perror(ud->viewsdir);
 		}
 
-		json_append_member(resp, "shares", arr);
-		json_append_member(resp, "nshares", json_mknumber(nshare));
+		json_append_member(resp, "tours", arr);
+		json_append_member(resp, "ntours", json_mknumber(ntour));
 
-		olog(LOG_DEBUG, "Returning nshares=%d for %s/%s", nshare, UB(username), UB(device));
+		olog(LOG_DEBUG, "Returning ntours=%d for %s/%s", ntour, UB(username), UB(device));
 
 		if (httpmode) {
 			*jnode = resp;		// caller will delete `resp'
@@ -563,27 +563,27 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		json_delete(resp);
 
-	} else if (strcmp(request_type, "unshare") == 0) {
+	} else if (strcmp(request_type, "untour") == 0) {
 		JsonNode *r;
 		char path[BUFSIZ];
 
 		if ((r = json_find_member(json, "uuid")) == NULL) {
-			fprintf(stderr, "No uuid in unshare request\n");
+			fprintf(stderr, "No uuid in untour request\n");
 			return;
 		}
 
-		olog(LOG_DEBUG, "Unshare %s for %s/%s", r->string_, UB(username), UB(device));
+		olog(LOG_DEBUG, "Untour %s for %s/%s", r->string_, UB(username), UB(device));
 
 		snprintf(path, sizeof(path), "%s/%s.json", toursdir(), r->string_);
 		if (access(path, R_OK) < 0) {
-			olog(LOG_ERR, "Can't find share %s: %m", r->string_);
+			olog(LOG_ERR, "Can't find tour %s: %m", r->string_);
 		}
 		if (remove(path) != 0) {
-			olog(LOG_ERR, "Can't delete share %s: %m", r->string_);
+			olog(LOG_ERR, "Can't delete tour %s: %m", r->string_);
 		}
 	}
 }
-#endif /* WITH_SHARES */
+#endif /* WITH_TOURS */
 
 #ifdef WITH_GREENWICH
 
@@ -893,9 +893,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
 			else if (!strcmp(j->string_, "dump"))		_type = T_CONFIG;
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 			else if (!strcmp(j->string_, "request"))	_type = T_REQUEST;
-#endif /* WITH_SHARES */
+#endif /* WITH_TOURS */
 #if WITH_ENCRYPT
 			else if (!strcmp(j->string_, "encrypted"))	_type = T_ENCRYPTED;
 #endif /* WITH_ENCRYPT */
@@ -977,12 +977,12 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			return;
 			break;
 #endif /* WITH_ENCRYPT */
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 		case T_REQUEST:
 			do_request(ud, username, device, payload, httpmode, jnode);
 			goto cleanup;
 			break;
-#endif /* WITH_SHARES */
+#endif /* WITH_TOURS */
 		default:
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
@@ -1415,9 +1415,9 @@ int main(int argc, char **argv)
 #endif /* WITH_MQTT */
 #if WITH_HTTP
 	UT_string *uviewsdir;
-# if WITH_SHARES
+# if WITH_TOURS
 	UT_string *uhttp_prefix;
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 #endif /* WITH_HTTP */
 	char err[1024];
 	char *logfacility = "local0";
@@ -1464,19 +1464,19 @@ int main(int argc, char **argv)
 	udata.http_logdir	= NULL;
 	udata.browser_apikey	= NULL;
 	udata.viewsdir		= NULL;
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 	udata.http_prefix	= NULL;
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 
 	utstring_new(uviewsdir);
 	utstring_printf(uviewsdir, "%s/views", DOCROOT);
 	udata.viewsdir = strdup(UB(uviewsdir));
 
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 	utstring_new(uhttp_prefix);
 	utstring_printf(uhttp_prefix, "%s", "http://localhost:8083");
 	udata.http_prefix = strdup(UB(uhttp_prefix));
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 #endif
 #ifdef WITH_LUA
 	udata.luascript		= NULL;
@@ -1947,10 +1947,10 @@ int main(int argc, char **argv)
 			olog(LOG_ERR, "HTTP port is in use. Exiting.");
 			exit(2);
 		}
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 		olog(LOG_INFO, "HTTP prefix is %s",
 			ud->http_prefix ? ud->http_prefix : "unset");
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 
 	}
 #endif
@@ -2003,9 +2003,9 @@ int main(int argc, char **argv)
 	free(ud->http_host);
 	free(ud->browser_apikey);
 	free(ud->viewsdir);
-# ifdef WITH_SHARES
+# ifdef WITH_TOURS
 	free(ud->http_prefix);
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 	if (ud->http_logdir) free(ud->http_logdir);
 #endif
 

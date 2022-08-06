@@ -32,7 +32,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <math.h>
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 # include <uuid/uuid.h>
 #endif
 #include "udata.h"
@@ -631,7 +631,7 @@ double number(JsonNode *j, char *element)
 	return (NAN);
 }
 
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 char *uuid4()
 {
         static char uustr[37];

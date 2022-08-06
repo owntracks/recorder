@@ -229,9 +229,9 @@ void get_defaults(char *filename, struct udata *ud)
 
 	ud->http_port		= c_int(cf, "OTR_HTTPPORT", ud->http_port);
 
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 	ud->http_prefix		= c_str(cf, "OTR_HTTPPREFIX", NULL);
-# endif /* WITH_SHARES */
+# endif /* WITH_TOURS */
 #endif /* WITH_HTTP */
 
 #if WITH_LUA
@@ -289,9 +289,9 @@ void display_variables(struct udata *ud)
 	d_str("OTR_HTTPLOGDIR",		ud->http_logdir);
 	d_str("OTR_BROWSERAPIKEY",	ud->browser_apikey);
 	d_str("OTR_VIEWSDIR",		ud->viewsdir);
-# ifdef WITH_SHARES
+# ifdef WITH_TOURS
 	d_str("OTR_HTTPPREFIX",		ud->http_prefix);
-# endif /* SHARES */
+# endif /* WITH_TOURS */
 #endif
 #ifdef WITH_LUA
 	d_str("OTR_LUASCRIPT",		ud->luascript);

@@ -139,7 +139,7 @@ static JsonNode *loadview(struct udata *ud, const char *viewname)
 
 	view = json_mkobject();
 	if (json_copy_from_file(view, UB(fpath)) != TRUE) {
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 		/* Now try second possibility */
 		utstring_renew(fpath);
 		utstring_printf(fpath, "%s/%s.json", toursdir(), viewname);
@@ -147,7 +147,7 @@ static JsonNode *loadview(struct udata *ud, const char *viewname)
 #endif
 		json_delete(view);
 		return (NULL);
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 		}
 #endif
 	}
@@ -660,7 +660,7 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 
 	if (jnode != NULL) {
 		/*
-		 * Response data for share/shares is available; add it to
+		 * Response data for tour/tours is available; add it to
 		 * the outgoing JSON which will be returned to the HTTP
 		 * client.
 		 */
@@ -971,7 +971,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 		debug(ud, "page file=%s", UB(fpath));
 
 		if ((fp = fopen(UB(fpath), "r")) == NULL) {
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 			utstring_renew(fpath);
 			utstring_printf(fpath, "%s/%s", toursdir(), j->string_);
 			debug(ud, "page file=%s", UB(fpath));
@@ -979,7 +979,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 #endif
 			json_delete(view);
 			return send_status(conn, 404, "Cannot open view page");
-#ifdef WITH_SHARES
+#ifdef WITH_TOURS
 			}
 #endif
 		}
