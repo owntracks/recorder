@@ -539,8 +539,8 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 					json_delete(o);
 					continue;
 				}
-				if (strcmp(elem(o, "user"), UB(username)) != 0 ||
-				    strcmp(elem(o, "device"), UB(device)) != 0) {
+				if (strcasecmp(elem(o, "user"), UB(username)) != 0 ||
+				    strcasecmp(elem(o, "device"), UB(device)) != 0) {
 					olog(LOG_DEBUG, "Skipping %s: owner mismatch", path);
 					json_delete(o);
 					continue;
@@ -599,8 +599,8 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 			json_delete(r);
 			return;
 		}
-		if (strcmp(elem(o, "user"), UB(username)) != 0 ||
-			    strcmp(elem(o, "device"), UB(device)) != 0) {
+		if (strcasecmp(elem(o, "user"), UB(username)) != 0 ||
+			    strcasecmp(elem(o, "device"), UB(device)) != 0) {
 				olog(LOG_DEBUG, "Skipping %s: owner mismatch", uuid);
 				json_delete(o);
 				return;
