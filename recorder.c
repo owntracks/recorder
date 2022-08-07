@@ -412,9 +412,6 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 	if (json == NULL)
 		return;
 
-	lowercase(UB(username));
-	lowercase(UB(device));
-
 	utstring_renew(url);
 	utstring_renew(fulltopic);
 
@@ -442,7 +439,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 	if (strcmp(request_type, "tour") == 0) {
 		FILE *fp;
-		char path[BUFSIZ];
+		char path[BUFSIZ], *u = strdup(UB(username)), *d = strdup(UB(device));
 
 		if ((r = json_find_member(json, "tour")) == NULL) {
 			return;
@@ -452,10 +449,13 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		utstring_printf(url, "%s/view/%s", ud->http_prefix, uuid);
 
+		lowercase(u);
+		lowercase(d);
+
 		JsonNode *o = json_mkobject();
 		json_append_member(o, "page", json_mkstring("leafletmap.html"));
-		json_append_member(o, "user", json_mkstring(UB(username)));
-		json_append_member(o, "device", json_mkstring(UB(device)));
+		json_append_member(o, "user", json_mkstring(u));
+		json_append_member(o, "device", json_mkstring(d));
 		json_append_member(o, "label", json_mkstring(elem(r, "label")));
 		json_append_member(o, "zoom", json_mknumber(6));
 		json_append_member(o, "from", json_mkstring(elem(r, "from")));
@@ -472,6 +472,8 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		} else {
 			olog(LOG_ERR, "Can't create tour at %s: %m", path);
 			json_delete(o);
+			free(u);
+			free(d);
 			return;
 		}
 
@@ -492,6 +494,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		if (httpmode) {
 			*jnode = resp;		// caller will delete `resp'
+			// this will leak u and d ...
 			return;
 		}
 
@@ -499,6 +502,8 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 			publish(ud, UB(fulltopic), js);
 			free(js);
 		}
+		free(u);
+		free(d);
 		json_delete(resp);
 
 	} else if (strcmp(request_type, "tours") == 0) {
