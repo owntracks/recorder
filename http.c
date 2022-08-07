@@ -143,6 +143,7 @@ static JsonNode *loadview(struct udata *ud, const char *viewname)
 		/* Now try second possibility */
 		utstring_renew(fpath);
 		utstring_printf(fpath, "%s/%s.json", toursdir(), viewname);
+		debug(ud, "loadview2 fpath=%s", UB(fpath));
 		if (json_copy_from_file(view, UB(fpath)) != TRUE) {
 #endif
 		json_delete(view);
@@ -974,7 +975,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 #ifdef WITH_TOURS
 			utstring_renew(fpath);
 			utstring_printf(fpath, "%s/%s", toursdir(), j->string_);
-			debug(ud, "page file=%s", UB(fpath));
+			debug(ud, "page2 file=%s", UB(fpath));
 			if ((fp = fopen(UB(fpath), "r")) == NULL) {
 #endif
 			json_delete(view);

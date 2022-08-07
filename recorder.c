@@ -412,6 +412,9 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 	if (json == NULL)
 		return;
 
+	lowercase(UB(username));
+	lowercase(UB(device));
+
 	utstring_renew(url);
 	utstring_renew(fulltopic);
 
