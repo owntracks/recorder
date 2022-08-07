@@ -564,23 +564,43 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		json_delete(resp);
 
 	} else if (strcmp(request_type, "untour") == 0) {
-		JsonNode *r;
-		char path[BUFSIZ];
+		JsonNode *r, *o;
+		char path[BUFSIZ], *uuid;
 
 		if ((r = json_find_member(json, "uuid")) == NULL) {
 			fprintf(stderr, "No uuid in untour request\n");
 			return;
 		}
 
-		olog(LOG_DEBUG, "Untour %s for %s/%s", r->string_, UB(username), UB(device));
+		uuid = r->string_;
 
-		snprintf(path, sizeof(path), "%s/%s.json", toursdir(), r->string_);
+		olog(LOG_DEBUG, "Untour %s for %s/%s", uuid, UB(username), UB(device));
+
+		snprintf(path, sizeof(path), "%s/%s.json", toursdir(), uuid);
 		if (access(path, R_OK) < 0) {
-			olog(LOG_ERR, "Can't find tour %s: %m", r->string_);
+			olog(LOG_ERR, "Can't find tour %s: %m", uuid);
+			json_delete(r);
+			return;
+		}
+
+		o = json_mkobject();
+		snprintf(path, sizeof(path), "%s/%s.json", toursdir(), uuid);
+		if (json_copy_from_file(o, path) == false) {
+			olog(LOG_ERR, "Can't copy JSON from %s", path);
+			json_delete(o);
+			json_delete(r);
+			return;
+		}
+		if (strcmp(elem(o, "user"), UB(username)) != 0 ||
+			    strcmp(elem(o, "device"), UB(device)) != 0) {
+				olog(LOG_DEBUG, "Skipping %s: owner mismatch", uuid);
+				json_delete(o);
+				return;
 		}
 		if (remove(path) != 0) {
 			olog(LOG_ERR, "Can't delete tour %s: %m", r->string_);
 		}
+		json_delete(r);
 	}
 }
 #endif /* WITH_TOURS */
