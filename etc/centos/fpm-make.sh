@@ -35,6 +35,7 @@ fpm -s dir \
         -d "lua" \
         -d "libconfig" \
         -d "lmdb" \
+        -d "libuuid" \
 	--config-files etc/default/ot-recorder \
         --post-install etc/centos/postinst \
         usr var etc

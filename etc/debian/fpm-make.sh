@@ -57,6 +57,7 @@ fpm -s dir \
         -d "libconfig9" \
         -d "${libsodium}" \
         -d "liblmdb0" \
+        -d "libuuid1" \
 	--config-files etc/default/ot-recorder \
         --post-install etc/debian/postinst \
         usr var etc
