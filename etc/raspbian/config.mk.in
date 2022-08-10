@@ -20,11 +20,11 @@ GHASHPREC = 7
 JSON_INDENT ?= no
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
-MORELIBS = -luuid
+MORELIBS = -luuid # -lssl
 
-LUA_CFLAGS = -I/usr/include/lua5.2 -llua5.2
-LUA_LIBS   = -L /usr/lib/arm-linux-gnueabihf/
-SODIUM_CFLAGS = 
-SODIUM_LIBS   = -lsodium
+LUA_CFLAGS = `pkg-config --cflags lua`
+LUA_LIBS   = `pkg-config --libs lua`
+SODIUM_CFLAGS = `pkg-config --cflags libsodium`
+SODIUM_LIBS   = `pkg-config --libs libsodium`
 
 GEOCODE_TIMEOUT = 4000

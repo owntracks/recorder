@@ -13,9 +13,7 @@ name="ot-recorder"
 # add -0 to indicate "not in Debian" as per Roger's suggestion
 version="$(awk 'NR==1 {print $NF;}' version.h | sed -e 's/"//g' )-0-deb$(cat /etc/debian_version)"
 
-# arch=$(uname -m)
-arch=armhf
-
+arch=$(uname -m)
 case $arch in
 	armv7l) arch=armhf;;
 esac
@@ -26,6 +24,7 @@ rm -f "${debfile}"
 
 libcurl='libcurl3'
 libsodium='libsodium13'
+liblua='liblua5.2-0'
 case $(cat /etc/debian_version) in
 	8.8) ;;
 	9.*) libsodium="libsodium18" ;;
@@ -33,6 +32,11 @@ case $(cat /etc/debian_version) in
 		libsodium="libsodium23"
 		libcurl="libcurl3-gnutls"
 		;;
+        11.*)
+                libsodium="libsodium23"
+                libcurl="libcurl4"
+                liblua="liblua5.4-0"
+                ;;
 esac
 
 fpm -s dir \
@@ -49,10 +53,11 @@ fpm -s dir \
         -p ${debfile} \
         -d "${libcurl}" \
         -d "libmosquitto1" \
-        -d "liblua5.2-0" \
+        -d "${liblua}" \
         -d "libconfig9" \
         -d "${libsodium}" \
         -d "liblmdb0" \
+        -d "libuuid1" \
 	--config-files etc/default/ot-recorder \
         --post-install etc/debian/postinst \
         usr var etc
