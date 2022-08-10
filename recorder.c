@@ -1444,7 +1444,7 @@ int main(int argc, char **argv)
 #if WITH_MQTT
 	int loop_timeout = 1000;
 #endif
-	int ch, initialize = FALSE;
+	int ch, flags, initialize = FALSE;
 	bool show_variables = false;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
@@ -1507,7 +1507,11 @@ int main(int argc, char **argv)
 	udata.geokey		= NULL;		/* default: no API key */
 	udata.debug		= FALSE;
 
-	openlog("ot-recorder", LOG_PID | LOG_PERROR, syslog_facility_code(logfacility));
+	flags = LOG_PID;
+	if (isatty(0)) {
+		flags |= LOG_PERROR;
+	}
+	openlog("ot-recorder", flags, syslog_facility_code(logfacility));
 
 #if WITH_MQTT
 	utstring_new(clientid);
