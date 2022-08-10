@@ -1,3 +1,15 @@
+
+2022-08-10 version 0.9.1
+- NEW: WITH_TOURS is built in by default
+- NEW: Makefile now sets -DNS_ENABLE_IPV6 for IPv4 and IPv6
+- NEW: tour views are written to and read from STORAGEDIR/tours
+- NEW: add option --variables to ot-recorder to print list of all actual settings
+- UPD: move config.js into docroot/utils/ to avoid having to proxy another uri
+- NEW: @@@LABEL@@@ in view HTML is replaced by view's label attribute
+- FIX: refactor environment variable handling for all settings. (#380)
+- NEW: add very experimental shares functionality
+- FIX: support OTR_HTTPHOST and OTR_HTTPPORT configuration in environment
+
 2022-05-24 version 0.9.0
 - NEW: OTR_LMDBSIZE can be set in the environment to define size of LMDB; bytes, min 10 MB (#348)
 - UPD: modernize Recorder UI (not the actual Frontend project) (#386)
