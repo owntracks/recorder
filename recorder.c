@@ -447,7 +447,9 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		char *uuid = uuid4();
 
-		utstring_printf(url, "%s/view/%s", ud->http_prefix, uuid);
+		utstring_printf(url, "%s/view/%s",
+			ud->http_prefix ? ud->http_prefix : "OTR_HTTPPREFIX",
+			uuid);
 
 		JsonNode *o = json_mkobject();
 		json_append_member(o, "page", json_mkstring("leafletmap.html"));
