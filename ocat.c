@@ -102,6 +102,11 @@ void print_versioninfo()
 #else
 	printf("\tWITH_HTTP = no\n");
 #endif
+#ifdef WITH_TOURS
+	printf("\tWITH_TOURS = yes\n");
+#else
+	printf("\tWITH_TOURS = no\n");
+#endif
 #ifdef WITH_LUA
 	printf("\tWITH_LUA  = yes\n");
 #endif
@@ -115,10 +120,7 @@ void print_versioninfo()
 	printf("\tWITH_KILL = yes\n");
 #endif
 	printf("\tCONFIGFILE = \"%s\"\n", CONFIGFILE);
-	printf("\tSTORAGEDEFAULT = \"%s\"\n", STORAGEDEFAULT);
-	printf("\tSTORAGEDIR = \"%s\"\n", STORAGEDIR);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
-	printf("\tGHASHPREC = %d\n", GHASHPREC);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
 	printf("\tJSON_INDENT = \"%s\"\n", (JSON_INDENT) ? JSON_INDENT : "NULL");
 #if WITH_MQTT

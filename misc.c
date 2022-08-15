@@ -281,6 +281,7 @@ void display_variables(struct udata *ud)
 	d_bool("skip _demo",	ud->skipdemo);
 	d_bool("perform reverse geo",	ud->revgeo);
 	d_str("OTR_GEOKEY",		ud->geokey);
+	d_int("OTR_PRECISION", 		geohash_prec());
 	d_bool("do not write .rec",	ud->norec);
 
 #ifdef WITH_HTTP
