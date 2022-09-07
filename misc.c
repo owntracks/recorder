@@ -197,8 +197,9 @@ void get_defaults(char *filename, struct udata *ud)
 
 
 	/* Topics is a blank-separated string of words; split and add to JSON array */
-	if (cf) {
-		if ((v = c_str(cf, "OTR_TOPICS", NULL)) != NULL) {
+	v 			= c_str(cf, "OTR_TOPICS", NULL);
+	if (v && *v) {
+		// if ((v = c_str(cf, "OTR_TOPICS", NULL)) != NULL) {
 			char *parts[40];
 			int np, n;
 			if (ud->topics) json_delete(ud->topics);
@@ -213,7 +214,6 @@ void get_defaults(char *filename, struct udata *ud)
 				json_append_element(ud->topics, json_mkstring(parts[n]));
 			}
 			splitterfree(parts);
-		}
 	}
 #endif /* WITH_MQTT */
 

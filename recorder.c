@@ -1761,7 +1761,7 @@ int main(int argc, char **argv)
 			return (-1);
 		}
 
-		if (argc >= 1) {			/* topics on command line override config */
+		if (argc >= 1) {			/* topics on command line override config and environment */
 
 			/*
 			 * Push list of topics into the array so that we can
