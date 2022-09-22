@@ -105,8 +105,8 @@ GEOCODE_TIMEOUT = 4000
 # and in particular could require you to add the lua+version (e.g lua-5.2)
 # to both pkg-config invocations
 
-LUA_CFLAGS = `pkg-config --cflags lua`
-LUA_LIBS   = `pkg-config --libs lua`
+LUA_CFLAGS = `$(PKG_CONFIG) --cflags lua`
+LUA_LIBS   = `$(PKG_CONFIG) --libs lua`
 
-SODIUM_CFLAGS = `pkg-config --cflags libsodium`
-SODIUM_LIBS   = `pkg-config --libs libsodium`
+SODIUM_CFLAGS = `$(PKG_CONFIG) --cflags libsodium`
+SODIUM_LIBS   = `$(PKG_CONFIG) --libs libsodium`
