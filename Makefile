@@ -33,8 +33,8 @@ endef
 
 ifeq ($(WITH_MQTT),yes)
 	CFLAGS += -DWITH_MQTT=1
-	CFLAGS += $(MOSQUITTO_INC)
-	LIBS += $(MOSQUITTO_LIB) -lmosquitto -lm
+	CFLAGS += $(MOSQUITTO_CFLAGS)
+	LIBS += $(MOSQUITTO_LIBS) -lm
 endif
 
 ifeq ($(WITH_PING),yes)

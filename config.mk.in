@@ -90,8 +90,8 @@ JSON_INDENT ?= no
 CONFIGFILE = /etc/default/ot-recorder
 
 # Optionally specify the path to the Mosquitto libs, include here
-MOSQUITTO_INC = -I/usr/include
-MOSQUITTO_LIB = -L/usr/lib
+MOSQUITTO_CFLAGS = `$(PKG_CONFIG) --cflags libmosquitto`
+MOSQUITTO_LIBS   = `$(PKG_CONFIG) --libs libmosquitto`
 
 # Milliseconds (ms) timeout for reverse geocoding
 GEOCODE_TIMEOUT = 4000
