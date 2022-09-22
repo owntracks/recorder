@@ -80,11 +80,11 @@ CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 all: $(TARGETS)
 
 ot-recorder: recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS)
-	$(CC) $(CFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS) $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS) $(LIBS)
 	if test -r codesign.sh; then /bin/sh codesign.sh; fi
 
 ocat: ocat.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
 
 $(OTR_OBJS): config.mk Makefile
 
