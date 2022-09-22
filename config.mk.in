@@ -40,7 +40,7 @@ WITH_MQTT ?= yes
 WITH_HTTP ?= yes
 
 # Do you want recorder support for shared views? Requires WITH_HTTP
-# also requires -luuid on Linux (see below at MORELIBS)
+# also requires -luuid on Linux.
 WITH_TOURS ?= yes
 
 # Do you have Lua libraries installed and want the Lua hook integration?
@@ -92,10 +92,6 @@ CONFIGFILE = /etc/default/ot-recorder
 # Optionally specify the path to the Mosquitto libs, include here
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
-
-# Debian requires uuid-dev
-# RHEL/CentOS needs libuuid-devel
-MORELIBS += -luuid # -lssl
 
 # Milliseconds (ms) timeout for reverse geocoding
 GEOCODE_TIMEOUT = 4000

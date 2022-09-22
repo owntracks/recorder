@@ -20,7 +20,6 @@ GHASHPREC = 7
 JSON_INDENT ?= no
 MOSQUITTO_INC = -I/usr/include
 MOSQUITTO_LIB = -L/usr/lib
-MORELIBS = -luuid # -lssl
 
 LUA_CFLAGS = `pkg-config --cflags lua`
 LUA_LIBS   = `pkg-config --libs lua`

@@ -23,6 +23,14 @@ CFLAGS += -DGHASHPREC=$(GHASHPREC)
 LIBS += -llmdb
 LIBS += -lpthread
 
+define CPP_CONDITION
+printf '#if $(1) \n
+true \n
+#else \n
+#error false \n
+#endif' | $(CPP) -P - >/dev/null 2>&1 && echo yes
+endef
+
 ifeq ($(WITH_MQTT),yes)
 	CFLAGS += -DWITH_MQTT=1
 	CFLAGS += $(MOSQUITTO_INC)
@@ -56,6 +64,12 @@ endif
 ifeq ($(WITH_TOURS),yes)
 	CFLAGS += -DWITH_TOURS
 	OTR_EXTRA_OBJS +=
+
+	# Debian requires uuid-dev
+	# RHEL/CentOS needs libuuid-devel
+	ifeq ($(shell $(call CPP_CONDITION,__linux__)),yes)
+		LIBS += -luuid
+	endif
 endif
 
 ifeq ($(WITH_GREENWICH),yes)
