@@ -494,10 +494,12 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 			return;
 		}
 
+#ifdef WITH_MQTT
 		if ((js = json_stringify(resp, "  ")) != NULL) {
 			publish(ud, UB(fulltopic), js);
 			free(js);
 		}
+#endif
 		json_delete(resp);
 
 	} else if (strcmp(request_type, "tours") == 0) {
@@ -558,10 +560,12 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 			return;
 		}
 
+#ifdef WITH_MQTT
 		if ((js = json_stringify(resp, "  ")) != NULL) {
 			publish(ud, UB(fulltopic), js);
 			free(js);
 		}
+#endif
 
 		json_delete(resp);
 
