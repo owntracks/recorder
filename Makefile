@@ -131,7 +131,7 @@ install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
 	mkdir -p $(DESTDIR)$(DOCROOT)
 	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)
-	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
+	cd docroot && find ! -type d ! -name .gitignore -exec install -m0644 -D {} $(DESTDIR)$(DOCROOT)/{} \;
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p `dirname $(DESTDIR)/$(CONFIGFILE)`
