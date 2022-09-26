@@ -31,7 +31,7 @@ export function ws_connect(ws_url, callback) {
 
   ws.onclose = function() {
     setColor(maplabel, 'red');
-    setTimeout(ws_connect(ws_url, callback), reconnectTimeout, ws_url, callback);
+    setTimeout(ws_connect, reconnectTimeout, ws_url, callback);
   };
 
   ws.onmessage = function(event) {
