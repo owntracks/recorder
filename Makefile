@@ -1,6 +1,6 @@
 include config.mk
 
-CFLAGS	+=-Wall -Werror -DNS_ENABLE_IPV6
+CFLAGS	+= -Wall -DNS_ENABLE_IPV6
 LIBS	= $(MORELIBS) -lm
 LIBS 	+= -lcurl -lconfig
 
@@ -23,10 +23,18 @@ CFLAGS += -DGHASHPREC=$(GHASHPREC)
 LIBS += -llmdb
 LIBS += -lpthread
 
+define CPP_CONDITION
+printf '#if $(1) \n
+true \n
+#else \n
+#error false \n
+#endif' | $(CPP) -P - >/dev/null 2>&1 && echo yes
+endef
+
 ifeq ($(WITH_MQTT),yes)
 	CFLAGS += -DWITH_MQTT=1
-	CFLAGS += $(MOSQUITTO_INC)
-	LIBS += $(MOSQUITTO_LIB) -lmosquitto -lm
+	CFLAGS += $(MOSQUITTO_CFLAGS)
+	LIBS += $(MOSQUITTO_LIBS) -lm
 endif
 
 ifeq ($(WITH_PING),yes)
@@ -56,6 +64,12 @@ endif
 ifeq ($(WITH_TOURS),yes)
 	CFLAGS += -DWITH_TOURS
 	OTR_EXTRA_OBJS +=
+
+	# Debian requires uuid-dev
+	# RHEL/CentOS needs libuuid-devel
+	ifeq ($(shell $(call CPP_CONDITION,__linux__)),yes)
+		LIBS += -luuid
+	endif
 endif
 
 ifeq ($(WITH_GREENWICH),yes)
@@ -77,14 +91,16 @@ TARGETS += ot-recorder ocat
 GIT_VERSION := $(shell git describe --long --abbrev=10 --dirty --tags 2>/dev/null || echo "tarball")
 CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 
+PKG_CONFIG ?= pkg-config
+
 all: $(TARGETS)
 
 ot-recorder: recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS)
-	$(CC) $(CFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS) $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS) $(LIBS)
 	if test -r codesign.sh; then /bin/sh codesign.sh; fi
 
 ocat: ocat.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
 
 $(OTR_OBJS): config.mk Makefile
 
@@ -114,8 +130,8 @@ install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
 	mkdir -p $(DESTDIR)$(DOCROOT)
-	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)/last
-	cp -R docroot/* $(DESTDIR)$(DOCROOT)/
+	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)
+	cd docroot && find ! -type d ! -name .gitignore -exec install -m0644 -D {} $(DESTDIR)$(DOCROOT)/{} \;
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
 	install -m 0755 ocat $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p `dirname $(DESTDIR)/$(CONFIGFILE)`
