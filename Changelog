@@ -1,4 +1,14 @@
 
+2022-09-30 version 0.9.2
+- FIX: Remove accidental eval (#403)
+- FIX: Various build fixes (#402)
+- FIX: now compiles without MQTT (#401)
+- FIX: read OTR_TOPICS from environment (overrides config); can be overriden by argv
+- UPD: ocat -v shows compiled-in values, ot-recorder -V runtime ones
+- FIX: add "OTR_HTTPPREFIX" (verbatim) to tour url if prefix unconfigured (#399)
+- FIX: Duplicate log entries when running as daemon (#398)
+- FIX: package build for raspbian
+
 2022-08-10 version 0.9.1
 - NEW: WITH_TOURS is built in by default
 - NEW: Makefile now sets -DNS_ENABLE_IPV6 for IPv4 and IPv6
