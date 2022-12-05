@@ -7,12 +7,13 @@ import { debug } from "./debug.js";
  * @param {string} endpoint - The name of the API endpoint.
  * @param {boolean} options.useWebsocket - Connect over the websocket protocol instead of standard HTTP.
  * @param {boolean} options.includeSearchParams - Copy over any search parameters that are defined on the page URL.
+ * @param {boolean} options.rootLevel - indicate function is called from rootLevel URL
  * 
  * @returns {URL} - A full URL for the API endpoint.
  */
-export function getApiUrl(endpoint, { useWebsocket = false, includeSearchParams = false }){
+export function getApiUrl(endpoint, { useWebsocket = false, includeSearchParams = false, rootLevel = false }){
 
-  const apiUrl = new URL(`../${ useWebsocket ? "ws" : "api/0" }${endpoint === undefined ? "" : `/${endpoint}`}`, window.location);
+  const apiUrl = new URL(`${ rootLevel ? "./" : "../" }${ useWebsocket ? "ws" : "api/0" }${endpoint === undefined ? "" : `/${endpoint}`}`, window.location);
 
   if(useWebsocket) apiUrl.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 
@@ -31,13 +32,14 @@ export function getApiUrl(endpoint, { useWebsocket = false, includeSearchParams 
  * @param {RequestInfo} options.url - A full URL/Request to the API endpoint.
  * @param {string} options.endpoint - The name of the API endpoint.
  * @param {boolean} options.includeSearchParams - Copy over any search parameters that are defined on the page URL.
+ * @param {boolean} options.rootLevel - indicate function is called from rootLevel URL
  * 
  * @returns {Promise<object>} - The data returned by the API.
  */
-export async function fetchApiData({ url, endpoint, includeSearchParams }){
+export async function fetchApiData({ url, endpoint, includeSearchParams, rootLevel }){
 
   if(url === undefined){
-    url = getApiUrl(endpoint, { includeSearchParams });
+    url = getApiUrl(endpoint, { includeSearchParams, rootLevel });
   }
 
   debug("Connecting to API endpoint:", url);

@@ -50,7 +50,7 @@
       const f7d = new Date(Date.now() - 7 * days).toISOString();
       const f30d = new Date(Date.now() - 24 * days).toISOString();
 
-      const data = await fetchApiData({ endpoint: "last", includeSearchParams: true });
+      const data = await( fetchApiData({ endpoint: "last", includeSearchParams: true, rootLevel: true }));
 
       for (const d of data) {
         if (!d._type) {
