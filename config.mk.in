@@ -13,16 +13,18 @@
 #	$ cd /usr/ports/devel/libconfig; make install
 #	$ cd /usr/ports/net/mosquitto; make install
 #	$ cd /usr/ports/devel/gmake; make install
+#	$ cd /usr/ports/devel/pkgconf; make install
+#	$ cd /usr/ports/misc/e2fsprogs-libuuid; make install
 #
 # Or as a package:
 #
-#	$ sudo pkg install lmdb curl libconfig mosquitto gmake
+#	$ sudo pkg install pkgconf lmdb curl libconfig mosquitto gmake e2fsprogs-libuuid
 #
 # Uncomment the following lines and replace "no" with "yes":
 #
 # CC      = clang
 # CFLAGS += -I/usr/local/include
-# MORELIBS += -L /usr/local/lib
+# MORELIBS += -L /usr/local/lib -luuid
 FREEBSD ?= no
 #
 # Now build recorder with the "gmake" command:
