@@ -1,4 +1,8 @@
 
+2022-12-09 version 0.9.3
+- FIX: JS fixes for disappeared links (#406)
+- FIX: instructions for building on FreeBSD 13.1 with TOURS configured (#405)
+
 2022-09-30 version 0.9.2
 - FIX: Remove accidental eval (#403)
 - FIX: Various build fixes (#402)
