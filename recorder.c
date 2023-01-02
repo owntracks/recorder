@@ -1,6 +1,6 @@
 /*
  * OwnTracks Recorder
- * Copyright (C) 2015-2022 Jan-Piet Mens <jpmens@gmail.com>
+ * Copyright (C) 2015-2023 Jan-Piet Mens <jpmens@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
