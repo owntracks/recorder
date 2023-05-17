@@ -1,5 +1,5 @@
 # gpx-to-rec.py
-This script attempts to convert a `gpx` file into `rec` files to be used with `recorder`. I've only tested this script with gpx files with only one track and one segment from `Phonetrack`.
+This script attempts to convert the specified `gpx` files into `rec` files to be used with `recorder`.
 
 ## Installation
 `gpx-to-rec.py` depends on [`gpxpy`](https://github.com/tkrajina/gpxpy) which you can install with `pip`:
@@ -7,10 +7,10 @@ This script attempts to convert a `gpx` file into `rec` files to be used with `r
 pip install gpxpy
 ```
 ## Usage
-The script takes the `.gpx` file as an argument and creates `.rec` files in the same directory as the script.
+The script takes one or more `.gpx` files as arguments and creates `.rec` files in the current working directory.
 Example:
 ```
-python3 gpx-to-rec.py my_track.gpx
+python3 gpx-to-rec.py my_track.gpx [my_other_track.gpx ...]
 ```
 
 You can then copy those `.rec` files to `recorder`'s storage location for the corresponding user and device. By default it's in `/var/spool/owntracks/recorder/store/rec/<username>/<device>`.
