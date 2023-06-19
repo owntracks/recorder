@@ -140,7 +140,10 @@
             title: config.column_titles.fulldate,
             visible: true,
             data: null,
-            render: 'fulldate',
+            render: {
+              _: 'fulldate',
+              sort: 'tst',
+            },
             targets : [2],
           },
           {
