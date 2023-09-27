@@ -74,7 +74,7 @@ void usage(char *prog)
 	printf("  --killdata                   	requires -u and -d\n");
 #endif
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
-	printf("  --norevgeo		-G      disable ghash to reverge-geo lookups\n");
+	printf("  --norevgeo		-G      disable ghash to reverse-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
 	printf("  --version		-v	print version information\n");
 	printf("  --dump / --load [<db>]        dump/load content of db (default ghash)\n");
