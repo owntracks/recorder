@@ -8,6 +8,7 @@ import time
 import argparse
 import json
 from paho.mqtt import client, publish
+import re
 
 class ProtocolAction(argparse.Action):
 	def __call__(self, parser, namespace, value, option_string=None):
