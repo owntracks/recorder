@@ -1514,7 +1514,7 @@ int main(int argc, char **argv)
 	udata.debug		= FALSE;
 
 	flags = LOG_PID;
-	if (isatty(0)) {
+	if (isatty(0) || (getenv("DOCKER_RUNNING") != NULL)) {
 		flags |= LOG_PERROR;
 	}
 	openlog("ot-recorder", flags, syslog_facility_code(logfacility));
