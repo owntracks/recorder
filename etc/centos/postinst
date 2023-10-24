@@ -17,7 +17,7 @@ case "$1" in
 	chown owntracks:owntracks /etc/default/ot-recorder
 	chown -R owntracks:owntracks /var/spool/owntracks/
         chown owntracks:owntracks /usr/bin/ocat /usr/sbin/ot-recorder
-        chmod 4111 /usr/bin/ocat /usr/sbin/ot-recorder
+        chmod 4555 /usr/bin/ocat /usr/sbin/ot-recorder
         /usr/sbin/ot-recorder --initialize
 
 	if [ -x /bin/systemctl ]; then
