@@ -292,8 +292,17 @@ void olog(int level, char *fmt, ...)
 
 	utstring_printf_va(u, fmt, ap);
 
-	// fprintf(stderr, "+++++ [%s]\n", UB(u));
-	syslog(level, "%s", UB(u));
+	/*
+	 * I can't get syslog to do anything when running in docker
+	 * so trying this instead. Inefficient with the getenv() here
+	 * but will have to do for the time being.
+	 */
+
+	if (getenv("DOCKER_RUNNING") != NULL) {
+		fprintf(stderr, "+ %s\n", UB(u));
+	} else {
+		syslog(level, "%s", UB(u));
+	}
 
 	va_end(ap);
 }
