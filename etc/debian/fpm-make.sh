@@ -37,6 +37,10 @@ case $(cat /etc/debian_version) in
 		libcurl="libcurl4"
 		liblua="liblua5.4-0"
 		;;
+	12.*)
+		libsodium="libsodium23"
+		libcurl="libcurl4"
+		liblua="liblua5.4-0"
 esac
 
 fpm -s dir \

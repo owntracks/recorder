@@ -109,6 +109,17 @@ sudo apt update
 sudo apt install ot-recorder
 ```
 
+Debian 12 "Bookworm":
+
+```
+curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
+
+echo "deb  http://repo.owntracks.org/debian bookworm main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+sudo apt update
+sudo apt install ot-recorder
+```
+
+
 #### systemd service
 
 The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/ot-recorder.service` which you can use to have the Recorder started automatically:
