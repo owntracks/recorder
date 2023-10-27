@@ -82,42 +82,44 @@ If those don't work for you, you can build from source.
 
 We create packages for releases for a few distributions. Please note:
 
-- that these packages might depend on libmosquitto1 from the [Mosquitto project](http://mosquitto.org/downloads). In particular, for Debian Stretch (9) this is not the case.
+- that these packages might depend on libmosquitto1 from the [Mosquitto project](http://mosquitto.org/downloads).
 - we typically do not build packages for distributions which have been superceded upstream
 
 Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntracks` so that they work for all users of the system. Note that, say, certificate files you provide must therefore also be readable by the user `owntracks`.
 
 Debian 10 "Buster":
 
-- we no longer build for this distribution
+- we no longer build for this distribution, but you can still install a package:
 
-using Buster Mosquitto packages:
-
-```
-curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-echo "deb  http://repo.owntracks.org/debian buster main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-sudo apt-get update
-sudo apt-get install ot-recorder
-```
+  ```
+  curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
+  echo "deb  http://repo.owntracks.org/debian buster main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+  sudo apt-get update
+  sudo apt-get install ot-recorder
+  ```
 
 Debian 11 "Bullseye":
 
-```
-curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-echo "deb  http://repo.owntracks.org/debian bullseye main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-sudo apt update
-sudo apt install ot-recorder
-```
+- install with:
+
+   ```
+   curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
+   echo "deb  http://repo.owntracks.org/debian bullseye main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+   sudo apt update
+   sudo apt install ot-recorder
+   ```
 
 Debian 12 "Bookworm":
 
-```
-curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
+- install with:
 
-echo "deb  http://repo.owntracks.org/debian bookworm main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-sudo apt update
-sudo apt install ot-recorder
-```
+   ```
+   curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
+   
+   echo "deb  http://repo.owntracks.org/debian bookworm main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+   sudo apt update
+   sudo apt install ot-recorder
+   ```
 
 
 #### systemd service
