@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # github2card.py
-# Copyright (C) 2016 Jan-Piet Mens <jpmens@gmail.com>
+# Copyright (C) 2016-2023 Jan-Piet Mens <jpmens@gmail.com>
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -79,5 +79,8 @@ def user_profile(username):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: %s githubuser" % sys.argv[0], file=sys.stderr)
+        sys.exit(2)
     (username) = sys.argv[1]
     user_profile(username)
