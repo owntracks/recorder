@@ -263,7 +263,7 @@ This section lists the most important options of the Recorder with their long na
 
 `--precision` overrides the compiled-in default. (See "Precision" later.)
 
-`--geokey` sets the API key for reverse geo lookups. We support Google (legacy) and OpenCage which we recommend [OpenCage](doc/OPENCAGE.md). We also support [revgeod]. You will require an API key for the first two. For backwards-compatibility the API key for Google is used "as is", whereas you prefix the OpenCage API key with the string `"opencage:"`:
+`--geokey` sets the API key for reverse geo lookups. We support Google (legacy) and [OpenCage](doc/OPENCAGE.md) which we recommend. We also support [revgeod]. You will require an API key for the first two. For backwards-compatibility the API key for Google is used "as is", whereas you prefix the OpenCage API key with the string `"opencage:"`:
 ```
 --geokey "opencage:xxxxxxxxxxxxxxxxxxxxxx"      # for OpenCage
 --geokey "xxxxxxxxxxxxxxxxxxxxxx"               # for Google
