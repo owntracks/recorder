@@ -495,7 +495,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		}
 
 #ifdef WITH_MQTT
-		if ((js = json_stringify(resp, "  ")) != NULL) {
+		if ((js = json_stringify(resp, NULL)) != NULL) {
 			publish(ud, UB(fulltopic), js);
 			free(js);
 		}
@@ -561,7 +561,7 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		}
 
 #ifdef WITH_MQTT
-		if ((js = json_stringify(resp, "  ")) != NULL) {
+		if ((js = json_stringify(resp, NULL)) != NULL) {
 			publish(ud, UB(fulltopic), js);
 			free(js);
 		}
