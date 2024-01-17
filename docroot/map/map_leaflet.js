@@ -63,6 +63,6 @@ export async function initialize(dataUrl) {
   map.addLayer(geojsonLayer);
 
   geojsonLayer.addData(await data);
-  map.fitBounds(geojsonLayer.getBounds());
-
+  if (geojsonLayer.getBounds().isValid()) map.fitBounds(geojsonLayer.getBounds());
+  else map.openTooltip('No Data!',L.latLng(0.0,0.0));
 }
