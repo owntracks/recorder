@@ -63,6 +63,7 @@ void usage(char *prog)
 	printf("  --format json    	-f     	output format (default: JSON)\n");
 	printf("           csv                 	(overrides $OCAT_FORMAT\n");
 	printf("           geojson		Geo-JSON points\n");
+	printf("           geojsonpoi		Geo-JSON points, POI only\n");
 	printf("           linestring		Geo-JSON LineString\n");
 	printf("           gpx\n");
 	printf("           xml\n");
@@ -261,6 +262,8 @@ int main(int argc, char **argv)
 					otype = JSON;
 				else if (!strcmp(optarg, "geojson"))
 					otype = GEOJSON;
+				else if (!strcmp(optarg, "geojsonpoi"))
+					otype = GEOJSONPOI;
 				else if (!strcmp(optarg, "linestring"))
 					otype = LINESTRING;
 				else if (!strcmp(optarg, "raw"))
@@ -498,7 +501,19 @@ int main(int argc, char **argv)
 		}
 
 	} else if (otype == GEOJSON) {
-		JsonNode *geojson = geo_json(locs);
+		JsonNode *geojson = geo_json(locs, false);
+		char *js;
+
+		if (geojson != NULL) {
+			js = json_stringify(geojson, JSON_INDENT);
+			if (js != NULL) {
+				printf("%s\n", js);
+				free(js);
+			}
+			json_delete(geojson);
+		}
+	} else if (otype == GEOJSONPOI) {	// POI only
+		JsonNode *geojson = geo_json(locs, true);
 		char *js;
 
 		if (geojson != NULL) {

@@ -1186,6 +1186,8 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 	if ((ret = mg_get_var(conn, "format", buf, sizeof(buf))) > 0) {
 		if (!strcmp(buf, "geojson"))
 			otype = GEOJSON;
+		else if (!strcmp(buf, "geojsonpoi"))
+			otype = GEOJSONPOI;
 		else if (!strcmp(buf, "json"))
 			otype = JSON;
 		else if (!strcmp(buf, "linestring"))
@@ -1290,7 +1292,17 @@ static int dispatch(struct mg_connection *conn, const char *uri)
 			return (json_response(conn, geoline));
 
 		} else if (otype == GEOJSON) {
-			JsonNode *geojson = geo_json(locs);
+			JsonNode *geojson = geo_json(locs, false);
+
+			json_delete(obj);
+			if (geojson != NULL) {
+				return (json_response(conn, geojson));
+			}
+			json_delete(obj);
+			return send_status(conn, 422, "geojson failed");
+
+		} else if (otype == GEOJSONPOI) {	// POI only
+			JsonNode *geojson = geo_json(locs, true);
 
 			json_delete(obj);
 			if (geojson != NULL) {

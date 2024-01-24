@@ -919,7 +919,7 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
  *
  */
 
-static void append_to_feature_array(JsonNode *features, double lat, double lon, char *tid, char *addr, long tst, long vel, long acc)
+static void append_to_feature_array(JsonNode *features, double lat, double lon, char *tid, char *addr, long tst, long vel, long acc, char *poi, char *isotst)
 {
 	JsonNode *geom, *props, *f = json_mkobject();
 
@@ -933,11 +933,16 @@ static void append_to_feature_array(JsonNode *features, double lat, double lon, 
                    json_append_member(geom, "coordinates", coords);
 
 	props = json_mkobject();
-                  json_append_member(props, "name", json_mkstring(tid));
+		  if (poi && *poi) {
+			  json_append_member(props, "name", json_mkstring(poi));
+		  } else {
+			  json_append_member(props, "name", json_mkstring(tid));
+			  json_append_member(props, "vel", json_mknumber(vel));
+			  json_append_member(props, "tst", json_mknumber(tst));
+			  json_append_member(props, "acc", json_mknumber(acc));
+		  }
                   json_append_member(props, "address", json_mkstring(addr));
-                  json_append_member(props, "vel", json_mknumber(vel));
-                  json_append_member(props, "tst", json_mknumber(tst));
-                  json_append_member(props, "acc", json_mknumber(acc));
+                  json_append_member(props, "isotst", json_mkstring(isotst));
 
         json_append_member(f, "geometry", geom);
         json_append_member(f, "properties", props);
@@ -945,7 +950,7 @@ static void append_to_feature_array(JsonNode *features, double lat, double lon, 
         json_append_element(features, f);
 }
 
-JsonNode *geo_json(JsonNode *location_array)
+JsonNode *geo_json(JsonNode *location_array, bool poi_only)
 {
 	JsonNode *one, *j;
 	JsonNode *feature_array, *fcollection;
@@ -959,9 +964,15 @@ JsonNode *geo_json(JsonNode *location_array)
 
 	json_foreach(one, location_array) {
 		double lat = 0.0, lon = 0.0;
-		char *addr = "", *tid = "";
+		char *addr = "", *tid = "", *poi = "", *isotst = "";
 		long tst = 0, vel = 0, acc = 0;
 
+		if (poi_only) {
+			if ((j = json_find_member(one, "poi")) == NULL) {
+				continue;
+			}
+			poi = j->string_;
+		}
                 if ((j = json_find_member(one, "lat")) != NULL) {
                         lat = j->number_;
                 }
@@ -974,6 +985,9 @@ JsonNode *geo_json(JsonNode *location_array)
                 if ((j = json_find_member(one, "addr")) != NULL) {
                         addr = j->string_;
                 }
+                if ((j = json_find_member(one, "isotst")) != NULL) {
+                        isotst = j->string_;
+                }
                 if ((j = json_find_member(one, "tst")) != NULL) {
                         tst = j->number_;
                 }
@@ -984,7 +998,7 @@ JsonNode *geo_json(JsonNode *location_array)
                         acc = j->number_;
                 }
 
-		append_to_feature_array(feature_array, lat, lon, tid, addr, tst, vel, acc);
+		append_to_feature_array(feature_array, lat, lon, tid, addr, tst, vel, acc, poi, isotst);
 	}
 
 	json_append_member(fcollection, "features", feature_array);

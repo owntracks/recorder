@@ -508,6 +508,7 @@ The Recorder's built-in WebSocket server updates a map as it receives publishes 
 
 * JSON
 * GeoJSON (points)
+* GeoJSON (points) for Points of Interest only
 * GeoJSON (line string)
 * CSV
 * GPX

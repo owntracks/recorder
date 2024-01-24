@@ -31,7 +31,7 @@ List users. If _user_ is specified, lists that user's devices. If both _user_ an
 
 ## `locations`
 
-Here comes the actual data. This lists users' locations and requires both _user_ and _device_. Output format is JSON unless a different _format_ is given (`csv`, `json`, `geojson`, `xml`, and `linestring` are supported).
+Here comes the actual data. This lists users' locations and requires both _user_ and _device_. Output format is JSON unless a different _format_ is given (`csv`, `json`, `geojson`, `geojsonpoi`, `xml`, and `linestring` are supported).
 
 In order to limit the number of records returned, use _limit_ which causes a reverse search through the `.rec` files; this can be used to find the last N positions.
 
