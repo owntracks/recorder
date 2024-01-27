@@ -29,7 +29,7 @@
 
       const baseMaps = { "OpenStreetMap": osm_layer };
 
-      L.control.layers(baseMaps).addTo(map);
+      L.control.layers(baseMaps); // .addTo(map);
 
       const empty_geojson = {
         type: "FeatureCollection",
