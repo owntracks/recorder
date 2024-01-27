@@ -27,11 +27,7 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      const hikebike_layer = L.tileLayer('https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png', {
-        attribution: 'Map Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Hillshading: SRTM3 v2 (<a href="https://www2.jpl.nasa.gov/srtm/">NASA</a>)',
-      });
-
-      const baseMaps = { "OpenStreetMap": osm_layer, "HikeBikeMap": hikebike_layer};
+      const baseMaps = { "OpenStreetMap": osm_layer };
 
       L.control.layers(baseMaps).addTo(map);
 
