@@ -94,7 +94,7 @@ See [geo fences](FENCES.md).
 
 If the user-defined `otr_revgeo()` function exists in the Lua script, it is invoked by the Recorder to obtain reverse-geo data on a publish. (Unless Recorder was launched with `--norevgeo` in which case no such information is gathered at all.)
 
-`otr_revgeo()` overrides the built-in Google reverse-geo lookups. So, to clarify, if this function is defined, Google lookups will not be attempted.
+`otr_revgeo()` overrides the built-in Google reverse-geo lookups. So, to clarify, if this function is defined, none of the default reverse-geo lookups will be attempted.
 
 The function is invoked with _topic_, _user_, _device_, _lat_, and _lon_, and it should return a table with at least `cc` and `addr` populated. Any other elements in the table are added and passed on to, say, the Websocket interface. If the element `_rec` is defined in the table and its value is _true_, the data will be merged into the payload stored in the REC file.
 
@@ -162,4 +162,31 @@ function otr_hook(topic, _type, data)
 end
 ```
 
-This function allows your code to publish via MQTT from the Recorder, using the same MQTT connection (including TLS, authentication, etc) as the Recorder uses.
+This function allows your code to publish via MQTT from the Recorder, using the same MQTT connection (including TLS, authentication, etc) as the Recorder uses. Note also, that the Recorder's MQTT connection defines the ACL in use.
+
+The following example republishes messages received via HTTP to MQTT:
+
+```lua
+JSON = (loadfile "JSON.lua")() -- http://regex.info/blog/lua/json
+
+function otr_init()
+end
+
+function otr_exit()
+end
+
+function otr_hook(topic, _type, data)
+        -- republish http messages to MQTT
+        if data['_http'] then
+                data["_http"] = nil
+                if data["topic"] ~= nil then
+                        topic = data['topic']
+                        data["tst"] = math.floor(data["tst"])
+                        data["_lua"] = true
+                        local payload = JSON:encode(data)
+
+                        otr.publish(topic, payload, 1, 0)
+                end
+        end
+end
+```
