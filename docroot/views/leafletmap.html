@@ -77,43 +77,10 @@
       map.addLayer(lastposLayer);
       lastposLayer.bringToFront();
 
-      update_lastpos(true);
+      load_track();
 
-      // define the "Load track" button in the bottom left corner, design copied from vmap.html
-      const LoadTrackControl = L.Control.extend({
-        options: {
-          position: 'bottomleft',
-        },
+      async function load_track() {
 
-        onAdd: function (map) {
-          const controlDiv = L.DomUtil.create('div', 'leaflet-control-button');
-
-          const controlUI = document.createElement('div');
-          controlUI.style.backgroundColor = '#fff';
-          controlUI.style.border = '2px solid #fff';
-          controlUI.style.borderRadius = '3px';
-          controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-          controlUI.style.cursor = 'pointer';
-          controlUI.style.marginBottom = '22px';
-          controlUI.style.textAlign = 'center';
-          controlUI.title = 'Click to load the track onto the map';
-          controlDiv.appendChild(controlUI);
-
-          // Set CSS for the control interior
-          const controlText = document.createElement('div');
-          controlText.style.color = 'rgb(25,25,25)';
-          controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-          controlText.style.fontSize = '16px';
-          controlText.style.lineHeight = '38px';
-          controlText.style.paddingLeft = '5px';
-          controlText.style.paddingRight = '5px';
-          controlText.innerHTML = 'Load track';
-          controlUI.appendChild(controlText);
-
-          // when the button is clicked load the @@@GEO@@@ data and display it on the trackLayer passed as an option to the LoadTrackControl
-          controlDiv.onclick = (async function() {
-
-            const trackLayer = this.options.trackLayer;
             lastLatLng = L.latLng(0.0, 0.0);
 
             const data = await fetchApiData({ url: "@@@GEO@@@" });
@@ -121,15 +88,9 @@
             trackLayer.clearLayers();
             trackLayer.addData(data);
             update_lastpos(false);
-            map.fitBounds(trackLayer.getBounds());
-
-          }).bind(this);
-          
-          return controlDiv;
-        },
-      });
-
-      map.addControl(new LoadTrackControl({ trackLayer: trackLayer }));
+            if (trackLayer.getBounds().isValid()) map.fitBounds(trackLayer.getBounds());
+            else map.openTooltip('No Data!',L.latLng(0.0,0.0));
+      }
 
       // this will update the lastposLayer to fetch and show updated latest positions
       async function update_lastpos(fitBounds) {
@@ -150,7 +111,8 @@
           lastposLayer.clearLayers();
           lastposLayer.addData(latest_geojson);
           if(fitBounds) {
-            map.fitBounds(lastposLayer.getBounds());
+            if (lastposLayer.getBounds().isValid()) map.fitBounds(lastposLayer.getBounds());
+            else map.openTooltip('No Data!',L.latLng(0.0,0.0));
           }
         });
       }
