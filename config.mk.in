@@ -68,7 +68,9 @@ STORAGEDEFAULT = /var/spool/owntracks/recorder/store
 # Where should the recorder find its document root (HTTP)?
 DOCROOT = /var/spool/owntracks/recorder/htdocs
 
-# Where will the recorder find the TZ data file?
+# Should we support $TZ lookup in API data? If so, specify
+# path to the database
+WITH_TZ ?= yes
 TZDATADB = /usr/share/owntracks/recorder/timezone16.bin
 
 

@@ -37,7 +37,6 @@
 #include "gcache.h"
 #include "util.h"
 #include "listsort.h"
-#include "zonedetect.h"
 
 char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
@@ -45,7 +44,11 @@ char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 #define LARGEBUF        (BUFSIZ * 2)
 
 static struct gcache *gc = NULL;
+
+#ifdef WITH_TZ
+# include "zonedetect.h"
 static ZoneDetect *zdb = NULL;
+#endif
 
 void storage_init(int revgeo)
 {
@@ -61,9 +64,11 @@ void storage_init(int revgeo)
 		}
 	}
 
+#ifdef WITH_TZ
 	if (zdb == NULL) {
 		zdb = ZDOpenDatabase(TZDATADB);
 	}
+#endif
 }
 
 void storage_gcache_dump(char *lmdbname)
@@ -716,6 +721,7 @@ static JsonNode *line_to_location(char *line)
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
 	json_append_member(o, "disptst", json_mkstring(disptime(tst)));
 
+#ifdef WITH_TZ
 	if (zdb) {
 		char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
 
@@ -726,6 +732,7 @@ static JsonNode *line_to_location(char *line)
 			ZDHelperSimpleLookupStringFree(tz_str);
 		}
 	}
+#endif
 
 
 	return (o);

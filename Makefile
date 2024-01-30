@@ -15,8 +15,7 @@ OTR_OBJS = json.o \
 	   util.o \
 	   storage.o \
 	   fences.o \
-	   listsort.o \
-	   zonedetect.o
+	   listsort.o
 OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
@@ -77,6 +76,13 @@ ifeq ($(WITH_GREENWICH),yes)
 	CFLAGS += -DWITH_GREENWICH=1
 endif
 
+ifeq ($(WITH_TZ),yes)
+	CFLAGS += -DWITH_TZ
+	CFLAGS += -DTZDATADB=\"$(TZDATADB)\"
+	OTR_EXTRA_OBJS += zonedetect.o
+	OCAT_EXTRA_OBJS += zonedetect.o
+endif
+
 ifeq ($(JSON_INDENT),yes)
 	CFLAGS += -DJSON_INDENT="\" \""
 else
@@ -86,7 +92,6 @@ endif
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 CFLAGS += -DCONFIGFILE=\"$(CONFIGFILE)\"
 CFLAGS += -DGEOCODE_TIMEOUT=$(GEOCODE_TIMEOUT)
-CFLAGS += -DTZDATADB=\"$(TZDATADB)\"
 
 TARGETS += ot-recorder ocat
 
@@ -101,8 +106,8 @@ ot-recorder: recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o ot-recorder recorder.o $(OTR_OBJS) $(OTR_EXTRA_OBJS) $(LIBS)
 	if test -r codesign.sh; then /bin/sh codesign.sh; fi
 
-ocat: ocat.o $(OTR_OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o ocat ocat.o $(OTR_OBJS) $(LIBS)
+ocat: ocat.o $(OTR_OBJS) $(OCAT_EXTRA_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ocat ocat.o $(OTR_OBJS) $(OCAT_EXTRA_OBJS) $(LIBS)
 
 $(OTR_OBJS): config.mk Makefile
 

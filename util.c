@@ -64,6 +64,7 @@ const char *disptime(time_t t) {
         return(buf);
 }
 
+#ifdef WITH_TZ
 const char *isolocal(long tst, char *tzname)
 {
         char old_tz[64] = "UTC", *p;
@@ -83,6 +84,7 @@ const char *isolocal(long tst, char *tzname)
         setenv("TZ", old_tz, 1);
         return local;
 }
+#endif
 
 char *slurp_file(char *filename, int fold_newlines)
 {
