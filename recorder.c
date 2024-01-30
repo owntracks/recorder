@@ -1986,6 +1986,7 @@ int main(int argc, char **argv)
 #endif
 
 	olog(LOG_INFO, "Using storage at %s with precision %d", STORAGEDIR, geohash_prec());
+	olog(LOG_INFO, "TZDATADB is at %s", TZDATADB);
 
 	while (run) {
 #ifdef WITH_MQTT

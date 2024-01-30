@@ -64,6 +64,26 @@ const char *disptime(time_t t) {
         return(buf);
 }
 
+const char *isolocal(long tst, char *tzname)
+{
+        char old_tz[64] = "UTC", *p;
+        static char local[128];
+        struct tm *tm;
+
+        if ((p = getenv("TZ")) != NULL) {
+                strcpy(old_tz, p);
+        }
+        setenv("TZ", tzname, 1);
+
+        strcpy(local, "-");
+        if ((tm = localtime(&tst)) != NULL) {
+                strftime(local, sizeof(local), "%FT%T%z", tm);
+        }
+
+        setenv("TZ", old_tz, 1);
+        return local;
+}
+
 char *slurp_file(char *filename, int fold_newlines)
 {
 	FILE *fp;

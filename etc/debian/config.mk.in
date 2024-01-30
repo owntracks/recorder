@@ -15,6 +15,7 @@ WITH_GREENWICH ?= yes
 
 STORAGEDEFAULT = /var/spool/owntracks/recorder/store
 DOCROOT = /usr/share/owntracks/recorder/htdocs
+TZDATADB = /usr/share/owntracks/recorder/timezone16.bin
 GHASHPREC = 7
 JSON_INDENT ?= no
 MOSQUITTO_CFLAGS =

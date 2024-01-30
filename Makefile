@@ -15,7 +15,8 @@ OTR_OBJS = json.o \
 	   util.o \
 	   storage.o \
 	   fences.o \
-	   listsort.o
+	   listsort.o \
+	   zonedetect.o
 OTR_EXTRA_OBJS =
 
 CFLAGS += -DGHASHPREC=$(GHASHPREC)
@@ -85,6 +86,7 @@ endif
 CFLAGS += -DSTORAGEDEFAULT=\"$(STORAGEDEFAULT)\" -DDOCROOT=\"$(DOCROOT)\"
 CFLAGS += -DCONFIGFILE=\"$(CONFIGFILE)\"
 CFLAGS += -DGEOCODE_TIMEOUT=$(GEOCODE_TIMEOUT)
+CFLAGS += -DTZDATADB=\"$(TZDATADB)\"
 
 TARGETS += ot-recorder ocat
 
@@ -115,9 +117,10 @@ http.o: http.c mongoose.h util.h http.h storage.h version.h hooks.h
 util.o: util.c util.h
 mongoose.o: mongoose.c mongoose.h
 ocat.o: ocat.c storage.h util.h version.h config.mk Makefile
-storage.o: storage.c storage.h util.h gcache.h listsort.h
+storage.o: storage.c storage.h util.h gcache.h listsort.h zonedetect.c
 hooks.o: hooks.c udata.h hooks.h util.h version.h gcache.h
 listsort.o: listsort.c listsort.h
+zonedetect.o: zonedetect.c zonedetect.h
 fences.o: fences.c fences.h util.h json.h udata.h gcache.h hooks.h
 
 
@@ -130,6 +133,8 @@ install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/bin
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
 	mkdir -p $(DESTDIR)$(DOCROOT)
+	mkdir -p $$(dirname $(DESTDIR)$(TZDATADB))
+	install contrib/tzdatadb/timezone16.bin $(TZDATADB)
 	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)
 	cd docroot && find ! -type d ! -name .gitignore -exec install -m0644 -D {} $(DESTDIR)$(DOCROOT)/{} \;
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin

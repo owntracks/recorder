@@ -1,6 +1,6 @@
 /*
  * OwnTracks Recorder
- * Copyright (C) 2015-2023 Jan-Piet Mens <jpmens@gmail.com>
+ * Copyright (C) 2015-2024 Jan-Piet Mens <jpmens@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@
 #include "gcache.h"
 #include "util.h"
 #include "listsort.h"
+#include "zonedetect.h"
 
 char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
@@ -44,6 +45,7 @@ char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 #define LARGEBUF        (BUFSIZ * 2)
 
 static struct gcache *gc = NULL;
+static ZoneDetect *zdb = NULL;
 
 void storage_init(int revgeo)
 {
@@ -57,6 +59,10 @@ void storage_init(int revgeo)
 		if (gc == NULL) {
 			olog(LOG_ERR, "storage_init(): gc is NULL");
 		}
+	}
+
+	if (zdb == NULL) {
+		zdb = ZDOpenDatabase(TZDATADB);
 	}
 }
 
@@ -709,6 +715,18 @@ static JsonNode *line_to_location(char *line)
 	}
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
 	json_append_member(o, "disptst", json_mkstring(disptime(tst)));
+
+	if (zdb) {
+		char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
+
+		if (tz_str) {
+			json_append_member(o, "tz", json_mkstring(tz_str));
+
+			json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tz_str)));
+			ZDHelperSimpleLookupStringFree(tz_str);
+		}
+	}
+
 
 	return (o);
 }
