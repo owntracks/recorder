@@ -179,9 +179,10 @@ static int revgeod_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT
 	return (1);
 }
 
-static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality)
+static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, UT_string *locality, UT_string *tzname)
 {
 	JsonNode *json, *results, *address, *ac, *zeroth;
+	JsonNode *annotations, *timezone;
 
 	/*
 	* We are parsing this. I want the formatted in `addr' and
@@ -206,6 +207,14 @@ static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, U
 	*   },
 	*   "results": [
 	*     {
+	*       "annotations" : {
+	*          "timezone" : {
+	*             "name" : "America/Cancun",
+	*             "now_in_dst" : 0,
+	*             "offset_sec" : -18000,
+	*             "offset_string" : "-0500",
+	*             "short_name" : "EST"
+	*          },
 	*       ...
 	*       "components": {
 	*         "city": "Sablonnières",
@@ -228,6 +237,18 @@ static int opencage_decode(UT_string *geodata, UT_string *addr, UT_string *cc, U
 			}
 		}
 
+		if ((annotations = json_find_member(zeroth, "annotations")) != NULL) {
+			if ((timezone = json_find_member(annotations, "timezone")) != NULL) {
+				JsonNode *tz;
+
+				// puts(json_stringify(timezone, NULL));
+
+				if ((tz = json_find_member(timezone, "name")) != NULL)
+				{
+					utstring_printf(tzname, "%s", tz->string_);
+				}
+			}
+		}
 		if ((ac = json_find_member(zeroth, "components")) != NULL) {
 
 			/*
@@ -277,6 +298,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	static UT_string *url;
 	static UT_string *cbuf;		/* Buffer for curl GET */
 	static UT_string *locality = NULL;
+	static UT_string *tzname = NULL;
 	long http_code;
 	CURLcode res;
 	int rc;
@@ -297,6 +319,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	utstring_renew(url);
 	utstring_renew(cbuf);
 	utstring_renew(locality);
+	utstring_renew(tzname);
 
 	if (!ud->geokey || !*ud->geokey) {
 		utstring_printf(addr, "Unknown (%lf,%lf)", lat, lon);
@@ -344,7 +367,7 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 			rc = goog_decode(cbuf, addr, cc, locality);
 			break;
 		case OPENCAGE:
-			rc = opencage_decode(cbuf, addr, cc, locality);
+			rc = opencage_decode(cbuf, addr, cc, locality, tzname);
 			break;
 		case REVGEOD:
 			rc = revgeod_decode(cbuf, addr, cc, locality);
@@ -365,6 +388,8 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	json_append_member(geo, "tst", json_mknumber((double)now));
 	json_append_member(geo, "locality", (utstring_len(locality) > 0) ?
 		json_mkstring(UB(locality)) : json_mknull());
+	json_append_member(geo, "tzname", (utstring_len(tzname) > 0) ?
+		json_mkstring(UB(tzname)) : json_mknull());
 	return (geo);
 }
 

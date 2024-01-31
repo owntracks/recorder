@@ -661,7 +661,7 @@ struct jparam {
 static JsonNode *line_to_location(char *line)
 {
 	JsonNode *json, *o, *j;
-	char *ghash;
+	char *ghash, *tzname = NULL;
 	char tstamp[64], *bp;
 	double lat, lon;
 	long tst;
@@ -721,19 +721,29 @@ static JsonNode *line_to_location(char *line)
 	json_append_member(o, "isotst", json_mkstring(isotime(tst)));
 	json_append_member(o, "disptst", json_mkstring(disptime(tst)));
 
+	/*
+	 * If tzname is in the cached geo data, we've already added it
+	 * to the outgoing JSON and we use it to construct isolocal.
+	 * Otherwise determine the TZ name from the tzdatadb.
+	 */
+
+	if ((j = json_find_member(o, "tzname")) != NULL) {
+		tzname = j->string_;
+		json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tzname)));
+	} else {
 #ifdef WITH_TZ
-	if (zdb) {
-		char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
+		if (zdb) {
+			char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
 
-		if (tz_str) {
-			json_append_member(o, "tz", json_mkstring(tz_str));
+			if (tz_str) {
+				json_append_member(o, "tzname", json_mkstring(tz_str));
+				json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tz_str)));
 
-			json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tz_str)));
-			ZDHelperSimpleLookupStringFree(tz_str);
+				ZDHelperSimpleLookupStringFree(tz_str);
+			}
 		}
-	}
 #endif
-
+	}
 
 	return (o);
 }
