@@ -661,7 +661,10 @@ struct jparam {
 static JsonNode *line_to_location(char *line)
 {
 	JsonNode *json, *o, *j;
-	char *ghash, *tzname = NULL;
+	char *ghash;
+#ifdef WITH_TZ
+	char *tzname = NULL;
+#endif
 	char tstamp[64], *bp;
 	double lat, lon;
 	long tst;
@@ -728,8 +731,10 @@ static JsonNode *line_to_location(char *line)
 	 */
 
 	if ((j = json_find_member(o, "tzname")) != NULL) {
+#ifdef WITH_TZ
 		tzname = j->string_;
 		json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tzname)));
+#endif
 	} else {
 #ifdef WITH_TZ
 		if (zdb) {
