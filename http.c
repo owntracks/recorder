@@ -1270,6 +1270,7 @@ static int dispatch(struct mg_connection *conn, const char *uri)
                 }
 		json_append_member(obj, "data", locs);
 		json_append_member(obj, "status", json_mknumber(200));
+		json_append_member(obj, "version", json_mkstring(VERSION));
 
 		if (otype == JSON) {
 			return (json_response(conn, obj));
