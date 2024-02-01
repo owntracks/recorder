@@ -87,6 +87,29 @@ void storage_gcache_load(char *lmdbname)
 	gcache_load(path, lmdbname);
 }
 
+/*
+ * Adjust seconds obtained via mktime() to offset from the last
+ * timezone we set. This fixes time to what GMT time is without
+ * actually knowing what the local $TZ is. We do this to avoid
+ * switching $TZ back and forth from UTC to whatever tzname
+ * a location has, a very expensive operation.
+ */
+
+time_t local2gmt(time_t tlocal) {
+	struct tm *tm;
+	time_t gm_tics;
+
+	tm = localtime(&tlocal);
+	gm_tics = tlocal + tm->tm_gmtoff;
+
+	return gm_tics;
+}
+
+static char * my_strptime(const char * restrict buf, const char * restrict format,
+         struct tm * restrict timeptr)
+{
+	return strptime(buf, format, timeptr);
+}
 
 void get_geo(JsonNode *o, char *ghash)
 {
@@ -219,6 +242,7 @@ void append_card_to_object(JsonNode *obj, char *user, char *device)
 
 static void tz_info(JsonNode *json, double lat, double lon, time_t tst)
 {
+	// olog(LOG_DEBUG, "tz_info for (%lf, %lf)", lat, lon);
 	if (zdb) {
 		char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
 
@@ -379,7 +403,7 @@ static int str_time_to_secs(char *s, time_t *secs)
 
 	memset(&tm, 0, sizeof(struct tm));
 	for (f = formats; f && *f; f++) {
-		if (strptime(s, *f, &tm) != NULL) {
+		if (my_strptime(s, *f, &tm) != NULL) {
 			success = 1;
 			// fprintf(stderr, "str_time_to_secs succeeds with %s\n", *f);
 			break;
@@ -395,7 +419,7 @@ static int str_time_to_secs(char *s, time_t *secs)
 					 * divine whether summer time is in
 					 * effect for the specified time. */
 
-	*secs = mktime(&tm);
+	*secs = local2gmt(mktime(&tm));
 	// fprintf(stderr, "str_time_to_secs: %s becomes %04d-%02d-%02d %02d:%02d:%02d\n",
 	// 	s,
 	// 	tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
@@ -504,7 +528,7 @@ static int filter_filename(const struct dirent *d)
 	 * from months and to months. */
 
 	memset(&tmfile, 0, sizeof(struct tm));
-	if (strptime(d->d_name, "%Y-%m", &tmfile) == NULL) {
+	if (my_strptime(d->d_name, "%Y-%m", &tmfile) == NULL) {
 		fprintf(stderr, "filter: convert err");
 		return (0);
 	}
@@ -798,7 +822,7 @@ static int candidate_line(char *line, void *param)
 		struct tm tmline;
 		time_t secs;
 
-		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
+		if ((p = my_strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
 			fprintf(stderr, "invalid strptime format on %s", line);
 			return (0);
 		}
@@ -806,7 +830,7 @@ static int candidate_line(char *line, void *param)
 						 * the mktime() function to attempt to
 						 * divine whether summer time is in
 						 * effect for the specified time. */
-		secs = mktime(&tmline);
+		secs = local2gmt(mktime(&tmline));
 
 		if (secs <= s_lo || secs >= s_hi) {
 			return (0);
@@ -833,12 +857,12 @@ static int candidate_line(char *line, void *param)
 		struct tm tmline;
 		time_t secs;
 
-		if ((p = strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
+		if ((p = my_strptime(line, "%Y-%m-%dT%H:%M:%SZ", &tmline)) == NULL) {
 			fprintf(stderr, "invalid strptime format on %s", line);
 			return (0);
 		}
 		tmline.tm_isdst = -1;
-		secs = mktime(&tmline);
+		secs = local2gmt(mktime(&tmline));
 
 		if (secs <= s_lo || secs >= s_hi) {
 			return (0);

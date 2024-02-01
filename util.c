@@ -67,22 +67,27 @@ const char *disptime(time_t t) {
 #ifdef WITH_TZ
 const char *isolocal(long tst, char *tzname)
 {
-        char old_tz[64] = "UTC", *p;
+	static char last_timezone[BUFSIZ] = "UTC";
         static char local[128];
         struct tm *tm;
 
-        if ((p = getenv("TZ")) != NULL) {
-                strcpy(old_tz, p);
-        }
-        setenv("TZ", tzname, 1);
+	/*
+	 * Switch $TZ only if we have to, as it's an expensive
+	 * operation. By tuning this we reduced runtime for 2000 positions
+	 * from 3 minutes to < 0.1s
+	 */
+	if (strcmp(last_timezone, tzname) != 0) {
+		// fprintf(stderr, "isolocal: %s -> %s\n", last_timezone, tzname);
+		strcpy(last_timezone, tzname);
+		setenv("TZ", tzname, 1);
+	}
 
         strcpy(local, "-");
         if ((tm = localtime(&tst)) != NULL) {
                 strftime(local, sizeof(local), "%FT%T%z", tm);
         }
 
-        // setenv("TZ", old_tz, 1);
-        return local;
+        return (local);
 }
 #endif
 
