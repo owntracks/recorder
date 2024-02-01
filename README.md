@@ -713,6 +713,33 @@ The key to this data is the geohash string (here with an example of precision 2)
 
 The element `tzname` is the name of the time zone (`$TZ`) at the location. This name is stored in the geo cache if OpenCage reverse geo is configured. Alternatively, if the recorder was built `WITH_TZ`, the database is used to search for a `tzname`. In either case this time zone name is used to construct the local time at location stamp produced in `isolocal`.
 
+1. When a new publish arrives, we perform reverse geo lookup on the `lat`/`lon` if configured. When using OpenCage (and only when using OpenCage), we obtain the timezone name from the annotations in their data. This we store alongside the actuall address data in our lmdb database (note `tzname`):
+    ```console
+    $ ocat --dump
+    d5dj6kr {"cc":"MX","addr":"CAPA, Calle 18 Norte, 77720 Playa del Carmen, ROO, Mexico","tst":1706694151,"locality":"Playa del Carmen","tzname":"America/Cancun"}
+    ```
+2. This `tzname` element is also made available to Lua hooks, as the following example demonstrates:
+    ```console
+    $ ot-recorder --lua-script tzdata.lua ...
+    Jan 31 09:42:25  ot-recorder[45698] <Info>: TZDATADB is at sundry/zonedetect/ZoneDetect/out/timezone16.bin
+    Jan 31 09:42:25  ot-recorder[45698] <Debug>: Subscribing to owntracks/# (qos=2)
+    | tzname	America/Cancun
+    | tid	JJ
+    | _type	location
+    | device	moto
+    | ghash	d5dj6kr
+    | username	jjolie
+    ...
+    | addr	CAPA, Calle 18 Norte, 77720 Playa del Carmen, ROO, Mexico
+    | cc	MX
+    - 09:42:30 owntracks/jjolie/moto               t=u tid=JJ loc=20.63451,-87.07807 [MX] CAPA, Calle 18 Norte, 77720 Playa del Carmen, ROO, Mexico (d5dj6kr)
+3. When serving data (via `ocat` or the API), the data is enriched with `tzname` and `isolocal`, the latter being the local time at the source of the location publish.
+    ```console
+    $ ocat -S JP -u jjolie -d moto
+    {"count":1,"locations":[{"_type":"location","cog":67,"batt":11,"lat":20.634506,"t":"u","lon":-87.078073,"acc":5,"tid":"JJ","vel":12,"vac":-1,"alt":0,"tst":1706694150,"ghash":"d5dj6kr","cc":"MX","addr":"CAPA, Calle 18 Norte, 77720 Playa del Carmen, ROO, Mexico","locality":"Playa del Carmen","tzname":"America/Cancun","isorcv":"2024-01-31T09:42:30Z","isotst":"2024-01-31T09:42:30Z","disptst":"2024-01-31 09:42:30"}]}
+    ```
+4. For historical records which don't have a cached `tzname`, we use the TZDATADB as described above to obtain `tzname`, incurring a not quite insignificant penalty in terms of runtime.
+
 ## Lua hooks
 
 You can customize Recorder's behavior with Lua hooks. See [HOOKS.md](https://github.com/owntracks/recorder/blob/master/doc/HOOKS.md).
