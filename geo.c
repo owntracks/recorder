@@ -386,10 +386,12 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	json_append_member(geo, "cc", json_mkstring(UB(cc)));
 	json_append_member(geo, "addr", json_mkstring(UB(addr)));
 	json_append_member(geo, "tst", json_mknumber((double)now));
-	json_append_member(geo, "locality", (utstring_len(locality) > 0) ?
-		json_mkstring(UB(locality)) : json_mknull());
-	json_append_member(geo, "tzname", (utstring_len(tzname) > 0) ?
-		json_mkstring(UB(tzname)) : json_mknull());
+	if (utstring_len(locality) > 0) {
+		json_append_member(geo, "locality", json_mkstring(UB(locality)));
+	}
+	if (utstring_len(tzname) > 0) {
+		json_append_member(geo, "tzname", json_mkstring(UB(tzname)));
+	}
 	return (geo);
 }
 
