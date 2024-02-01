@@ -1,6 +1,6 @@
 
 CFLAGS=-I../..	\
-	-DTZDATADB="\"../../sundry/zonedetect/ZoneDetect/out/timezone16.bin\""
+	-DTZDATADB="\"../tzdatadb/timezone16.bin\""
 
 OBJS=../../json.o ../../zonedetect.o ../../geohash.o
 
