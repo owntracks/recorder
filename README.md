@@ -706,10 +706,12 @@ As hinted to above, the address data obtained through a reverse-geo lookup is st
 ```
 $ ocat --dump
 u09whf7 {"cc":"FR","addr":"1 Rue de Saint-Pétersbourg, 75008 Paris, France","tst":1445435622,"locality":"Paris"}
-u09ey1r {"cc":"FR","addr":"D83, 91590 La Ferté-Alais, France","tst":1445435679,"locality":"La Ferté-Alais"}
+u09ey1r {"cc":"FR","addr":"D83, 91590 La Ferté-Alais, France","tst":1445435679,"locality":"La Ferté-Alais", "tzname":"Europe/Paris"}
 ```
 
 The key to this data is the geohash string (here with an example of precision 2).
+
+The element `tzname` is the name of the time zone (`$TZ`) at the location. This name is stored in the geo cache if OpenCage reverse geo is configured. Alternatively, if the recorder was built `WITH_TZ`, the database is used to search for a `tzname`. In either case this time zone name is used to construct the local time at location stamp produced in `isolocal`.
 
 ## Lua hooks
 
