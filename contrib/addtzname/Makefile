@@ -4,5 +4,5 @@ CFLAGS=-I../..	\
 
 OBJS=../../json.o ../../zonedetect.o ../../geohash.o
 
-addtzname: addtzname.c $(OBJS)
-	$(CC) $(CFLAGS) -o addtzname addtzname.c $(OBJS)
+addtzname: addtzname.c $(OBJS) Makefile
+	$(CC) $(CFLAGS) -o addtzname addtzname.c $(OBJS) -lm
