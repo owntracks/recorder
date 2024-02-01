@@ -81,7 +81,7 @@ const char *isolocal(long tst, char *tzname)
                 strftime(local, sizeof(local), "%FT%T%z", tm);
         }
 
-        setenv("TZ", old_tz, 1);
+        // setenv("TZ", old_tz, 1);
         return local;
 }
 #endif
