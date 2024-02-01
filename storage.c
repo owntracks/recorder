@@ -217,6 +217,20 @@ void append_card_to_object(JsonNode *obj, char *user, char *device)
 	json_delete(card);
 }
 
+static void tz_info(JsonNode *json, double lat, double lon, time_t tst)
+{
+	if (zdb) {
+		char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
+
+		if (tz_str) {
+			json_append_member(json, "tzname", json_mkstring(tz_str));
+			json_append_member(json, "isolocal", json_mkstring(isolocal(tst, tz_str)));
+
+			ZDHelperSimpleLookupStringFree(tz_str);
+		}
+	}
+}
+
 void append_device_details(JsonNode *userlist, char *user, char *device)
 {
 	char path[LARGEBUF];
@@ -227,11 +241,16 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 	last = json_mkobject();
 	if (json_copy_from_file(last, path) == TRUE) {
-		JsonNode *tst;
+		JsonNode *jtst, *jlat, *jlon;
 
-		if ((tst = json_find_member(last, "tst")) != NULL) {
-			json_append_member(last, "isotst", json_mkstring(isotime(tst->number_)));
-			json_append_member(last, "disptst", json_mkstring(disptime(tst->number_)));
+		if ((jtst = json_find_member(last, "tst")) != NULL) {
+			json_append_member(last, "isotst", json_mkstring(isotime(jtst->number_)));
+			json_append_member(last, "disptst", json_mkstring(disptime(jtst->number_)));
+
+			if ((jlat = json_find_member(last, "lat")) &&
+				(jlon = json_find_member(last, "lon"))) {
+				tz_info(last, jlat->number_, jlon->number_, jtst->number_);
+			}
 		}
 	}
 
@@ -737,16 +756,7 @@ static JsonNode *line_to_location(char *line)
 #endif
 	} else {
 #ifdef WITH_TZ
-		if (zdb) {
-			char *tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
-
-			if (tz_str) {
-				json_append_member(o, "tzname", json_mkstring(tz_str));
-				json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tz_str)));
-
-				ZDHelperSimpleLookupStringFree(tz_str);
-			}
-		}
+		tz_info(o, lat, lon, tst);
 #endif
 	}
 
