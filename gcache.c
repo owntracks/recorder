@@ -170,7 +170,7 @@ int gcache_put(struct gcache *gc, char *keystr, char *payload)
 	rc = mdb_txn_begin(gc->env, NULL, 0, &txn);
 	if (rc != 0) {
 		olog(LOG_ERR, "gcache_put: mdb_txn_begin: %s", mdb_strerror(rc));
-		return (-1);
+		return (rc);
 	}
 
 	key.mv_data	= keystr;
@@ -349,11 +349,15 @@ void gcache_load(char *path, char *lmdbname)
 			*bp = 0;
 
 			if (gcache_put(gc, buf, bp+1) != 0) {
-				fprintf(stderr, "Cannot load key\n");
+				fprintf(stderr, "Cannot load key; aborting load (%d) %s\n",
+					rc mdb_strerror(rc));
+				olog(LOG_ERR, "gcache_put: (%d) %s", rc, mdb_strerror(rc));
+				goto end;
 			}
 		}
 	}
 
+    end:
 	gcache_close(gc);
 }
 
