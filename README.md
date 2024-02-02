@@ -311,7 +311,7 @@ The following configuration variables can be used to tweak settings. Defaults ar
 | `OTR_IDENTITY`        |  Y    |               | MQTT identity for PSK
 | `OTR_PSK`             |  Y    |               | MQTT PSK
 | `OTR_SERVERLABEL`     |  Y    |  `OwnTracks`  | server label for Web
-| `OTR_LMDBSIZE`        |  Y    | `104857600000` | size of the LMDB database. If less than 10485760 (10 MB) it will be set to 10485760.
+| `OTR_LMDBSIZE`        |  Y    |  `5368709120` | size of the LMDB database (5GB). If less than 10485760 (10 MB) it will be set to 10485760.
 
 
 ## Reverse proxy
