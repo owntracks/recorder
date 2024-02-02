@@ -332,6 +332,7 @@ void gcache_load(char *path, char *lmdbname)
 {
 	struct gcache *gc;
 	char buf[8192], *bp;
+	int rc;
 
 	if ((gc = gcache_open(path, lmdbname, FALSE)) == NULL) {
 		olog(LOG_ERR, "gcache_load: gcache_open");
@@ -348,9 +349,9 @@ void gcache_load(char *path, char *lmdbname)
 		if ((bp = strchr(buf, ' ')) != NULL) {
 			*bp = 0;
 
-			if (gcache_put(gc, buf, bp+1) != 0) {
+			if ((rc = gcache_put(gc, buf, bp+1)) != 0) {
 				fprintf(stderr, "Cannot load key; aborting load (%d) %s\n",
-					rc mdb_strerror(rc));
+					rc, mdb_strerror(rc));
 				olog(LOG_ERR, "gcache_put: (%d) %s", rc, mdb_strerror(rc));
 				goto end;
 			}
