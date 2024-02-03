@@ -317,7 +317,7 @@ void gcache_dump(char *path, char *lmdbname)
 
 	rc = mdb_cursor_open(txn, gc->dbi, &cursor);
 
-	/* -1 because we 0-terminate strings */
+	/* -1 because we 0-terminate strings in values */
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 		printf("%*.*s %*.*s\n",
 			(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data,
