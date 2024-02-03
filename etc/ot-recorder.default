@@ -94,3 +94,8 @@
 
 OTR_TOPICS="owntracks/#"
 
+# -----------------------------------------------------
+# HTTP prefix for this recorder for accessing Tour views
+#
+
+# OTR_HTTPPREFIX="https://owntracks.example/owntracks"
