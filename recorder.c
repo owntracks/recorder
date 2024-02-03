@@ -686,7 +686,7 @@ void store_gwvalue(char *username, char *device, time_t tst, char *key, char *va
 /*
  * Decrypt the payload and return a pointer to allocated space containing
  * the clear text.
- * p64 contains the base64-encoded payload from the device. `username'
+ * p64 contains the base64-encoded, encrypted payload from the device. `username'
  * and `device' are needed to obtain the decryption key for this object.
  */
 
