@@ -1987,7 +1987,9 @@ int main(int argc, char **argv)
 
 	olog(LOG_INFO, "Using storage at %s with precision %d", STORAGEDIR, geohash_prec());
 #ifdef WITH_TZ
-	olog(LOG_INFO, "TZDATADB is at %s", TZDATADB);
+	olog(LOG_INFO, "TZDATADB is at %s: %s",
+		TZDATADB,
+		access(TZDATADB, F_OK|R_OK) == 0 ? "R_OK" : "ENOENT");
 #endif
 
 	while (run) {
