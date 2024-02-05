@@ -6,7 +6,7 @@ If Recorder is compiled with Lua support, a Lua script you provide is launched a
 * switch on the coffee machine when your OwnTracks device reports you're entering home (but see also [mqttwarn](http://jpmens.net/2014/02/17/introducing-mqttwarn-a-pluggable-mqtt-notifier/))
 * write a file with data in a format of your choice (see `etc/example.lua`)
 
-Run the Recorder with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the Recorder unloads Lua and continues *without* your script.
+Run the Recorder with the path to your Lua script specified in its `--lua-script` option (there is no default). If the script cannot be loaded (e.g. because it cannot be read or contains syntax errors), the Recorder aborts with a diagnostic.
 
 If the Lua script can be loaded, it is automatically provided with a table variable called `otr` which contains the following members:
 
