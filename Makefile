@@ -139,7 +139,7 @@ install: ot-recorder ocat
 	mkdir -p $(DESTDIR)$(INSTALLDIR)/sbin
 	mkdir -p $(DESTDIR)$(DOCROOT)
 	mkdir -p $$(dirname $(DESTDIR)$(TZDATADB))
-	install contrib/tzdatadb/timezone16.bin $(TZDATADB)
+	install contrib/tzdatadb/timezone16.bin $(DESTDIR)$(TZDATADB)
 	mkdir -p $(DESTDIR)$(STORAGEDEFAULT)
 	cd docroot && find ! -type d ! -name .gitignore -exec install -m0644 -D {} $(DESTDIR)$(DOCROOT)/{} \;
 	install -m 0755 ot-recorder $(DESTDIR)$(INSTALLDIR)/sbin
