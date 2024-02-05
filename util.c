@@ -83,7 +83,7 @@ const char *isolocal(long tst, char *tzname)
 	}
 
         strcpy(local, "-");
-        if ((tm = localtime(&tst)) != NULL) {
+        if ((tm = localtime((time_t *)&tst)) != NULL) {
                 strftime(local, sizeof(local), "%FT%T%z", tm);
         }
 
