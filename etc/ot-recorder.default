@@ -56,6 +56,10 @@
 
 # -----------------------------------------------------
 # Address for the HTTP module to bind to (default: localhost)
+# Binding on 0.0.0.0 will listen on IPv4 only
+# Binding on [::] will listen on IPv4 and IPv6
+# OTR_HTTPHOST = "0.0.0.0"
+# OTR_HTTPHOST = "[::]"
 #
 
 # OTR_HTTPHOST="localhost"
