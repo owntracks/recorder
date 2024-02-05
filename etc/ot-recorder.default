@@ -50,6 +50,7 @@
 
 # -----------------------------------------------------
 # Path to PEM-encoded CA certificate file for MQTT (no default)
+#
 
 # OTR_CAFILE=""
 
@@ -68,6 +69,7 @@
 # -----------------------------------------------------
 # optional path to HTTP directory in which to store
 # access log. Default is to not log access
+#
 
 # OTR_HTTPLOGDIR=""
 
@@ -86,6 +88,7 @@
 # -----------------------------------------------------
 # Browser API key for Google maps
 #
+
 # OTR_BROWSERAPIKEY=""
 
 # -----------------------------------------------------
@@ -93,6 +96,12 @@
 #
 
 OTR_TOPICS="owntracks/#"
+
+# -----------------------------------------------------
+# Optional LUA script which will be loaded with the Recorder
+#
+
+# OTR_LUASCRIPT="/path/to/script.lua"
 
 # -----------------------------------------------------
 # HTTP prefix for this recorder for accessing Tour views
