@@ -1,8 +1,22 @@
 
+2024-02-06 version 0.9.7
+- FIX: Tour data (requests and submissions) contain corrupt data in .rec file
+b/c of pretty-printing (#437)
+- UPD: Change permissions (+r) on binaries (#428)
+- NEW: Add support for dumping POI in GeoJSON format (#439)
+- FIX: create {static,utils}/index.html to avoid directory listing
+- FIX: remove HikeBike layer (and control) from views (#442)
+- UPD: Autoload track in Recorder views / tours (#441)
+- NEW: Optionally enhance API data with timezone at location's position (#444)
+- UPD: locations API returns Recorder version number alongside count/status
+- NEW: add experimental utility with which to enhance ghash/ with tzdata
+- UPD: location and tzname are stored in ghash cache only if they're non-null
+- UPD: Reduce default size of LMDB to 5368709120 (5GB); it can be configured via environment
+- UPD: Improve gcache error handling
+- FIX: Add missing OTR_HTTPPREFIX to ot-defaults (#440)
 
 2023-10-24 version 0.9.6
 - FIX: debian packaging
-
 
 2023-10-24 version 0.9.5
 - FIX: logs to stderr if DOCKER_RUNNING in environment (#426)
