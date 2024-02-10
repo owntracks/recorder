@@ -463,10 +463,10 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 {
 	struct udata *ud = (struct udata *)conn->server_param;
 	JsonNode *results = json_mkarray(), *lastuserlist;
-	JsonNode *friends, *obj, *jud, *newob, *jtid;
+	JsonNode *friends, *obj, *jud, *newob, *jtid, *jtopic;
 	int np;
 	char *pairs[3];
-	static UT_string *userdevice = NULL;
+	static UT_string *userdevice = NULL, *topic = NULL;
 
 
 	utstring_renew(userdevice);
@@ -506,6 +506,9 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 			splitterfree(pairs);
 			continue;
 		}
+		// construct friend's topic in the event it isn't in the last data
+		utstring_renew(topic);
+		utstring_printf(topic, "owntracks/%s/%s", pairs[0], pairs[1]);
 		splitterfree(pairs);
 
 		if ((obj = json_find_element(lastuserlist, 0)) == NULL) {
@@ -541,6 +544,12 @@ JsonNode *populate_friends(struct mg_connection *conn, char *u, char *d)
 		json_copy_element_to_object(newob, "cog", json_find_member(obj, "cog"));
 		json_copy_element_to_object(newob, "acc", json_find_member(obj, "acc"));
 		json_copy_element_to_object(newob, "vac", json_find_member(obj, "vac"));
+		if ((jtopic = json_find_member(obj, "topic")) != NULL) {
+			json_copy_element_to_object(newob, "topic", jtopic);
+		} else {
+			json_append_member(newob, "topic", json_mkstring(UB(topic)));
+		}
+
 		json_append_element(results, newob);
 
 		json_delete(lastuserlist);
