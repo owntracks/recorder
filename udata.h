@@ -59,6 +59,7 @@ struct udata {
 	int debug;			/* enable for debugging */
 	struct gcache *httpfriends;	/* lmdb named database 'friends' */
 	struct gcache *wpdb;		/* lmdb named database 'wp' (waypoints) */
+	long clean_age;			/* how long in seconds to keep geo gcache entries */
 };
 
 #endif

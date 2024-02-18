@@ -763,7 +763,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	long tst;
 	struct udata *ud = (struct udata *)userdata;
         char *topics[42];
-        int count = 0, cached;
+        int count = 0;
+	bool cached, fresh;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
 	static UT_string *reltopic = NULL, *filename = NULL;
 	char *jsonstring, *_typestr = NULL;
@@ -1112,7 +1113,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	}
 
 
-	cached = FALSE;
+	cached = fresh = false;
 	if (ud->revgeo == TRUE) {
 #ifdef WITH_LUA
 		char *lua_func = "otr_revgeo";
@@ -1133,9 +1134,23 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		} else {
 #endif /* WITH_LUA */
 			if ((geo = gcache_json_get(ud->gc, UB(ghash))) != NULL) {
-				/* Habemus cached data */
+				long cache_tst = 0L;
 
-				cached = TRUE;
+				/* We have cached data. See if it's still 'fresh'
+				 * and re-obtain if not.
+				 */
+
+				fprintf(stderr, "---> CACHED\n");
+				if ((j = json_find_member(geo, "tst")) != NULL) {
+					if (j->tag == JSON_NUMBER) {
+						cache_tst = j->number_;
+					}
+
+					if ((time(0) - cache_tst) <= ud->clean_age) {
+						fresh = true;
+					}
+				}
+				cached = true;
 
 				if ((j = json_find_member(geo, "cc")) != NULL) {
 					utstring_printf(cc, "%s", j->string_);
@@ -1143,22 +1158,39 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				if ((j = json_find_member(geo, "addr")) != NULL) {
 					utstring_printf(addr, "%s", j->string_);
 				}
-			} else {
-				if (geoprec > 0) {
-					if ((geo = revgeo(ud, lat, lon, addr, cc)) != NULL) {
-						gcache_json_put(ud->gc, UB(ghash), geo);
-					} else {
-						/* We didn't obtain reverse Geo, maybe because of over
-						 * quota; make a note of the missing geohash */
+			}
+			if (fresh == false && geoprec > 0) {
+				static UT_string *taddr = NULL, *tcc = NULL;
 
-						char gfile[BUFSIZ];
-						FILE *fp;
+				utstring_renew(taddr);
+				utstring_renew(tcc);
+				if ((geo = revgeo(ud, lat, lon, taddr, tcc)) != NULL) {
+					/*
+					 * We've been able to obtain revgeo; if we
+					 * had old cached data, delete it and add
+					 * new to cache.
+					 */
 
-						snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
-						if ((fp = fopen(gfile, "a")) != NULL) {
-							fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
-							fclose(fp);
-						}
+					if (cached) {
+						gcache_del(ud->gc, UB(ghash));
+					}
+					gcache_json_put(ud->gc, UB(ghash), geo);
+
+					utstring_renew(addr);
+					utstring_printf(addr, "%s", UB(taddr));
+					utstring_renew(cc);
+					utstring_printf(cc, "%s", UB(tcc));
+				} else {
+					/* We didn't obtain reverse Geo, maybe because of over
+					 * quota; make a note of the missing geohash */
+
+					char gfile[BUFSIZ];
+					FILE *fp;
+
+					snprintf(gfile, BUFSIZ, "%s/ghash/missing", STORAGEDIR);
+					if ((fp = fopen(gfile, "a")) != NULL) {
+						fprintf(fp, "%s %lf %lf\n", UB(ghash), lat, lon);
+						fclose(fp);
 					}
 				}
 			}
@@ -1423,6 +1455,7 @@ void usage(char *prog)
 	printf("  --norec		       don't maintain REC files\n");
 	printf("  --geokey		       optional reverse-geo API key\n");
 	printf("  --debug  		       additional debugging\n");
+	printf("  --json-variables  	-J     print settings in JSON and exit\n");
 	printf("  --variables  		-V     show settings and exit\n");
 	printf("\n");
 
@@ -1451,7 +1484,7 @@ int main(int argc, char **argv)
 	int loop_timeout = 1000;
 #endif
 	int ch, flags, initialize = FALSE;
-	bool show_variables = false;
+	bool show_variables = false, show_json_variables = false;
 	static struct udata udata, *ud = &udata;
 #ifdef WITH_HTTP
 	char *doc_root		= DOCROOT;
@@ -1512,6 +1545,7 @@ int main(int argc, char **argv)
 	udata.label		= strdup("OwnTracks");
 	udata.geokey		= NULL;		/* default: no API key */
 	udata.debug		= FALSE;
+	udata.clean_age		= 0L;		/* default: don't clean */
 
 	flags = LOG_PID;
 	if (isatty(0) || (getenv("DOCKER_RUNNING") != NULL)) {
@@ -1569,11 +1603,12 @@ int main(int argc, char **argv)
 			{ "viewsdir",	required_argument,	0, 	16},
 #endif
 			{ "variables",	no_argument,		0, 	'V'},
+			{ "json-variables",	no_argument,		0, 	'J'},
 			{0, 0, 0, 0}
 		  };
 		int optindex = 0;
 
-		ch = getopt_long(argc, argv, "hDGRi:P:q:S:H:p:A:V", long_options, &optindex);
+		ch = getopt_long(argc, argv, "hDGRi:P:q:S:H:p:A:JV", long_options, &optindex);
 		if (ch == -1)
 			break;
 
@@ -1677,6 +1712,9 @@ int main(int argc, char **argv)
 			case 'S':
 				strcpy(STORAGEDIR, optarg);
 				break;
+			case 'J':
+				show_json_variables = true;
+				break;
 			case 'V':
 				show_variables = true;
 				break;
@@ -1689,8 +1727,8 @@ int main(int argc, char **argv)
 
 	}
 
-	if (show_variables) {
-		display_variables(ud);
+	if (show_variables || show_json_variables) {
+		display_json_variables(ud, show_json_variables ? 0 : 1);
 		exit(0);
 	}
 

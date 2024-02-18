@@ -312,6 +312,7 @@ The following configuration variables can be used to tweak settings. Defaults ar
 | `OTR_PSK`             |  Y    |               | MQTT PSK
 | `OTR_SERVERLABEL`     |  Y    |  `OwnTracks`  | server label for Web
 | `OTR_LMDBSIZE`        |  Y    |  `5368709120` | size of the LMDB database (5GB). If less than 10485760 (10 MB) it will be set to 10485760.
+| `OTR_CLEAN_AGE`      |  Y    |   `0`          | purge geo gcache entries after these seconds; default 0, disable with 0
 
 
 ## Reverse proxy
@@ -739,6 +740,8 @@ The element `tzname` is the name of the time zone (`$TZ`) at the location. This 
     {"count":1,"locations":[{"_type":"location","cog":67,"batt":11,"lat":20.634506,"t":"u","lon":-87.078073,"acc":5,"tid":"JJ","vel":12,"vac":-1,"alt":0,"tst":1706694150,"ghash":"d5dj6kr","cc":"MX","addr":"CAPA, Calle 18 Norte, 77720 Playa del Carmen, ROO, Mexico","locality":"Playa del Carmen","tzname":"America/Cancun","isorcv":"2024-01-31T09:42:30Z","isotst":"2024-01-31T09:42:30Z","disptst":"2024-01-31 09:42:30"}]}
     ```
 4. For historical records which don't have a cached `tzname`, we use the TZDATADB as described above to obtain `tzname`, incurring a not quite insignificant penalty in terms of runtime.
+
+Records in the geo cache have a timestamp (`tst`) which indicates when a particular record was added. As address information and even time zones can become stale (imagine a street you live on getting renamed or a [timezone being renamed](https://github.com/tzinfo/tzinfo/issues/149)) you might wish to expire cached entries. The Recorder does this automatically when configuring `OTR_CLEAN_AGE` to a value of seconds for which entries in the geo cache older than those seconds will be purged if a new reverse-geo lookup succeeds. The default value is 0 which means no cleaning is performed.
 
 ## Lua hooks
 
