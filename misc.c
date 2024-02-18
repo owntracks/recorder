@@ -27,6 +27,7 @@
 #include "udata.h"
 #include "misc.h"
 #include "util.h"
+#include "json.h"
 
 char *bindump(char *buf, long buflen)
 {
@@ -238,64 +239,156 @@ void get_defaults(char *filename, struct udata *ud)
 	ud->luascript		= c_str(cf, "OTR_LUASCRIPT", NULL);
 #endif
 	ud->label		= c_str(cf, "OTR_SERVERLABEL", ud->label);
+	ud->clean_age		= c_int(cf, "OTR_CLEAN_AGE", ud->clean_age);
 
 	if (cf) {
 		config_destroy(cf);
 	}
 }
 
-static void d_int(char *property, int ival)
+static void j_int(JsonNode *j, char *property, int ival)
 {
-	printf("%-25s %d\n", property, ival);
+	json_append_member(j, property, json_mknumber(ival));
 }
 
-static void d_str(char *property, char *val)
+static void j_str(JsonNode *j, char *property, char *val)
 {
-	printf("%-25s %s\n", property, val ? val : "<null>");
+	if (val && *val) {
+		json_append_member(j, property, json_mkstring(val));
+	} else {
+		json_append_member(j, property, json_mknull());
+	}
 }
 
-static void d_bool(char *property, bool tf)
+static void j_bool(JsonNode *j, char *property, bool tf)
 {
-	printf("%-25s %s\n", property, tf ? "true" : "false");
+	json_append_member(j, property, json_mkbool(tf));
 }
 
-void display_variables(struct udata *ud)
+void display_json_variables(struct udata *ud, bool plain)
 {
-	d_str("OTR_STORAGEDIR", STORAGEDIR);
+	JsonNode *json = json_mkobject();
+	char *js;
+
+	j_str(json, "CONFIGFILE", CONFIGFILE);
+	j_str(json, "OTR_STORAGEDIR", STORAGEDIR);
 #if WITH_MQTT
 	// char *pubprefix;		/* If not NULL (default), republish modified payload to <pubprefix>/topic */
 
-	d_str("OTR_HOST",	ud->hostname);
-	d_int("OTR_PORT", 	ud->port);
-	d_str("OTR_USER",	ud->username);
-	d_str("OTR_PASS",	ud->password);
-	d_int("OTR_QOS",	ud->qos);
-	d_str("OTR_CLIENTID",	ud->clientid);
-	d_str("OTR_CAFILE",	ud->cafile);
-	d_str("OTR_CAPATH",	ud->capath);
-	d_str("OTR_CERTFILE",	ud->certfile);
-	d_str("OTR_KEYFILE",	ud->keyfile);
-	d_str("OTR_IDENTITY",	ud->identity);
-	d_str("OTR_PSK",	ud->psk);
+	j_str(json, "OTR_HOST",	ud->hostname);
+	j_int(json, "OTR_PORT", 	ud->port);
+	j_str(json, "OTR_USER",	ud->username);
+	j_str(json, "OTR_PASS",	ud->password);
+	j_int(json, "OTR_QOS",	ud->qos);
+	j_str(json, "OTR_CLIENTID",	ud->clientid);
+	j_str(json, "OTR_CAFILE",	ud->cafile);
+	j_str(json, "OTR_CAPATH",	ud->capath);
+	j_str(json, "OTR_CERTFILE",	ud->certfile);
+	j_str(json, "OTR_KEYFILE",	ud->keyfile);
+	j_str(json, "OTR_IDENTITY",	ud->identity);
+	j_str(json, "OTR_PSK",	ud->psk);
 #endif
-	d_bool("skip _demo",	ud->skipdemo);
-	d_bool("perform reverse geo",	ud->revgeo);
-	d_str("OTR_GEOKEY",		ud->geokey);
-	d_int("OTR_PRECISION", 		geohash_prec());
-	d_bool("do not write .rec",	ud->norec);
+	j_bool(json, "skip_demo",	ud->skipdemo);
+	j_bool(json, "perform_reverse_geo",	ud->revgeo);
+	j_str(json, "OTR_GEOKEY",		ud->geokey);
+	j_int(json, "OTR_PRECISION", 		geohash_prec());
+	j_bool(json, "do_not_write_.rec",	ud->norec);
 
 #ifdef WITH_HTTP
-	d_str("OTR_HTTPHOST",		ud->http_host);
-	d_int("OTR_HTTPPORT",		ud->http_port);
-	d_str("OTR_HTTPLOGDIR",		ud->http_logdir);
-	d_str("OTR_BROWSERAPIKEY",	ud->browser_apikey);
-	d_str("OTR_VIEWSDIR",		ud->viewsdir);
+	j_str(json, "OTR_HTTPHOST",		ud->http_host);
+	j_int(json, "OTR_HTTPPORT",		ud->http_port);
+	j_str(json, "OTR_HTTPLOGDIR",		ud->http_logdir);
+	j_str(json, "OTR_BROWSERAPIKEY",	ud->browser_apikey);
+	j_str(json, "OTR_VIEWSDIR",		ud->viewsdir);
 # ifdef WITH_TOURS
-	d_str("OTR_HTTPPREFIX",		ud->http_prefix);
+	j_str(json, "OTR_HTTPPREFIX",		ud->http_prefix);
 # endif /* WITH_TOURS */
 #endif
 #ifdef WITH_LUA
-	d_str("OTR_LUASCRIPT",		ud->luascript);
+	j_str(json, "OTR_LUASCRIPT",		ud->luascript);
 #endif
-	d_str("OTR_SERVERLABEL",	ud->label);
+	j_str(json, "OTR_SERVERLABEL",	ud->label);
+	j_int(json, "OTR_CLEAN_AGE",		ud->clean_age);
+#ifdef WITH_TZ
+	j_str(json, "TZDATADB",		TZDATADB);
+#endif
+
+	/* WITH_ flags */
+#ifdef WITH_ENCRYPT
+	j_bool(json, "WITH_ENCRYPT", true);
+#else
+	j_bool(json, "WITH_ENCRYPT", false);
+#endif
+#ifdef WITH_GREENWICH
+	j_bool(json, "WITH_GREENWICH", true);
+#else
+	j_bool(json, "WITH_GREENWICH", false);
+#endif
+#ifdef WITH_HTTP
+	j_bool(json, "WITH_HTTP", true);
+#else
+	j_bool(json, "WITH_HTTP", false);
+#endif
+#ifdef WITH_KILL
+	j_bool(json, "WITH_KILL", true);
+#else
+	j_bool(json, "WITH_KILL", false);
+#endif
+#ifdef WITH_LUA
+	j_bool(json, "WITH_LUA", true);
+#else
+	j_bool(json, "WITH_LUA", false);
+#endif
+#ifdef WITH_MQTT
+	j_bool(json, "WITH_MQTT", true);
+#else
+	j_bool(json, "WITH_MQTT", false);
+#endif
+#ifdef WITH_TOURS
+	j_bool(json, "WITH_TOURS", true);
+#else
+	j_bool(json, "WITH_TOURS", false);
+#endif
+#ifdef WITH_PING
+	j_bool(json, "WITH_PING", true);
+#else
+	j_bool(json, "WITH_PING", false);
+#endif
+#ifdef WITH_TZ
+	j_bool(json, "WITH_TZ", true);
+#else
+	j_bool(json, "WITH_TZ", false);
+#endif
+
+	if (plain) {
+		JsonNode *j;
+
+		json_foreach(j, json) {
+			printf("%-25s", j->key);
+			switch (j->tag) {
+				case JSON_NULL:
+					printf("<null>\n");
+					break;
+				case JSON_BOOL:
+					printf("%s\n", j->bool_ ? "true" : "false");
+					break;
+				case JSON_STRING:
+					printf("%s\n", j->string_);
+					break;
+				case JSON_NUMBER:
+					printf("%.0lf\n", j->number_);
+					break;
+				case JSON_ARRAY:
+				case JSON_OBJECT:
+					break;
+			}
+		}
+	} else {
+		if ((js = json_stringify(json, "  ")) != NULL) {
+			printf("%s\n", js);
+			free(js);
+		}
+	}
+	json_delete(json);
+
 }
