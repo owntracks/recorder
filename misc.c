@@ -28,6 +28,7 @@
 #include "misc.h"
 #include "util.h"
 #include "json.h"
+#include "version.h"
 
 char *bindump(char *buf, long buflen)
 {
@@ -270,6 +271,7 @@ void display_json_variables(struct udata *ud, bool plain)
 	JsonNode *json = json_mkobject();
 	char *js;
 
+	j_str(json, "VERSION", VERSION);
 	j_str(json, "CONFIGFILE", CONFIGFILE);
 	j_str(json, "OTR_STORAGEDIR", STORAGEDIR);
 #if WITH_MQTT
