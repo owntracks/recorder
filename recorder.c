@@ -292,8 +292,27 @@ static void putrec(struct udata *ud, time_t epoch, UT_string *reltopic, UT_strin
 			return;
 		}
 
-		fprintf(fp, RECFORMAT, isotime(epoch),
-			UB(reltopic), string);
+		/*
+		 * `string' might contain JSON, and it might be such that is
+		 * contains newlines, etc. We have to sanitize if so else the
+		 * .rec file will become unparseable.
+		 */
+		if (strchr(string, '\n') != 0 || strchr(string, '\t') != 0) {
+			JsonNode *j;
+			char *js = NULL;
+
+			if ((j = json_decode(string)) != NULL) {
+				js = json_stringify(j, NULL);
+				fprintf(stderr, "JPJPJP: [%s]\n", js);
+				fprintf(fp, RECFORMAT, isotime(epoch),
+					UB(reltopic), js);
+				free(js);
+				json_delete(j);
+			}
+		} else {
+			fprintf(fp, RECFORMAT, isotime(epoch),
+				UB(reltopic), string);
+		}
 		fclose(fp);
 	}
 }
@@ -963,7 +982,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		case T_CMD:
 		case T_STEPS:
 			if (r_ok) {
-				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
+				putrec(ud, now, reltopic, username, device, payload);
 			}
 			goto cleanup;
 		case T_WAYPOINTS:
