@@ -1045,30 +1045,48 @@ JsonNode *geo_json(JsonNode *location_array, bool poi_only)
 			if ((j = json_find_member(one, "poi")) == NULL) {
 				continue;
 			}
+			if (j->tag != JSON_STRING)
+				continue;
 			poi = j->string_;
 		}
                 if ((j = json_find_member(one, "lat")) != NULL) {
+			if (j->tag != JSON_NUMBER)
+				continue;
                         lat = j->number_;
                 }
                 if ((j = json_find_member(one, "lon")) != NULL) {
+			if (j->tag != JSON_NUMBER)
+				continue;
                         lon = j->number_;
                 }
                 if ((j = json_find_member(one, "tid")) != NULL) {
+			if (j->tag != JSON_STRING)
+				continue;
                         tid = j->string_;
                 }
                 if ((j = json_find_member(one, "addr")) != NULL) {
+			if (j->tag != JSON_STRING)
+				continue;
                         addr = j->string_;
                 }
                 if ((j = json_find_member(one, "isotst")) != NULL) {
+			if (j->tag != JSON_STRING)
+				continue;
                         isotst = j->string_;
                 }
                 if ((j = json_find_member(one, "tst")) != NULL) {
+			if (j->tag != JSON_NUMBER)
+				continue;
                         tst = j->number_;
                 }
                 if ((j = json_find_member(one, "vel")) != NULL) {
+			if (j->tag != JSON_NUMBER)
+				continue;
                         vel = j->number_;
                 }
                 if ((j = json_find_member(one, "acc")) != NULL) {
+			if (j->tag != JSON_NUMBER)
+				continue;
                         acc = j->number_;
                 }
 

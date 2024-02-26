@@ -453,6 +453,10 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 	}
 
 	if ((j = json_find_member(json, "request")) != NULL) {
+		if (j->tag != JSON_STRING) {
+			json_delete(json);
+			return;
+		}
 		request_type = j->string_;
 	}
 
@@ -1053,6 +1057,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			tst = strtoul(j->string_, NULL, 10);
 			json_delete(j);
 			json_append_member(json, "tst", json_mknumber(tst));
+		} else if (j->tag != JSON_NUMBER) {
+			goto cleanup;
 		} else {
 			tst = (unsigned long)j->number_;
 		}
