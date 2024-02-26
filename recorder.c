@@ -1345,9 +1345,13 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 			e = json_find_member(json, "event");
 			d = json_find_member(json, "desc");
-			printf("transition: %s %s\n",
-				(e) ? e->string_ : "unknown",
-				(d) ? d->string_ : "unknown");
+			if (e->tag != JSON_STRING || d->tag != JSON_STRING) {
+				olog(LOG_DEBUG, "Ignoring _type=transition: event or desc not string");
+			} else {
+				printf("transition: %s %s\n",
+					(e) ? e->string_ : "unknown",
+					(d) ? d->string_ : "unknown");
+			}
 
 		} else if (_type == T_WAYPOINT) {
 			j = json_find_member(json, "desc");
