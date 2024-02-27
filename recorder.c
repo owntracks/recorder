@@ -1247,6 +1247,16 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	}
 
 
+	if (_type == T_TRANSITION) {
+		JsonNode *e, *d;
+
+		e = json_find_member(json, "event");
+		d = json_find_member(json, "desc");
+		if (e->tag != JSON_STRING || d->tag != JSON_STRING) {
+			olog(LOG_DEBUG, "Ignoring _type=transition: event or desc not string");
+			goto cleanup;
+		}
+	}
 
 	/*
 	 * We have normalized data in the JSON, so we can now write it
