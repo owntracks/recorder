@@ -1176,7 +1176,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				 * and re-obtain if not.
 				 */
 
-				fprintf(stderr, "---> CACHED\n");
 				if ((j = json_find_member(geo, "tst")) != NULL) {
 					if (j->tag == JSON_NUMBER) {
 						cache_tst = j->number_;
