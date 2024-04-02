@@ -1395,8 +1395,10 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		}
 	}
 
-	check_fences(ud, UB(username), UB(device), lat, lon, json, topic);
-	check_fences(ud, "_", "_", lat, lon, json, topic);
+    if (_type == T_LOCATION || _type == T_TRANSITION) {
+        check_fences(ud, UB(username), UB(device), lat, lon, json, topic);
+        check_fences(ud, "_", "_", lat, lon, json, topic);
+    }
 
     cleanup:
 	if (geo)	json_delete(geo);
