@@ -268,53 +268,46 @@ JsonNode *csv_to_json(char *payload)
 #define RECFORMAT "%s\t%-18s\t%s\n"
 
 /*
- * Store payload in REC file unless our Lua putrec() function says
- * we shouldn't for this particular user/device combo. Use the epoch
+ * Store payload in REC file. Use the epoch
  * time to construct path name and "key"
  */
 
 static void putrec(struct udata *ud, time_t epoch, UT_string *reltopic, UT_string *username, UT_string *device, char *string)
 {
 	FILE *fp;
-	int rc = 0;
 
 	if (ud->norec)
 		return;
 
-#ifdef WITH_LUA
-	rc = hooks_norec(ud, UB(username), UB(device), string);
-#endif
+    if ((fp = pathn("a", "rec", username, device, "rec", epoch)) == NULL) {
+        olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
+            UB(username), UB(device));
+        return;
+    }
 
-	if (rc == 0) {
-		if ((fp = pathn("a", "rec", username, device, "rec", epoch)) == NULL) {
-			olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
-				UB(username), UB(device));
-			return;
-		}
+    /*
+     * `string' might contain JSON, and it might be such that is
+     * contains newlines, etc. We have to sanitize if so else the
+     * .rec file will become unparseable.
+     */
+    if (strchr(string, '\n') != 0 || strchr(string, '\t') != 0) {
+        JsonNode *j;
+        char *js = NULL;
 
-		/*
-		 * `string' might contain JSON, and it might be such that is
-		 * contains newlines, etc. We have to sanitize if so else the
-		 * .rec file will become unparseable.
-		 */
-		if (strchr(string, '\n') != 0 || strchr(string, '\t') != 0) {
-			JsonNode *j;
-			char *js = NULL;
+        if ((j = json_decode(string)) != NULL) {
+            js = json_stringify(j, NULL);
+            fprintf(stderr, "JPJPJP: [%s]\n", js);
+            fprintf(fp, RECFORMAT, isotime(epoch),
+                UB(reltopic), js);
+            free(js);
+            json_delete(j);
+        }
+    } else {
+        fprintf(fp, RECFORMAT, isotime(epoch),
+            UB(reltopic), string);
+    }
+    fclose(fp);
 
-			if ((j = json_decode(string)) != NULL) {
-				js = json_stringify(j, NULL);
-				fprintf(stderr, "JPJPJP: [%s]\n", js);
-				fprintf(fp, RECFORMAT, isotime(epoch),
-					UB(reltopic), js);
-				free(js);
-				json_delete(j);
-			}
-		} else {
-			fprintf(fp, RECFORMAT, isotime(epoch),
-				UB(reltopic), string);
-		}
-		fclose(fp);
-	}
 }
 
 /*
@@ -790,7 +783,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	bool cached, fresh;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
 	static UT_string *reltopic = NULL, *filename = NULL;
-	char *jsonstring, *_typestr = NULL;
+	char *jsonstring, *_typestr, *dumpedpayload = NULL;
 	time_t now, epoch;
 	int pingping = FALSE, skipslash = 0, geoprec = geohash_prec();
 	int r_ok = TRUE;			/* True if recording enabled for a publish */
@@ -917,9 +910,15 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	if ((json = json_decode(payload)) == NULL) {
 		if ((json = csv_to_json(payload)) == NULL) {
+            dumpedpayload = bindump(payload, payloadlen);
 			/* It's not JSON or it's not a location CSV; store it using
 			 * now as time -- we have no other */
-			putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
+#ifdef WITH_LUA
+            r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
+#endif
+            if (r_ok) {
+                putrec(ud, now, reltopic, username, device, dumpedpayload);
+            }
 			return;
 		}
 	}
@@ -957,6 +956,13 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			do_info(ud, username, device, json);
 			goto cleanup;
 		case T_BEACON:
+            dumpedpayload = bindump(payload, payloadlen);
+#ifdef WITH_LUA
+            r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
+#endif
+            if (!r_ok) {
+                goto cleanup;
+            }
 #ifdef WITH_HTTP
 			if (ud->mgserver && !pingping) {
 				json_append_member(json, "topic", json_mkstring(topic));
@@ -965,10 +971,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				http_ws_push_json(ud->mgserver, json);
 			}
 #endif
-			if (r_ok) {
-				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
-			}
-			goto cleanup;
+            putrec(ud, now, reltopic, username, device, dumpedpayload);
+            goto cleanup;
 		case T_LWT:
 			/*
 			 * LWT gets a pseudo-reltopic called 'lwt'; reason: if we keep the
@@ -985,6 +989,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 		case T_CMD:
 		case T_STEPS:
+#ifdef WITH_LUA
+            r_ok = hooks_norec(ud, UB(username), UB(device), payload) == 0;
+#endif
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, payload);
 			}
@@ -1034,8 +1041,12 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			break;
 #endif /* WITH_TOURS */
 		default:
+            dumpedpayload = bindump(payload, payloadlen);
+#ifdef WITH_LUA
+            r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
+#endif
 			if (r_ok) {
-				putrec(ud, now, reltopic, username, device, bindump(payload, payloadlen));
+				putrec(ud, now, reltopic, username, device, dumpedpayload);
 			}
 			goto cleanup;
 	}
@@ -1248,10 +1259,22 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			double d_epoch = number(json, "tst");
 
 			epoch = (isnan(d_epoch)) ? now : d_epoch;
-			putrec(ud, epoch, reltopic, username, device, jsonstring);
+
+#ifdef WITH_LUA
+            r_ok = hooks_norec(ud, UB(username), UB(device), jsonstring) == 0;
+#endif
+            if (r_ok) {
+                putrec(ud, epoch, reltopic, username, device, jsonstring);
+            }
 			free(jsonstring);
 		}
 	}
+
+    if (!r_ok) {
+        // No further processing of this data if hook determined
+        // not to record it.
+        goto cleanup;
+    }
 
 	/*
 	 * Append a few bits to the location type to add to LAST and
