@@ -1053,8 +1053,11 @@ static int view(struct mg_connection *conn, const char *viewname)
 
 			if ((geoline = geo_linestring(locarray)) != NULL) {
 				json_delete(obj);
+				json_delete(locarray);
 				return (json_response(conn, geoline));
 			}
+
+			json_delete(locarray);
 
 			/* Return empty object */
 
@@ -1101,6 +1104,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			json_append_member(obj, "data", locarray);
 
 			json_delete(view);
+			json_delete(locarray);
 
 			return (json_response(conn, obj));
 			/* NOTREACHED */
