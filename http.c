@@ -1033,6 +1033,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			}
 		}
 		fclose(fp);
+		json_delete(view);
 		return (MG_TRUE);
 		/* NOTREACHED */
 		break;
@@ -1111,6 +1112,7 @@ static int view(struct mg_connection *conn, const char *viewname)
 			break;
 	}
 
+	json_delete(view);
 	return (MG_TRUE);
 }
 
