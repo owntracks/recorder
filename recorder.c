@@ -2051,7 +2051,11 @@ int main(int argc, char **argv)
 		char address[BUFSIZ], logdir[BUFSIZ];
 		const char *addressinfo;
 
-		sprintf(address, "%s:%d", ud->http_host, ud->http_port);
+		if (memcmp(ud->http_host, "/", 1) == 0) {
+			sprintf(address, "%s", ud->http_host);
+		} else {
+			sprintf(address, "%s:%d", ud->http_host, ud->http_port);
+		}
 
 		mg_set_option(udata.mgserver, "listening_port", address);
 		// mg_set_option(udata.mgserver, "listening_port", "8090,ssl://8091:cert.pem");

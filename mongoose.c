@@ -146,6 +146,7 @@ typedef struct _stati64 ns_stat_t;
 #include <unistd.h>
 #include <arpa/inet.h>  // For inet_pton() when NS_ENABLE_IPV6 is defined
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #define closesocket(x) close(x)
@@ -189,6 +190,7 @@ extern "C" {
 union socket_address {
   struct sockaddr sa;
   struct sockaddr_in sin;
+  struct sockaddr_un sun;
 #ifdef NS_ENABLE_IPV6
   struct sockaddr_in6 sin6;
 #else
@@ -705,6 +707,7 @@ static int ns_parse_address(const char *str, union socket_address *sa,
   }
 
   if (sscanf(str, "%u.%u.%u.%u:%u%n", &a, &b, &c, &d, &port, &len) == 5) {
+    DBG(("ns_parse_address ip4 %s", str));
     // Bind to a specific IPv4 address, e.g. 192.168.1.5:8080
     sa->sin.sin_addr.s_addr = htonl((a << 24) | (b << 16) | (c << 8) | d);
     sa->sin.sin_port = htons((uint16_t) port);
@@ -716,11 +719,17 @@ static int ns_parse_address(const char *str, union socket_address *sa,
     sa->sin6.sin6_port = htons((uint16_t) port);
 #endif
   } else if (sscanf(str, "%199[^ :]:%u%n", host, &port, &len) == 2) {
+    DBG(("ns_parse_address host port %s", str));
     sa->sin.sin_port = htons((uint16_t) port);
     ns_resolve2(host, &sa->sin.sin_addr);
   } else if (sscanf(str, "%u%n", &port, &len) == 1) {
     // If only port is specified, bind to IPv4, INADDR_ANY
+    DBG(("ns_parse_address only port %s", str));
     sa->sin.sin_port = htons((uint16_t) port);
+  } else if (memcmp(str, "/", 1) == 0) {
+    DBG(("ns_parse_address unix socket %s", str));
+    sa->sun.sun_family = AF_UNIX;
+    strcpy(sa->sun.sun_path, str);
   }
 
   if (*use_ssl && (sscanf(str + len, ":%99[^:,]:%99[^:,]%n", cert, ca, &n) == 2 ||
@@ -733,14 +742,16 @@ static int ns_parse_address(const char *str, union socket_address *sa,
 
 // 'sa' must be an initialized address to bind to
 static sock_t ns_open_listening_socket(union socket_address *sa, int proto) {
-  socklen_t sa_len = (sa->sa.sa_family == AF_INET) ?
-    sizeof(sa->sin) : sizeof(sa->sin6);
   sock_t sock = INVALID_SOCKET;
 #ifndef _WIN32
   int on = 1;
 #endif
 
-  if ((sock = socket(sa->sa.sa_family, proto, 0)) != INVALID_SOCKET &&
+  sock = socket(sa->sa.sa_family, proto, 0);
+  if (sock == INVALID_SOCKET) {
+    DBG(("cannot create socket %d", sock));
+    return sock;
+  }
 #ifndef _WIN32
       // SO_RESUSEADDR is not enabled on Windows because the semantics of
       // SO_REUSEADDR on UNIX and Windows is different. On Windows,
@@ -748,18 +759,49 @@ static sock_t ns_open_listening_socket(union socket_address *sa, int proto) {
       // the port is already open by another program. This is not the behavior
       // SO_REUSEADDR was designed for, and leads to hard-to-track failure
       // scenarios. Therefore, SO_REUSEADDR was disabled on Windows.
-      !setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *) &on, sizeof(on)) &&
+      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *) &on, sizeof(on)) != 0) {
+        closesocket(sock);
+        return INVALID_SOCKET;
+      }
 #endif
-      !bind(sock, &sa->sa, sa_len) &&
-      (proto == SOCK_DGRAM || listen(sock, SOMAXCONN) == 0)) {
-    ns_set_non_blocking_mode(sock);
-    // In case port was set to 0, get the real port number
-    (void) getsockname(sock, &sa->sa, &sa_len);
+
+  socklen_t sa_len;
+  switch (sa->sa.sa_family) {
+    case AF_UNIX:
+      unlink(sa->sun.sun_path);
+      DBG(("deleted unix socket file %s", sa->sun.sun_path));
+      sa_len = sizeof(sa->sun);
+      break;
+    case AF_INET:
+      sa_len = sizeof(sa->sin);
+      break;
+    case AF_INET6:
+      sa_len = sizeof(sa->sin6);
+      break;
+    default:
+      return INVALID_SOCKET;
+  }
+  int bind_res = bind(sock, &sa->sa, sa_len);
+  if (bind_res) {
+    DBG(("cannot bind socket %d", bind_res));
+    closesocket(sock);
+    return INVALID_SOCKET;
+  }
+  int listen_res = listen(sock, SOMAXCONN);
+  DBG(("listen result %d", listen_res));
+  if (listen_res == 0) {
+    if (sa->sa.sa_family != AF_UNIX) {
+      DBG(("non blocking"));
+      ns_set_non_blocking_mode(sock);
+      // In case port was set to 0, get the real port number
+      (void) getsockname(sock, &sa->sa, &sa_len);
+    }
   } else if (sock != INVALID_SOCKET) {
+    DBG(("closing sock %d", sock));
     closesocket(sock);
     sock = INVALID_SOCKET;
   }
-
+  DBG(("sock %d", sock));
   return sock;
 }
 
