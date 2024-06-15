@@ -765,6 +765,32 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 }
 #endif /* ENCRYPT */
 
+static bool is_newer_than_last(JsonNode *json)
+{
+	bool is_newer = true;
+	JsonNode *last_array;
+	JsonNode *fields = json_mkarray();
+	json_append_element(fields, json_mkstring("tst"));
+	JsonNode *usernode = json_find_member(json, "username");
+	JsonNode *devicenode = json_find_member(json, "device");
+	if (usernode != NULL && devicenode != NULL) {
+		if ((last_array = last_users(usernode->string_, devicenode->string_, fields)) != NULL) {
+			JsonNode *lastrec = json_first_child(last_array);
+			if (lastrec != NULL) {
+				JsonNode *tst = json_find_member(lastrec, "tst");
+				if (tst != NULL) {
+					double last = number(lastrec, "tst");
+					double current = number(json, "tst");
+					is_newer = last < current;
+				}
+			}
+			json_delete(last_array);
+		}
+	}
+	json_delete(fields);
+	return is_newer;
+}
+
 /*
  * if `jnode' will be set to a JsonNode object with results added to the
  * outgoing HTTP payload; the caller (in http.c) will delete the object
@@ -1315,32 +1341,38 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	json_append_member(json, "ghash",    json_mkstring(UB(ghash)));
 
 	if (_type == T_LOCATION || _type == T_WAYPOINT) {
-		char *component;
+		char *component = NULL;
 
 		utstring_renew(filename);
 
 		if (_type == T_LOCATION) {
+			if (is_newer_than_last(json)) {
 				component = "last";
 				utstring_printf(filename, "%s-%s.json",
 					UB(username), UB(device));
+			} else {
+				olog(LOG_DEBUG, "Location out-of-order, skipping 'last' update");
+			}
 		} else if (_type == T_WAYPOINT) {
-				component = "waypoints";
-				utstring_printf(filename, "%s.json", isotime(tst));
+			component = "waypoints";
+			utstring_printf(filename, "%s.json", isotime(tst));
 		}
 
-		if ((jsonstring = json_stringify(json, NULL)) != NULL) {
-			utstring_printf(ts, "%s/%s/%s/%s",
-				STORAGEDIR,
-				component,
-				UB(username),
-				UB(device));
-			if (mkpath(UB(ts)) < 0) {
-				olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
-			}
+		if (component != NULL) {
+			if ((jsonstring = json_stringify(json, NULL)) != NULL) {
+				utstring_printf(ts, "%s/%s/%s/%s",
+					STORAGEDIR,
+					component,
+					UB(username),
+					UB(device));
+				if (mkpath(UB(ts)) < 0) {
+					olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
+				}
 
-			utstring_printf(ts, "/%s", UB(filename));
-			safewrite(UB(ts), jsonstring);
-			free(jsonstring);
+				utstring_printf(ts, "/%s", UB(filename));
+				safewrite(UB(ts), jsonstring);
+				free(jsonstring);
+			}
 		}
 	}
 
