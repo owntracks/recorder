@@ -240,6 +240,7 @@ void append_card_to_object(JsonNode *obj, char *user, char *device)
 	json_delete(card);
 }
 
+#ifdef WITH_TZ
 static void tz_info(JsonNode *json, double lat, double lon, time_t tst)
 {
 	// olog(LOG_DEBUG, "tz_info for (%lf, %lf)", lat, lon);
@@ -254,6 +255,7 @@ static void tz_info(JsonNode *json, double lat, double lon, time_t tst)
 		}
 	}
 }
+#endif
 
 void append_device_details(JsonNode *userlist, char *user, char *device)
 {
@@ -265,16 +267,19 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 
 	last = json_mkobject();
 	if (json_copy_from_file(last, path) == TRUE) {
-		JsonNode *jtst, *jlat, *jlon;
+		JsonNode *jtst;
 
 		if ((jtst = json_find_member(last, "tst")) != NULL) {
 			json_append_member(last, "isotst", json_mkstring(isotime(jtst->number_)));
 			json_append_member(last, "disptst", json_mkstring(disptime(jtst->number_)));
 
+#ifdef WITH_TZ
+			JsonNode *jlat, *jlon;
 			if ((jlat = json_find_member(last, "lat")) &&
 				(jlon = json_find_member(last, "lon"))) {
 				tz_info(last, jlat->number_, jlon->number_, jtst->number_);
 			}
+#endif
 		}
 	}
 
@@ -773,16 +778,14 @@ static JsonNode *line_to_location(char *line)
 	 * Otherwise determine the TZ name from the tzdatadb.
 	 */
 
-	if ((j = json_find_member(o, "tzname")) != NULL) {
 #ifdef WITH_TZ
+	if ((j = json_find_member(o, "tzname")) != NULL) {
 		tzname = j->string_;
 		json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tzname)));
-#endif
 	} else {
-#ifdef WITH_TZ
 		tz_info(o, lat, lon, tst);
-#endif
 	}
+#endif
 
 	return (o);
 }
