@@ -1373,6 +1373,8 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				safewrite(UB(ts), jsonstring);
 				free(jsonstring);
 			}
+
+			append_card_to_object(json, UB(username), UB(device));
 		}
 	}
 
