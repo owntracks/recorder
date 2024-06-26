@@ -809,7 +809,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	bool cached, fresh;
 	static UT_string *basetopic = NULL, *username = NULL, *device = NULL, *addr = NULL, *cc = NULL, *ghash = NULL, *ts = NULL;
 	static UT_string *reltopic = NULL, *filename = NULL;
-	char *jsonstring, *_typestr, *dumpedpayload = NULL;
+	char *jsonstring, *_typestr = NULL, *dumpedpayload = NULL;
 	time_t now, epoch;
 	int pingping = FALSE, skipslash = 0, geoprec = geohash_prec();
 	int r_ok = TRUE;			/* True if recording enabled for a publish */
