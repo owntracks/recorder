@@ -28,6 +28,7 @@ case "$1" in
 	if [ -x /bin/systemctl ]; then
 		install -m644 /usr/share/doc/ot-recorder/ot-recorder.service /etc/systemd/system/ot-recorder.service
 		systemctl --system daemon-reload || exit 0 # catch failure in docker setup
+		systemctl restart ot-recorder || exit 0
 	fi
     ;;
 
