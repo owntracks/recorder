@@ -1,3 +1,16 @@
+2024-07-23 version 0.9.8
+- FIX: add card data to websocket notifications (#450)
+- FIX: Enable building when WITH_TZ=no to disable timezone information (#473)
+- FIX: view lastpos response (#471)
+- FIX: handle out-of-order location notification in last/ (#472)
+- FIX: drastically reduce memory leakage in views (#464)
+- FIX: reformat json if it contains newlines/tabs before storing in .rec (#437)
+- NEW: cached geo records can be auto-expired by setting OTR_CLEAN_AGE (#447)
+- NEW: option -J prints variables in JSON format, for scripting
+- NEW: version is printed in -J / -V
+- FIX: in http mode friends' data must contain a topic; construct it or retrieve from last if available (#451)
+- FIX: crash on non-string event name in _transition messages (#454)
+- NEW: Add alt field to GeoJSON points parameters (#456)
 
 2024-02-06 version 0.9.7
 - FIX: Tour data (requests and submissions) contain corrupt data in .rec file
