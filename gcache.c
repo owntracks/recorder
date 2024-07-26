@@ -66,7 +66,7 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 
 	rc = mdb_env_create(&gc->env);
 	if (rc != 0) {
-		olog(LOG_ERR, "gcache_open: mdb_env_create: %s", mdb_strerror(rc));
+		olog(LOG_ERR, "gcache_open: mdb_env_create: %s (for %lu bytes)", mdb_strerror(rc), lmdb_size);
 		free(gc);
 		return (NULL);
 	}
