@@ -141,7 +141,8 @@ static int user_device_list(char *name, int level, JsonNode *obj)
 	struct stat sb;
 
 	if ((dirp = opendir(name)) == NULL) {
-		perror(name);
+		// Hide error; the directory will be created automatically later
+		// perror(name);
 		return (1);
 	}
 	while ((dp = readdir(dirp)) != NULL) {
@@ -1266,7 +1267,7 @@ JsonNode *kill_datastore(char *user, char *device)
 			olog(LOG_NOTICE, "removed %s", p);
 			json_append_element(killed, json_mkstring(namelist[i]->d_name));
 		} else {
-			perror(p);
+			olog(LOG_NOTICE, "kill_datastore: %s: %m", p);
 		}
 
 		free(namelist[i]);
