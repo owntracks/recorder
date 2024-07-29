@@ -709,7 +709,7 @@ struct jparam {
 
 static JsonNode *line_to_location(char *line)
 {
-	JsonNode *json, *o, *j;
+	JsonNode *o, *j;
 	char *ghash;
 #ifdef WITH_TZ
 	char *tzname = NULL;
@@ -724,27 +724,18 @@ static JsonNode *line_to_location(char *line)
 	if ((bp = strchr(line, '{')) == NULL)
 		return (NULL);
 
-	if ((json = json_decode(bp)) == NULL) {
+	if ((o = json_decode(bp)) == NULL) {
 		return (NULL);
 	}
 
-	if ((j = json_find_member(json, "_type")) == NULL) {
-		json_delete(json);
+	if ((j = json_find_member(o, "_type")) == NULL) {
+		json_delete(o);
 		return (NULL);
 	}
 	if (j->tag != JSON_STRING || strcmp(j->string_, "location") != 0) {
-		json_delete(json);
-		return (NULL);
-	}
-
-	o = json_mkobject();
-
-	if (json_copy_to_object(o, json, FALSE) == FALSE) {
 		json_delete(o);
-		json_delete(json);
 		return (NULL);
 	}
-	json_delete(json);	/* Done with this -- we've copied it. */
 
 	lat = lon = 0.0;
 	if ((j = json_find_member(o, "lat")) != NULL) {
@@ -784,6 +775,12 @@ static JsonNode *line_to_location(char *line)
 		tzname = j->string_;
 		json_append_member(o, "isolocal", json_mkstring(isolocal(tst, tzname)));
 	} else {
+		/* if tzname is not in the object, i.e. it wasn't originally
+		 * obtained during geo lookup and cached, then look it up
+		 * in the binary zonedetect database now. Note that this will
+		 * add quite a substantial amount of time to producing API
+		 * results. We might need to make this run-time configurable.
+		 */
 		tz_info(o, lat, lon, tst);
 	}
 #endif
