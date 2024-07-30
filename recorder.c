@@ -627,77 +627,6 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 }
 #endif /* WITH_TOURS */
 
-#ifdef WITH_GREENWICH
-
-/*
- * key is "batt", "ext", or "status"
- * value is a string which contains a number
- *
- * Open/create a file at gw/user/device/user-device.json. Append to the existing array,
- * limiting the number of array entries.
- */
-
-void store_gwvalue(char *username, char *device, time_t tst, char *key, char *value)
-{
-	static UT_string *ts = NULL, *u = NULL, *d = NULL;
-	JsonNode *array, *o, *j;
-	int count = 0;
-	char *js;
-
-	utstring_renew(ts);
-	utstring_renew(u);
-	utstring_renew(d);
-	utstring_printf(u, "%s", username);
-	utstring_printf(d, "%s", device);
-	lowercase(UB(u));
-	lowercase(UB(d));
-	utstring_printf(ts, "%s/last/%s/%s",
-				STORAGEDIR,
-				UB(u),
-				UB(d));
-	if (mkpath(UB(ts)) < 0) {
-		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
-		return;
-	}
-
-	utstring_printf(ts, "/%s.json", key);
-
-	/* Read file into array or create array on error */
-	if ((js = slurp_file(UB(ts), TRUE)) != NULL) {
-		if ((array = json_decode(js)) == NULL) {
-			array = json_mkarray();
-		}
-		free(js);
-	} else {
-		array = json_mkarray();
-	}
-
-
-	/* Count elements in array and pop first if too long */
-	json_foreach(j, array) {
-		++count;
-	}
-	if (count >= GWNUMBERSMAX) {
-		j = json_first_child(array);
-		json_delete(j);
-	}
-
-	o = json_mkobject();
-
-	json_append_member(o, "tst", json_mknumber(tst));
-	json_append_member(o, key, json_mknumber(atof(value)));
-
-	json_append_element(array, o);
-
-	if ((js = json_stringify(array, NULL)) != NULL) {
-		safewrite(UB(ts), js);
-		free(js);
-	}
-
-	json_delete(array);
-}
-#endif /* GREENWICH */
-
 #if WITH_ENCRYPT
 /*
  * Decrypt the payload and return a pointer to allocated space containing
@@ -905,25 +834,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	if (!strcmp(UB(username), "ping") && !strcmp(UB(device), "ping")) {
 		pingping = TRUE;
 	}
-#endif
-
-#ifdef WITH_GREENWICH
-	/*
-	 * For Greenwich: handle owntracks/user/device/voltage/batt, voltage/ext, and
-	 * status all of which have a numeric payload.
-	 */
-
-	if ((count == 5+skipslash && !strcmp(topics[3+skipslash], "voltage")) &&
-		(!strcmp(topics[4+skipslash], "batt") || !strcmp(topics[4+skipslash], "ext"))) {
-		store_gwvalue(UB(username), UB(device), now, topics[4+skipslash], payload);
-	}
-
-	if (count == 4+skipslash && !strcmp(topics[3+skipslash], "status")) {
-		store_gwvalue(UB(username), UB(device), now, "status", payload);
-	}
-
-	/* Fall through to store this payload in the REC file as well. */
-
 #endif
 
 	splitterfree(topics);
@@ -1318,16 +1228,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	 * of which device is being updated; use topic.
 	 */
 
-#if WITH_GREENWICH
-	if (strcmp(UB(reltopic), "alarm") == 0) {
-		json_append_member(json, "topic", json_mkstring(UB(basetopic)));
-		json_append_member(json, "_reltopic", json_mkstring("alarm"));
-	} else {
-		json_append_member(json, "topic", json_mkstring(topic));
-	}
-#else
 	json_append_member(json, "topic", json_mkstring(topic));
-#endif
 
 	/*
 	 * We have to know which user/device this is for in order to

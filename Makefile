@@ -72,10 +72,6 @@ ifeq ($(WITH_TOURS),yes)
 	endif
 endif
 
-ifeq ($(WITH_GREENWICH),yes)
-	CFLAGS += -DWITH_GREENWICH=1
-endif
-
 ifeq ($(WITH_TZ),yes)
 	CFLAGS += -DWITH_TZ
 	CFLAGS += -DTZDATADB=\"$(TZDATADB)\"

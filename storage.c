@@ -169,49 +169,6 @@ static int user_device_list(char *name, int level, JsonNode *obj)
 	return (rc);
 }
 
-#if WITH_GREENWICH
-/*
- * See if we have batt,ext,status data for this device, and if so, add
- * their arrays into the JSON object at `last'.
- */
-
-static void get_gw_data(char *username, char *device, JsonNode *last)
-{
-	JsonNode *array;
-	static char *types[] = { "batt", "ext", "status", NULL };
-	char **t, *js;
-	static UT_string *ts = NULL, *u = NULL, *d = NULL;
-
-	if (last == NULL || last->tag != JSON_OBJECT)
-		return;
-
-
-	for (t = types; t && *t; t++) {
-		utstring_renew(u);
-		utstring_renew(d);
-		utstring_printf(u, "%s", username);
-		utstring_printf(d, "%s", device);
-		lowercase(UB(u));
-		lowercase(UB(d));
-		utstring_renew(ts);
-		utstring_printf(ts, "%s/last/%s/%s/%s.json",
-					STORAGEDIR,
-					UB(u),
-					UB(d),
-					*t);
-
-		/* Read file into JSON array and append to `last' object */
-		if ((js = slurp_file(UB(ts), TRUE)) != NULL) {
-			if ((array = json_decode(js)) != NULL) {
-				json_append_member(last, *t, array);
-			}
-			free(js);
-		}
-	}
-}
-
-#endif /* GREENWICH */
-
 void append_card_to_object(JsonNode *obj, char *user, char *device)
 {
 	char path[LARGEBUF], path1[LARGEBUF], *cardfile = NULL;
@@ -297,9 +254,6 @@ void append_device_details(JsonNode *userlist, char *user, char *device)
 	snprintf(path, LARGEBUF, "%s/last/%s/%s/extra.json",
 		STORAGEDIR, user, device);
 	json_copy_from_file(last, path);
-#if WITH_GREENWICH
-	get_gw_data(user, device, last);
-#endif
 	json_append_element(userlist, last);
 }
 

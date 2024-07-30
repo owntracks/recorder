@@ -321,11 +321,6 @@ void display_json_variables(struct udata *ud, bool plain)
 #else
 	j_bool(json, "WITH_ENCRYPT", false);
 #endif
-#ifdef WITH_GREENWICH
-	j_bool(json, "WITH_GREENWICH", true);
-#else
-	j_bool(json, "WITH_GREENWICH", false);
-#endif
 #ifdef WITH_HTTP
 	j_bool(json, "WITH_HTTP", true);
 #else

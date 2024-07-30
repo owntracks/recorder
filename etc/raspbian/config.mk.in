@@ -12,7 +12,6 @@ WITH_LUA ?= yes
 WITH_PING ?= yes
 WITH_KILL ?= yes
 WITH_ENCRYPT ?= yes
-WITH_GREENWICH ?= yes
 WITH_TZ ?= yes
 
 STORAGEDEFAULT = /var/spool/owntracks/recorder/store
