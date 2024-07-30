@@ -79,7 +79,7 @@ It is 14:10:01 in the year 2015 owntracks/jane/phone lat=48.858339 Avenue Anatol
 
 An optional function you provide is called `otr_putrec(u, d, s)`. If it exists,
 it is called with the current user in `u`, the device in `d` and the payload
-(which for OwnTracks apps is JSON but for, eg Greenwich devices might not be) in the string `s`. If your function returns a
+(which for OwnTracks apps is JSON) in the string `s`. If your function returns a
 non-zero value, the Recorder will *not* write the REC file for this publish, will *not* update the `last` record, and will *not* forward the publish over the websocket (if used).
 
 ## `otr_httpobject`
