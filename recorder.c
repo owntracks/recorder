@@ -332,22 +332,31 @@ static char *prettyfy(char *payloadstring)
 
 static void xx_dump(struct udata *ud, UT_string *username, UT_string *device, char *payloadstring, char *type, char *extension)
 {
-	static UT_string *ts = NULL;
+	static UT_string *ts = NULL, *u = NULL, *d = NULL;
 	char *pretty_js = prettyfy(payloadstring);
 
 	utstring_renew(ts);
+
+	/* Ensure user / devicename are lowercased */
+	utstring_renew(u);
+	utstring_renew(d);
+	utstring_printf(u, "%s", UB(username));
+	utstring_printf(d, "%s", UB(device));
+	lowercase(UB(u));
+	lowercase(UB(d));
+
 	utstring_printf(ts, "%s/%s/%s/%s",
 				STORAGEDIR,
 				type,
-				UB(username),
-				UB(device));
+				UB(u),
+				UB(d));
 	if (mkpath(UB(ts)) < 0) {
 		olog(LOG_ERR, "Cannot mkdir %s: %m", UB(ts));
 		if (pretty_js) free(pretty_js);
 		return;
 	}
 
-	utstring_printf(ts, "/%s-%s.%s", UB(username), UB(device), extension);
+	utstring_printf(ts, "/%s-%s.%s", UB(u), UB(d), extension);
 	if (ud->verbose) {
 		printf("Received %s dump, storing at %s\n", type, UB(ts));
 	}
