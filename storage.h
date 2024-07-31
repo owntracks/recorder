@@ -40,6 +40,7 @@ typedef enum {
 #ifdef WITH_TOURS
 	T_REQUEST,
 #endif
+	T_STATUS,
 } payload_type;
 
 JsonNode *lister(char *username, char *device, time_t s_lo, time_t s_hi, int reverse);

@@ -883,6 +883,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
 			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
 			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
+			else if (!strcmp(j->string_, "status"))		_type = T_STATUS;
 			else if (!strcmp(j->string_, "transition"))	_type = T_TRANSITION;
 			else if (!strcmp(j->string_, "waypoint"))	_type = T_WAYPOINT;
 			else if (!strcmp(j->string_, "waypoints"))	_type = T_WAYPOINTS;
@@ -985,6 +986,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			goto cleanup;
 			break;
 #endif /* WITH_TOURS */
+		case T_STATUS: /* Fall through */
 		default:
             dumpedpayload = bindump(payload, payloadlen);
 #ifdef WITH_LUA
