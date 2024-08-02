@@ -319,9 +319,13 @@ void gcache_dump(char *path, char *lmdbname)
 
 	/* -1 because we 0-terminate strings in values */
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
-		printf("%*.*s %*.*s\n",
-			(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data,
-			(int)data.mv_size - 1, (int)data.mv_size - 1, (char *)data.mv_data);
+
+		/* Don't dump mdb keys if we seem to not have JSON data */
+		if (strchr((char *)data.mv_data, '{') != NULL) {
+			printf("%*.*s %*.*s\n",
+				(int)key.mv_size, (int)key.mv_size, (char *)key.mv_data,
+				(int)data.mv_size - 1, (int)data.mv_size - 1, (char *)data.mv_data);
+		}
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
