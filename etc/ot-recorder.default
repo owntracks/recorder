@@ -90,6 +90,13 @@
 # OTR_PRECISION=7
 
 # -----------------------------------------------------
+# Reverse geo cache expiration time in seconds
+# Purge geo gcache entries after these seconds; default 0, disable with 0
+#
+
+# OTR_CLEAN_AGE=0
+
+# -----------------------------------------------------
 # Browser API key for Google maps
 #
 

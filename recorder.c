@@ -1128,7 +1128,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 						cache_tst = j->number_;
 					}
 
-					if ((time(0) - cache_tst) <= ud->clean_age) {
+					if (ud->clean_age == 0L || (time(0) - cache_tst) <= ud->clean_age) {
 						fresh = true;
 					}
 				}
