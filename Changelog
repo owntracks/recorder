@@ -1,3 +1,14 @@
+
+2024-10-25 version 0.9.9
+- FIX: OTR_CLEAN_AGE default not correctly handled (#500)
+- FIX: ocat --dump will not output keys which don't have JSON data in them
+- FIX: lowercase waypoints (otrw) and config (otrc) directory and filenames (#486)
+- UPD: remove support for Greenwich devices (#484)
+- FIX: avoid a JSON object copy
+- FIX: print currently desired lmdb size in error that cache cannot be opened (#480)
+- NEW: startup message hints at configured revgeo setting and reverse geocoder brand
+- FIX: debian postinst now restarts ot-recorder (#446)
+
 2024-07-23 version 0.9.8
 - FIX: add card data to websocket notifications (#450)
 - FIX: Enable building when WITH_TZ=no to disable timezone information (#473)
