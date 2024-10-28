@@ -50,6 +50,7 @@ fpm -s dir \
         --vendor "OwnTracks.org" \
         -a "${arch}" \
         --maintainer 'jpmens@gmail.com' \
+	--deb-no-default-config-files \
         --description "A lightweight back-end for consuming OwnTracks data from an MQTT broker" \
         --license "https://github.com/owntracks/recorder/blob/master/LICENSE" \
         --url "http://owntracks.org" \
