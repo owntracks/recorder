@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # image2card.sh 
-# Copyright (C) 2015-2016 Jan-Piet Mens <jpmens@gmail.com>
+# Copyright (C) 2015-2024 Jan-Piet Mens <jpmens@gmail.com>
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -41,7 +41,7 @@ fullname="$2"
 base64switch=""
 base64check=$(echo "jj" | base64 -w 0 > /dev/null 2>&1)
 [ "$?" -eq "0" ] && base64switch="-w 0"
-imgdata=$(convert "${imagefile}" -resize '192x192!' - | base64 $base64switch)
+imgdata=$(magick "${imagefile}" -resize '192x192!' - | base64 $base64switch)
 
 cat <<EndOfFile
 {"_type":"card","name":"${fullname}","face":"${imgdata}"}
