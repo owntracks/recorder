@@ -290,7 +290,7 @@ The following configuration variables can be used to tweak settings. Defaults ar
 | --------------------- | :---  | :------------ | ---------------
 | `OTR_STORAGEDIR`      |  Y    | compiled in   | Pathname to the storage directory (`-S`)
 | `OTR_HOST`            |  Y    | `localhost`   | MQTT hostname/address to connect to 
-| `OTR_PORT`            |  Y    | `1883`        | MQTT port number to connect to
+| `OTR_PORT`            |  Y    | `1883`        | MQTT port number to connect to. Setting this to 0 disables MQTT
 | `OTR_USER`            |  Y    |               | MQTT username
 | `OTR_PASS`            |  Y    |               | MQTT password
 | `OTR_QOS`             |  Y    | `2`           | MQTT QoS
