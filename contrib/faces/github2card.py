@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # github2card.py
-# Copyright (C) 2016-2023 Jan-Piet Mens <jpmens@gmail.com>
+# Copyright (C) 2016-2024 Jan-Piet Mens <jpmens@gmail.com>
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# Usage: github2card username
+# Usage: github2card username tid
 #
 # Read the Github profile of `username' and obtain user's
 # name and avatar_url to create a CARD JSON payload to
@@ -25,7 +25,7 @@
 #
 # You probably want to do this:
 #
-# github2card.py jjolie  > card.json
+# github2card.py jjolie jj  > card.json
 # mosquitto_pub -t owntracks/jane/phone/info -r -f card.json
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
@@ -37,7 +37,7 @@ import base64
 import json
 import sys
 
-def user_profile(username):
+def user_profile(username, tid):
     url = "https://api.github.com/users/" + username
     r = requests.get(url)
     if r.status_code != 200:
@@ -71,6 +71,7 @@ def user_profile(username):
 
     card = {
         '_type': 'card',
+        'tid'  : tid,
         'name' : name,
         'face' : base64.b64encode(r.content).decode('utf-8')
     }
@@ -79,8 +80,10 @@ def user_profile(username):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: %s githubuser" % sys.argv[0], file=sys.stderr)
+    if len(sys.argv) != 3:
+        print("Usage: %s githubuser tid" % sys.argv[0], file=sys.stderr)
         sys.exit(2)
-    (username) = sys.argv[1]
-    user_profile(username)
+    username = sys.argv[1]
+    tid = sys.argv[2]
+
+    user_profile(username, tid)
