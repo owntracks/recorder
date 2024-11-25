@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# Usage: image2card imagefile "full name"
+# Usage: image2card imagefile "full name" tid
 #
 # Requires `convert' from ImageMagick.
 # Read image, convert to PNG, forcing a 192x192 size and encode
@@ -26,7 +26,7 @@
 #
 # You probably want to do this:
 #
-# image2card.sh filename.jpg "Jane Jolie" > card.json
+# image2card.sh filename.jpg "Jane Jolie" "JJ" > card.json
 # mosquitto_pub -t owntracks/jane/phone/info -f card.json -r
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
@@ -34,9 +34,10 @@
 # If you have a newish version it should work fine.
 
 
-[ $# -ne 2 ] && { echo "Usage: $0 image-file full-name" >&2; exit 2; }
+[ $# -ne 3 ] && { echo "Usage: $0 image-file full-name tid" >&2; exit 2; }
 imagefile="$1"
 fullname="$2"
+tid="$3"
 
 base64switch=""
 base64check=$(echo "jj" | base64 -w 0 > /dev/null 2>&1)
@@ -44,6 +45,6 @@ base64check=$(echo "jj" | base64 -w 0 > /dev/null 2>&1)
 imgdata=$(magick "${imagefile}" -resize '192x192!' - | base64 $base64switch)
 
 cat <<EndOfFile
-{"_type":"card","name":"${fullname}","face":"${imgdata}"}
+{"_type":"card","tid","${tid}", "name":"${fullname}","face":"${imgdata}"}
 EndOfFile
 
