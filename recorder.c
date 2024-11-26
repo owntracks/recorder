@@ -334,34 +334,34 @@ static void putrec(struct udata *ud, time_t epoch, UT_string *reltopic, UT_strin
 	if (ud->norec)
 		return;
 
-    if ((fp = pathn("a", "rec", username, device, "rec", epoch)) == NULL) {
-        olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
-            UB(username), UB(device));
-        return;
-    }
+	if ((fp = pathn("a", "rec", username, device, "rec", epoch)) == NULL) {
+		olog(LOG_ERR, "Cannot write REC for %s/%s: %m",
+			UB(username), UB(device));
+		return;
+	}
 
-    /*
-     * `string' might contain JSON, and it might be such that is
-     * contains newlines, etc. We have to sanitize if so else the
-     * .rec file will become unparseable.
-     */
-    if (strchr(string, '\n') != 0 || strchr(string, '\t') != 0) {
-        JsonNode *j;
-        char *js = NULL;
+	/*
+	 * `string' might contain JSON, and it might be such that is
+	 * contains newlines, etc. We have to sanitize if so else the
+	 * .rec file will become unparseable.
+	 */
+	if (strchr(string, '\n') != 0 || strchr(string, '\t') != 0) {
+		JsonNode *j;
+		char *js = NULL;
 
-        if ((j = json_decode(string)) != NULL) {
-            js = json_stringify(j, NULL);
-            fprintf(stderr, "JPJPJP: [%s]\n", js);
-            fprintf(fp, RECFORMAT, isotime(epoch),
-                UB(reltopic), js);
-            free(js);
-            json_delete(j);
-        }
-    } else {
-        fprintf(fp, RECFORMAT, isotime(epoch),
-            UB(reltopic), string);
-    }
-    fclose(fp);
+		if ((j = json_decode(string)) != NULL) {
+			js = json_stringify(j, NULL);
+			fprintf(stderr, "JPJPJP: [%s]\n", js);
+			fprintf(fp, RECFORMAT, isotime(epoch),
+			UB(reltopic), js);
+			free(js);
+			json_delete(j);
+		}
+	} else {
+		fprintf(fp, RECFORMAT, isotime(epoch),
+		UB(reltopic), string);
+	}
+	fclose(fp);
 
 }
 
