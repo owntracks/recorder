@@ -41,6 +41,7 @@ typedef enum {
 	T_REQUEST,
 #endif
 	T_STATUS,
+	T_IMAGE,
 } payload_type;
 
 JsonNode *lister(char *username, char *device, time_t s_lo, time_t s_hi, int reverse);

@@ -135,6 +135,61 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	return (rc);
 }
 
+/*
+ * Handle inline images: extract the base64-encoded image, decode and store in
+ * file. Remove the `image' element from the JSON (it's very large) and write
+ * the remaining elements into a .json file adjacent to the actual image file.
+ */
+
+int do_image(void *userdata, UT_string *username, UT_string *device, JsonNode *json)
+{
+	struct udata *ud = (struct udata *)userdata;
+	JsonNode *j;
+
+	if ((j = json_find_member(json, "image")) != NULL) {
+                if (j->tag == JSON_STRING) {
+			char *b64 = j->string_;
+			size_t imglen = strlen(b64);
+			unsigned char *img;
+			FILE *fp;
+			time_t tics = time(0);
+
+			if ((img = base64_decode(b64, &imglen)) == NULL) {
+				olog(LOG_ERR, "Cannot decode image base64");
+				return false;
+			}
+			if ((fp = pathn("wb", "images", username, device, "jpg", tics)) != NULL) {
+				fwrite(img, sizeof(char), imglen, fp);
+				fclose(fp);
+			}
+
+			/* Delete image data element and write remaining as JSON */
+			if ((fp = pathn("wb", "images", username, device, "json", tics)) != NULL) {
+				if ((j = json_find_member(json, "image")) != NULL) {
+					json_delete(j);
+
+					char *js = json_stringify(json, "  ");
+					if (js) {
+						fprintf(fp, "%s\n", js);
+						free(js);
+					}
+					fclose(fp);
+				}
+			}
+		}
+	}
+
+	if (ud->verbose) {
+		if ((j = json_find_member(json, "imageName")) != NULL) {
+			if (j->tag == JSON_STRING) {
+				printf("* IMAGE: %s-%s %s\n", UB(username), UB(device), j->string_);
+			}
+		}
+	}
+
+	return true;
+}
+
 #ifdef WITH_MQTT
 void publish(struct udata *userdata, char *topic, char *payload)
 {
@@ -855,15 +910,15 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	if ((json = json_decode(payload)) == NULL) {
 		if ((json = csv_to_json(payload)) == NULL) {
-            dumpedpayload = bindump(payload, payloadlen);
+			dumpedpayload = bindump(payload, payloadlen);
 			/* It's not JSON or it's not a location CSV; store it using
 			 * now as time -- we have no other */
 #ifdef WITH_LUA
-            r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
+			r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
 #endif
-            if (r_ok) {
-                putrec(ud, now, reltopic, username, device, dumpedpayload);
-            }
+			if (r_ok) {
+				putrec(ud, now, reltopic, username, device, dumpedpayload);
+			}
 			return;
 		}
 	}
@@ -881,6 +936,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			else if (!strcmp(j->string_, "beacon"))		_type = T_BEACON;
 			else if (!strcmp(j->string_, "card"))		_type = T_CARD;
 			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
+			else if (!strcmp(j->string_, "image"))		_type = T_IMAGE;
 			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
 			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
 			else if (!strcmp(j->string_, "status"))		_type = T_STATUS;
@@ -902,13 +958,13 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			do_info(ud, username, device, json);
 			goto cleanup;
 		case T_BEACON:
-            dumpedpayload = bindump(payload, payloadlen);
+			dumpedpayload = bindump(payload, payloadlen);
 #ifdef WITH_LUA
-            r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
+			r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
 #endif
-            if (!r_ok) {
-                goto cleanup;
-            }
+			if (!r_ok) {
+				goto cleanup;
+			}
 #ifdef WITH_HTTP
 			if (ud->mgserver && !pingping) {
 				json_append_member(json, "topic", json_mkstring(topic));
@@ -917,8 +973,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 				http_ws_push_json(ud->mgserver, json);
 			}
 #endif
-            putrec(ud, now, reltopic, username, device, dumpedpayload);
-            goto cleanup;
+
+			putrec(ud, now, reltopic, username, device, dumpedpayload);
+			goto cleanup;
 		case T_LWT:
 			/*
 			 * LWT gets a pseudo-reltopic called 'lwt'; reason: if we keep the
@@ -936,7 +993,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 		case T_CMD:
 		case T_STEPS:
 #ifdef WITH_LUA
-            r_ok = hooks_norec(ud, UB(username), UB(device), payload) == 0;
+			r_ok = hooks_norec(ud, UB(username), UB(device), payload) == 0;
 #endif
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, payload);
@@ -947,6 +1004,12 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			goto cleanup;
 		case T_CONFIG:
 			config_dump(ud, username, device, payload);
+			goto cleanup;
+		case T_IMAGE:
+			// ud->norec = true; /* FIXME */
+			do_image(ud, username, device, json);
+			// char *js = json_stringify(json, NULL);
+			// putrec(ud, now, reltopic, username, device, js);
 			goto cleanup;
 		case T_WAYPOINT:
 		case T_TRANSITION:
@@ -988,9 +1051,9 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 #endif /* WITH_TOURS */
 		case T_STATUS: /* Fall through */
 		default:
-            dumpedpayload = bindump(payload, payloadlen);
+			dumpedpayload = bindump(payload, payloadlen);
 #ifdef WITH_LUA
-            r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
+			r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
 #endif
 			if (r_ok) {
 				putrec(ud, now, reltopic, username, device, dumpedpayload);
@@ -1217,20 +1280,20 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			epoch = (isnan(d_epoch)) ? now : d_epoch;
 
 #ifdef WITH_LUA
-            r_ok = hooks_norec(ud, UB(username), UB(device), jsonstring) == 0;
+			r_ok = hooks_norec(ud, UB(username), UB(device), jsonstring) == 0;
 #endif
-            if (r_ok) {
-                putrec(ud, epoch, reltopic, username, device, jsonstring);
-            }
+			if (r_ok) {
+				putrec(ud, epoch, reltopic, username, device, jsonstring);
+			}
 			free(jsonstring);
 		}
 	}
 
-    if (!r_ok) {
-        // No further processing of this data if hook determined
-        // not to record it.
-        goto cleanup;
-    }
+	if (!r_ok) {
+		// No further processing of this data if hook determined
+		// not to record it.
+		goto cleanup;
+	}
 
 	/*
 	 * Append a few bits to the location type to add to LAST and
