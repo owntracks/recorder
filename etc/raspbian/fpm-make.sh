@@ -6,8 +6,8 @@ tempdir=$(mktemp -d /tmp/ot-XXX)
 
 make install DESTDIR=$tempdir
 
-install -D README.md $tempdir/usr/share/doc/ot-recorder/README.md
-install -D etc/ot-recorder.service $tempdir/usr/share/doc/ot-recorder/ot-recorder.service
+install -D -m644 README.md $tempdir/usr/share/doc/ot-recorder/README.md
+install -D -m644 etc/ot-recorder.service $tempdir/usr/share/doc/ot-recorder/ot-recorder.service
 
 name="ot-recorder"
 # add -0 to indicate "not in Debian" as per Roger's suggestion
