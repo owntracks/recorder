@@ -135,61 +135,6 @@ int do_info(void *userdata, UT_string *username, UT_string *device, JsonNode *js
 	return (rc);
 }
 
-/*
- * Handle inline images: extract the base64-encoded image, decode and store in
- * file. Remove the `image' element from the JSON (it's very large) and write
- * the remaining elements into a .json file adjacent to the actual image file.
- */
-
-int do_image(void *userdata, UT_string *username, UT_string *device, JsonNode *json)
-{
-	struct udata *ud = (struct udata *)userdata;
-	JsonNode *j;
-
-	if ((j = json_find_member(json, "image")) != NULL) {
-                if (j->tag == JSON_STRING) {
-			char *b64 = j->string_;
-			size_t imglen = strlen(b64);
-			unsigned char *img;
-			FILE *fp;
-			time_t tics = time(0);
-
-			if ((img = base64_decode(b64, &imglen)) == NULL) {
-				olog(LOG_ERR, "Cannot decode image base64");
-				return false;
-			}
-			if ((fp = pathn("wb", "images", username, device, "jpg", tics)) != NULL) {
-				fwrite(img, sizeof(char), imglen, fp);
-				fclose(fp);
-			}
-
-			/* Delete image data element and write remaining as JSON */
-			if ((fp = pathn("wb", "images", username, device, "json", tics)) != NULL) {
-				if ((j = json_find_member(json, "image")) != NULL) {
-					json_delete(j);
-
-					char *js = json_stringify(json, "  ");
-					if (js) {
-						fprintf(fp, "%s\n", js);
-						free(js);
-					}
-					fclose(fp);
-				}
-			}
-		}
-	}
-
-	if (ud->verbose) {
-		if ((j = json_find_member(json, "imageName")) != NULL) {
-			if (j->tag == JSON_STRING) {
-				printf("* IMAGE: %s-%s %s\n", UB(username), UB(device), j->string_);
-			}
-		}
-	}
-
-	return true;
-}
-
 #ifdef WITH_MQTT
 void publish(struct udata *userdata, char *topic, char *payload)
 {
@@ -936,7 +881,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			else if (!strcmp(j->string_, "beacon"))		_type = T_BEACON;
 			else if (!strcmp(j->string_, "card"))		_type = T_CARD;
 			else if (!strcmp(j->string_, "cmd"))		_type = T_CMD;
-			else if (!strcmp(j->string_, "image"))		_type = T_IMAGE;
 			else if (!strcmp(j->string_, "lwt"))		_type = T_LWT;
 			else if (!strcmp(j->string_, "steps"))		_type = T_STEPS;
 			else if (!strcmp(j->string_, "status"))		_type = T_STATUS;
@@ -1004,12 +948,6 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			goto cleanup;
 		case T_CONFIG:
 			config_dump(ud, username, device, payload);
-			goto cleanup;
-		case T_IMAGE:
-			// ud->norec = true; /* FIXME */
-			do_image(ud, username, device, json);
-			// char *js = json_stringify(json, NULL);
-			// putrec(ud, now, reltopic, username, device, js);
 			goto cleanup;
 		case T_WAYPOINT:
 		case T_TRANSITION:

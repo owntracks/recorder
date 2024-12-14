@@ -531,9 +531,6 @@ FILE *pathn(char *mode, char *prefix, UT_string *user, UT_string *device, char *
 
 	if (strcmp(prefix, "rec") == 0) {
 		utstring_printf(path, "/%s.%s", yyyymm(epoch), suffix);
-	} else if (strcmp(prefix, "images") == 0) {
-		utstring_printf(path, "/%s-%s-%s-%ld.%s", UB(user), UB(device), yyyymm(epoch), epoch, suffix);
-
 	} else {
 		utstring_printf(path, "/%s-%s.%s", UB(user), UB(device), suffix);
 	}
