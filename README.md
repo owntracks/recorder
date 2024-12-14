@@ -134,7 +134,7 @@ The packages we provide have a systemd unit file in `/usr/share/doc/ot-recorder/
 
 ### Docker
 
-We also have a Docker image to create a container with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorder) (e.g. `docker pull owntracks/recorder`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/).
+We also have a Docker image to create a container with the Recorder. The Docker image is [available from the Docker hub](https://hub.docker.com/r/owntracks/recorder) (e.g. `docker pull owntracks/recorder`), and it's [usage is documented in the Booklet](http://owntracks.org/booklet/clients/recorder/). Note that we do not recommend using the Recorder in a docker container in HTTP mode because of the difficulty of configuring Friends
 
 ### Building from source
 
