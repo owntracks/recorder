@@ -40,7 +40,6 @@
 
 char STORAGEDIR[BUFSIZ] = STORAGEDEFAULT;
 
-#define LINESIZE	8192
 #define LARGEBUF        (BUFSIZ * 2)
 
 static struct gcache *gc = NULL;

@@ -38,7 +38,7 @@
 #include "udata.h"
 
 #ifndef LINESIZE
-# define LINESIZE 8192
+# define LINESIZE (32 * 1024)
 #endif
 
 int is_directory(char *path)
