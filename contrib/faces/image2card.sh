@@ -20,14 +20,14 @@
 # Usage: image2card imagefile "full name" tid
 #
 # Requires `convert' from ImageMagick.
-# Read image, convert to PNG, forcing a 192x192 size and encode
+# Read image, convert to JPG, forcing a 192x192 size and encode
 # to BASE64. Create a JSON payload to be published to
 # owntracks/username/device/info
 #
 # You probably want to do this:
 #
 # image2card.sh filename.jpg "Jane Jolie" "JJ" > card.json
-# mosquitto_pub -t owntracks/jane/phone/info -f card.json -r
+# mosquitto_pub -t owntracks/jane/phone/info -f card.json -r -q 2
 #
 # Note: the two commands cannot be piplelined (mosquitto_pub -l)
 # because of a bug in mosquitto_pub: https://bugs.eclipse.org/bugs/show_bug.cgi?id=478917
@@ -42,9 +42,9 @@ tid="$3"
 base64switch=""
 base64check=$(echo "jj" | base64 -w 0 > /dev/null 2>&1)
 [ "$?" -eq "0" ] && base64switch="-w 0"
-imgdata=$(magick "${imagefile}" -resize '192x192!' - | base64 $base64switch)
+imgdata=$(magick "${imagefile}" -resize '192x192!' JPG:- | base64 $base64switch)
 
 cat <<EndOfFile
-{"_type":"card","tid","${tid}", "name":"${fullname}","face":"${imgdata}"}
+{"_type":"card","tid":"${tid}", "name":"${fullname}","face":"${imgdata}"}
 EndOfFile
 
