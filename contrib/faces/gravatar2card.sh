@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # gravatar2card.sh
-# Copyright (C) 2015-2024 Jan-Piet Mens <jpmens@gmail.com>
+# Copyright (C) 2015-2025 Jan-Piet Mens <jpmens@gmail.com>
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
