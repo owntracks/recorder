@@ -33,6 +33,9 @@ FREEBSD ?= no
 #
 # -- end FreeBSD
 
+# Replace "no" with "yes" for OpenBSD
+OPENBSD ?= no
+
 INSTALLDIR = /usr/local
 
 # Do you want support for MQTT?
