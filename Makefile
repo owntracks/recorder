@@ -61,6 +61,10 @@ ifeq ($(WITH_HTTP),yes)
 	OTR_EXTRA_OBJS += mongoose.o http.o
 endif
 
+ifeq ($(OPENBSD),yes)
+	CFLAGS += -DOPENBSD
+endif
+
 ifeq ($(WITH_TOURS),yes)
 	CFLAGS += -DWITH_TOURS
 	OTR_EXTRA_OBJS +=
