@@ -1,3 +1,14 @@
+2025-03-19 version 1.0.0
+- NEW: support for inline image data in a POI location publishes
+- FIX: image2card.sh was creating invalid JSON (#520)
+- UPD: deprecate google maps from vmap.html (#512)
+- FIX: install unit file into /etc/systemd/system/ot-recorder.service during fpm (#514)
+- FIX: fix permissions on files installed to share/docs/ot-recorder (#513)
+- FIX: contrib/faces/github2card.py require TID
+- FIX: contrib/faces/gravatar2card.sh require TID and replace MD5 by SHA256 for Gravatar
+- FIX: contrib/faces/image2card.sh asks for TID to produce CARD
+- UPD: changed 'convert' in image2card.sh to 'magick'
+- FIX: consolidate raspbian/debian fpm-make invocations
 
 2024-10-25 version 0.9.9
 - FIX: OTR_CLEAN_AGE default not correctly handled (#500)
