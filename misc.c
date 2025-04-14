@@ -171,10 +171,10 @@ void get_defaults(char *filename, struct udata *ud)
 			config_destroy(cf);
 			exit(2);
 		}
-
-		v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
-		strcpy(STORAGEDIR, v);
 	}
+
+	v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
+	strcpy(STORAGEDIR, v);
 
 	if (ud == NULL) {
 		/* being invoked by ocat; return */
