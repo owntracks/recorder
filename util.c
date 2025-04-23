@@ -33,7 +33,11 @@
 #include <stdarg.h>
 #include <math.h>
 #ifdef WITH_TOURS
+#ifdef __OpenBSD__
+# include <uuid.h>
+#else
 # include <uuid/uuid.h>
+#endif
 #endif
 #include "udata.h"
 
@@ -672,10 +676,26 @@ char *uuid4()
 {
         static char uustr[37];
         uuid_t uu;
+#ifdef __OpenBSD__
+        uint32_t status;
+        char *temp_uustr;
 
+        uuid_create(&uu, &status);
+        if (status != uuid_s_ok) {
+                printf("could not create uuid\n");
+                return (uustr);
+        }
+
+        uuid_to_string(&uu, &temp_uustr, &status);
+        if (status != uuid_s_ok) {
+                printf("could not stringify uuid\n");
+                return (uustr);
+        }
+        strlcpy(uustr, temp_uustr, 37);
+#else
         uuid_generate(uu);
         uuid_unparse_lower(uu, uustr);
-
+#endif
         return (uustr);
 }
 
