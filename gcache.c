@@ -59,7 +59,6 @@ struct gcache *gcache_open(char *path, char *dbname, int rdonly)
 	if (rdonly) {
 		flags |= MDB_RDONLY;
 		perms = 0444;
-		perms = 0664;
 	} else {
 		dbiflags = MDB_CREATE;
 	}
