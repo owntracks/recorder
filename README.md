@@ -89,25 +89,11 @@ Binaries (`ocat`, `ot-recorder`) from these packages run setuid to user `owntrac
 
 Debian 10 "Buster":
 
-- we no longer build for this distribution, but you can still install a package:
-
-  ```
-  curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-  echo "deb  http://repo.owntracks.org/debian buster main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-  sudo apt-get update
-  sudo apt-get install ot-recorder
-  ```
+- we no longer build for this distribution, but you should be able to compile from source.
 
 Debian 11 "Bullseye":
 
-- install with:
-
-   ```
-   curl https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo apt-key add -
-   echo "deb  http://repo.owntracks.org/debian bullseye main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
-   sudo apt update
-   sudo apt install ot-recorder
-   ```
+- we no longer build for this distribution, but you should be able to compile from source.
 
 Debian 12 "Bookworm":
 
