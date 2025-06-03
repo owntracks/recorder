@@ -1,3 +1,4 @@
+tags
 *.o
 ot-recorder
 ocat
@@ -15,3 +16,4 @@ kick*.sh
 /debian/debhelper.log
 /debian/*\.substvars
 /debian/files
+_*
