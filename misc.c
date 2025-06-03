@@ -156,21 +156,19 @@ void get_defaults(char *filename, struct udata *ud)
 	char *v;
 	int iv;
 
-	if (access(filename, R_OK) == -1) {
-		olog(LOG_ERR, "Skipping open defaults file %s: %s", filename, strerror(errno));
-		cf = NULL;
-	} else {
+	config_init(cf = &cfg);
 
-		config_init(cf = &cfg);
-
-		if (!config_read_file(cf, filename)) {
-			olog(LOG_ERR, "Syntax error in %s:%d - %s",
-				filename,
-				config_error_line(cf),
-				config_error_text(cf));
-			config_destroy(cf);
-			exit(2);
-		}
+	if (config_read_file(cf, filename) == CONFIG_FALSE) {
+		fprintf(stderr, "Syntax error in %s:%d - %s\n",
+			filename,
+			config_error_line(cf),
+			config_error_text(cf));
+		olog(LOG_ERR, "Syntax error in %s:%d - %s",
+			filename,
+			config_error_line(cf),
+			config_error_text(cf));
+		config_destroy(cf);
+		exit(2);
 	}
 
 	v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
