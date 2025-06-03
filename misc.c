@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include <libconfig.h>
 #include "utstring.h"
 #include "ctype.h"
@@ -155,20 +156,23 @@ void get_defaults(char *filename, struct udata *ud)
 	config_t cfg, *cf = NULL;
 	char *v;
 	int iv;
+	struct stat sb;
 
-	config_init(cf = &cfg);
+	if (stat(filename, &sb) != -1) {
+		config_init(cf = &cfg);
 
-	if (config_read_file(cf, filename) == CONFIG_FALSE) {
-		fprintf(stderr, "Syntax error in %s:%d - %s\n",
-			filename,
-			config_error_line(cf),
-			config_error_text(cf));
-		olog(LOG_ERR, "Syntax error in %s:%d - %s",
-			filename,
-			config_error_line(cf),
-			config_error_text(cf));
-		config_destroy(cf);
-		exit(2);
+		if (config_read_file(cf, filename) == CONFIG_FALSE) {
+			fprintf(stderr, "Syntax error in %s:%d - %s\n",
+				filename,
+				config_error_line(cf),
+				config_error_text(cf));
+			olog(LOG_ERR, "Syntax error in %s:%d - %s",
+				filename,
+				config_error_line(cf),
+				config_error_text(cf));
+			config_destroy(cf);
+			exit(2);
+		}
 	}
 
 	v = c_str(cf, "OTR_STORAGEDIR", STORAGEDEFAULT);
