@@ -756,7 +756,7 @@ Note that our Docker image has this monitoring built in with recorder-health.sh.
 
 A view is a sort of sandboxed look at data provided by the Recorder. Assume you host several devices, be they your own or those of some of your friends, and assume you want to allow somebody else to see where you are or have been during a specific time frame: with the Recorder's default Web server you cannot limit a visitor to see specific data only; once they reach the Recorder's Web interface, they have access to all your data. (We warned you about that earlier.) Using a HTTP proxy, you can provide an insight into certain portions of your data only.
 
-You configure a view by creating a small JSON file of an arbitrary name which defines which user / device combination of data the view should display. Say you are recording data for `owntracks/jjolie/phone`, the user would be `jjolie` and the device is `phone`. You can also create a specific HTML page for this view or just use the default `leaflet.html` we provide.
+You configure a view by creating a small JSON file of an arbitrary name which defines which user / device combination of data the view should display. Say you are recording data for `owntracks/jjolie/phone`, the user would be `jjolie` and the device is `phone`. You can also create a specific HTML page for this view or just use the default `leafletmap.html` we provide.
 
 The view then provides three URLs:
 
@@ -770,7 +770,7 @@ Suppose Jane wishes to have her acquaintances see where she is while on vacation
 {
   "user"  : "jjolie",
   "device": "phone",
-  "page"  : "leaflet.html",
+  "page"  : "leafletmap.html",
   "from"  : "2015-06-29",
   "to"    : "2015-07-15"
 }
@@ -795,8 +795,8 @@ The JSON in the view file (called `view.json` here) contains mandatory and optio
 | to              |      N      | `to` timestamp for data, defaults to now  |
 | hours           |      N      | number of past hours (from "now") for which to show data; use instead of `from` and `to` 
 | auth            |      N      | array of digest authentication tokens described below |
-| label           |      N      | text to use in popup of default `leaflet.html` instead of user/device |
-| zoom            |      N      | zoom level for map used in `leaflet.html`, defaults to 9 |
+| label           |      N      | text to use in popup of default `leafletmap.html` instead of user/device |
+| zoom            |      N      | zoom level for map used in `leafletmap.html`, defaults to 9 |
 | *               |      N      | any other element is copied into the data returned |
 
 
@@ -807,7 +807,7 @@ The `page` is a single HTML file which must be located in the `views/` directory
 * `@@@GEO@@@` is converted to a URI on which the Recorder will serve GeoJSON data from its storage.
 * `@@@LABEL@@@` is replaced with the `label` attribute from the page's JSON or the empty string if that doesn't exist.
 
-The default `page` we provide is called `leaflet.html`; by default it refreshes the last position every 60 seconds, and clicking on "Load track" loads the GeoJSON track for the time frame specified by `from` and `to`.
+The default `page` we provide is called `leafletmap.html`; by default it refreshes the last position every 60 seconds, and clicking on "Load track" loads the GeoJSON track for the time frame specified by `from` and `to`.
 
 ![Jane's vacation track](assets/view-track.png)
 
@@ -825,7 +825,7 @@ A little bit more complex view would look like this:
   "from": "2015-06-29",
   "device": "phone",
   "user": "jjolie",
-  "page": "leaflet.html"
+  "page": "leafletmap.html"
 }
 ```
 
@@ -851,7 +851,7 @@ All JSON elements are copied into the `lastpos` data which is returned to the ca
    "isorcv": "2015-07-14T19:41:58Z",
    "isotst": "2015-07-14T17:41:58Z",
    "disptst": "2015-07-14 17:41:58",
-   "page": "leaflet.html",
+   "page": "leafletmap.html",
    "user": "jjolie",
    "device": "phone",
    "from": "2015-06-29",
