@@ -356,8 +356,8 @@ JsonNode *revgeo(struct udata *ud, double lat, double lon, UT_string *addr, UT_s
 	if (res != CURLE_OK || http_code != 200) {
 		utstring_printf(addr, "revgeo failed for (%lf,%lf): HTTP status_code==%ld", lat, lon, http_code);
 		utstring_printf(cc, "__");
-		fprintf(stderr, "curl_easy_perform() failed: %s\n",
-		              curl_easy_strerror(res));
+		fprintf(stderr, "curl_easy_perform() failed: for (%lf,%lf): %s: HTTP status_code==%ld\n",
+		              lat, lon, curl_easy_strerror(res), http_code);
 		json_delete(geo);
 		return (NULL);
 	}
