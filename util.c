@@ -142,6 +142,11 @@ int json_copy_element_to_object(JsonNode *obj, char *key, JsonNode *node)
 		json_append_member(obj, key, json_mkbool(node->bool_));
 	else if (node->tag == JSON_NULL)
 		json_append_member(obj, key, json_mknull());
+	else if (node->tag == JSON_ARRAY) {
+		JsonNode *new_array = json_mkarray();
+		json_copy_to_object(new_array, node, false);
+		json_append_member(obj, key, new_array);
+	}
 
 	return (TRUE);
 }

@@ -516,9 +516,9 @@ Some example uses we consider useful:
 * `ocat --last`
     print the LAST position of all users, devices. Can be combined with `--user` and `--device`.
 * `ocat ... --format csv`
-   produces CSV. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
+   produces CSV. Limit the fields you want extracted with `--fields lat,lon,cc` for example. (Note: fields which are arrays or lists are not supported.)
 * `ocat ... --format xml`
-   produces XML. Limit the fields you want extracted with `--fields lat,lon,cc` for example.
+   produces XML. Limit the fields you want extracted with `--fields lat,lon,cc` for example. (Note: fields which are arrays or lists are not supported.)
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
 	<?xml-stylesheet type='text/xsl' href='owntracks.xsl'?>
@@ -549,7 +549,7 @@ Some example uses we consider useful:
 * `ocat ... --limit 10`
    prints data  for the current month, starting now and going backwards; only 10 locations will be printed. Generally, the `--limit` option reads the storage back to front which makes no sense in some combinations.
 
-Specifying `--fields lat,tid,lon` will request just those JSON elements from the store. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat` is missing in the list of fields.)
+Specifying `--fields lat,tid,lon` will request just those JSON elements from the store. (Note that doing so with output GPX or GEOJSON could render those formats useless if, say, `lat` is missing in the list of fields. Also note, that currently fields which are arrays or lists are supported only the JSON output.)
 
 The `--from` and `--to` options allow you to specify a UTC date and/or timestamp from which respectively until which data will be read. By default, the last 6 hours of data are produced. If `--from` is not specified, it therefore defaults to "now minus 6 hours". If `--to` is not specified it defaults to "now". Dates and times must be specified as strings, and the following formats are recognized:
 
