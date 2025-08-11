@@ -25,6 +25,7 @@ rm -f "${debfile}"
 libcurl='libcurl3'
 libsodium='libsodium13'
 liblua='liblua5.2-0'
+libconfig='libconfig9'
 case $(cat /etc/debian_version) in
 	8.8) ;;
 	9.*) libsodium="libsodium18" ;;
@@ -41,6 +42,12 @@ case $(cat /etc/debian_version) in
 		libsodium="libsodium23"
 		libcurl="libcurl4"
 		liblua="liblua5.4-0"
+		;;
+	13.*)
+		libsodium="libsodium23"
+		libcurl="libcurl4"
+		liblua="liblua5.4-0"
+		libconfig="libconfig11"
 esac
 
 fpm -s dir \
@@ -59,7 +66,7 @@ fpm -s dir \
         -d "${libcurl}" \
         -d "libmosquitto1" \
         -d "${liblua}" \
-        -d "libconfig9" \
+        -d "${libconfig}" \
         -d "${libsodium}" \
         -d "liblmdb0" \
         -d "libuuid1" \
