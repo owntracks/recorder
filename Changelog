@@ -1,3 +1,11 @@
+
+2025-08-12 version 1.0.1
+- FIX: ocat JSON output now supports emitting fields which are arrays/lists (#542)
+- FIX: Add proper error message to revgeo lookup (#541)
+- FIX: Replace use of access(2) in ocat(1) by opening config file (#539)
+- NEW: Add support for OpenBSD (#523)
+- FIX: storage dir from env even when the defaults file is missing (#528)
+
 2025-03-19 version 1.0.0
 - NEW: support for inline image data in a POI location publishes
 - FIX: image2card.sh was creating invalid JSON (#520)
