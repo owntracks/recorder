@@ -107,6 +107,18 @@ Debian 12 "Bookworm":
    sudo apt install ot-recorder
    ```
 
+Debian 13 "Trixie":
+
+- install with:
+
+   ```
+   curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
+
+   echo "deb  [signed-by=/etc/apt/trusted.gpg.d/owntracks.asc] http://repo.owntracks.org/debian trixie main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+   sudo apt update
+   sudo apt install ot-recorder
+   ```
+
 
 #### systemd service
 
