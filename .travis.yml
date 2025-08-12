@@ -6,7 +6,7 @@ before_install:
 #- "echo 'Pin: release n=quantal*' | sudo tee -a /etc/apt/preferences"
 #- "echo 'Pin-Priority: 990' | sudo tee -a /etc/apt/preferences"
 #- sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y --fix-missing -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
-- sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
+#- sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
 - sudo DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_FRONTEND=noninteractive apt-get update -qq
 - apt-cache search mosquitto
 - sudo apt-get install -qq libmosquitto-dev libconfig8-dev liblmdb-dev
