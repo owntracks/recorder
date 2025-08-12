@@ -112,7 +112,7 @@ Debian 13 "Trixie":
 - install with:
 
    ```
-   curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
+   curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo-v2.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
 
    cat <<EOF | sudo tee /etc/apt/sources.list.d/owntracks.sources
    Types: deb
