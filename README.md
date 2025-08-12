@@ -114,7 +114,14 @@ Debian 13 "Trixie":
    ```
    curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
 
-   echo "deb  [signed-by=/etc/apt/trusted.gpg.d/owntracks.asc] http://repo.owntracks.org/debian trixie main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
+   cat <<EOF | sudo tee /etc/apt/sources.list.d/owntracks.sources
+   Types: deb
+   URIs: http://repo.owntracks.org/debian/
+   Suites: trixie
+   Components: main
+   Signed-By: /etc/apt/trusted.gpg.d/owntracks.asc
+   EOF
+
    sudo apt update
    sudo apt install ot-recorder
    ```
