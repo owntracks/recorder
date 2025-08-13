@@ -100,7 +100,7 @@ Debian 12 "Bookworm":
 - install with:
 
    ```
-   curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
+   curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo-v2.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
    
    echo "deb  http://repo.owntracks.org/debian bookworm main" | sudo tee /etc/apt/sources.list.d/owntracks.list > /dev/null
    sudo apt update
@@ -114,7 +114,7 @@ Debian 13 "Trixie":
    ```
    curl --no-progress-meter https://raw.githubusercontent.com/owntracks/recorder/master/etc/repo-v2.owntracks.org.gpg.key | sudo tee /etc/apt/trusted.gpg.d/owntracks.asc
 
-   cat <<EOF | sudo tee /etc/apt/sources.list.d/owntracks.sources
+   sudo tee /etc/apt/sources.list.d/owntracks.sources <<EOF
    Types: deb
    URIs: http://repo.owntracks.org/debian/
    Suites: trixie
