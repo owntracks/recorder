@@ -46,7 +46,7 @@ static struct gcache *gc = NULL;
 
 #ifdef WITH_TZ
 # include "zonedetect.h"
-static ZoneDetect *zdb = NULL;
+ZoneDetect *zdb = NULL;
 #endif
 
 void storage_init(int revgeo)
