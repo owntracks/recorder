@@ -55,7 +55,10 @@
 #endif
 #include "version.h"
 #include <dirent.h>
-
+#ifdef WITH_TZ
+# include "zonedetect.h"
+extern ZoneDetect *zdb;
+#endif
 
 #define SSL_VERIFY_PEER (1)
 #define SSL_VERIFY_NONE (0)
@@ -1055,6 +1058,16 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 			t = strdup(j->string_);
 		}
 	}
+
+#ifdef WITH_TZ
+	if ((j = json_find_member(json, "tzname")) == NULL) {
+		char* tz_str = ZDHelperSimpleLookupString(zdb, lat, lon);
+		if (tz_str) {
+			json_append_member(json, "tzname", json_mkstring(tz_str));
+			ZDHelperSimpleLookupStringFree(tz_str);
+		}
+	}
+#endif
 
 	if ((j = json_find_member(json, "_geoprec")) != NULL) {
 		if (j->tag == JSON_STRING) {
