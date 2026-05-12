@@ -709,26 +709,27 @@ unsigned char *decrypt(struct udata *ud, char *topic, char *p64, char *username,
 static bool is_newer_than_last(JsonNode *json)
 {
 	bool is_newer = true;
-	JsonNode *last_array;
-	JsonNode *fields = json_mkarray();
-	json_append_element(fields, json_mkstring("tst"));
 	JsonNode *usernode = json_find_member(json, "username");
 	JsonNode *devicenode = json_find_member(json, "device");
-	if (usernode != NULL && devicenode != NULL) {
-		if ((last_array = last_users(usernode->string_, devicenode->string_, fields)) != NULL) {
-			JsonNode *lastrec = json_first_child(last_array);
-			if (lastrec != NULL) {
-				JsonNode *tst = json_find_member(lastrec, "tst");
-				if (tst != NULL) {
-					double last = number(lastrec, "tst");
-					double current = number(json, "tst");
-					is_newer = last < current;
-				}
-			}
-			json_delete(last_array);
+
+	if (usernode != NULL && devicenode != NULL &&
+	    usernode->tag == JSON_STRING && devicenode->tag == JSON_STRING) {
+		JsonNode *last_json = json_mkobject();
+		char path[BUFSIZ];
+
+		snprintf(path, sizeof(path), "%s/last/%s/%s/%s-%s.json",
+			STORAGEDIR, usernode->string_, devicenode->string_,
+			usernode->string_, devicenode->string_);
+
+		if (json_copy_from_file(last_json, path) == TRUE) {
+			double last = number(last_json, "tst");
+			double current = number(json, "tst");
+
+			if (!isnan(last) && !isnan(current))
+				is_newer = last < current;
 		}
+		json_delete(last_json);
 	}
-	json_delete(fields);
 	return is_newer;
 }
 
