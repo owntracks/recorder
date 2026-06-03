@@ -1593,7 +1593,7 @@ int main(int argc, char **argv)
 	while (1) {
 		static struct option long_options[] = {
 			{ "help",	no_argument,		0, 	'h'},
-			{ "skipdemo",	no_argument,		0, 	'D'},
+			{ "noskipdemo",	no_argument,		0, 	'D'},
 			{ "norevgeo",	no_argument,		0, 	'G'},
 #if WITH_MQTT
 			{ "useretained",	no_argument,		0, 	'R'},
