@@ -1,4 +1,8 @@
 
+2026-09-08 version 1.0.4
+- FIX: ocat adheres to standard in outputting trkpts in GPX output format (#584)
+- FIX: our debian build config.mk.in, obsolete raspian/
+
 2026-08-10 version 1.0.3
 - FIX: protect against a non-existing or unreadable ZDB (#579).
      The timezone16.bin has to be placed into the variable configured as
