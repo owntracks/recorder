@@ -1187,6 +1187,9 @@ JsonNode *kill_datastore(char *user, char *device)
 	if (!user || !*user || !device || !*device)
 		return (obj);
 
+	if (strstr(user, "..") || strstr(device, ".."))	/* avoid path traversal */
+		return (obj);
+
 	for (bp = user; bp && *bp; bp++) {
 		if (isupper(*bp))
 			*bp = tolower(*bp);
