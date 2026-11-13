@@ -1299,10 +1299,37 @@ void csv_output(JsonNode *array, output_type otype, JsonNode *fields, void (*fun
 {
 	JsonNode *node, *inttypes;
 	JsonNode *one, *j;
+	JsonNode *allfields = NULL;
 	short virgin = 1;
 	static UT_string *line = NULL;
 
 	utstring_renew(line);
+
+	/*
+	 * Records don't all have the same members (e.g. SSID only on Wi-Fi),
+	 * so without `fields' use every member seen in any record, in the
+	 * order first seen, and leave a cell empty where a record lacks it.
+	 */
+	if (fields == NULL) {
+		allfields = json_mkarray();
+		json_foreach(one, array) {
+			json_foreach(node, one) {
+				short seen = 0;
+
+				if (node->key == NULL)
+					continue;
+				json_foreach(j, allfields) {
+					if (strcmp(j->string_, node->key) == 0) {
+						seen = 1;
+						break;
+					}
+				}
+				if (!seen)
+					json_append_element(allfields, json_mkstring(node->key));
+			}
+		}
+		fields = allfields;
+	}
 
 	/* Prime the inttypes object with types we consider "integer" */
 	inttypes = json_mkobject();
@@ -1320,43 +1347,27 @@ void csv_output(JsonNode *array, output_type otype, JsonNode *fields, void (*fun
 
 			virgin = !virgin;
 
-			if (fields) {
-				json_foreach(node, fields) {
-					csv_title(line, node, node->string_);
-				}
-			} else {
-				json_foreach(node, one) {
-					if (node->key)
-						csv_title(line, node, node->key);
-				}
+			json_foreach(node, fields) {
+				csv_title(line, node, node->string_);
 			}
 			func(UB(line), param);
 			utstring_renew(line);
 		}
 
 		/* Now the values */
-		if (fields) {
-			json_foreach(node, fields) {
-				if ((j = json_find_member(one, node->string_)) != NULL) {
-					print_one(line, j, inttypes, func, param);
-					utstring_printf(line, "%c", node->next ? ',' : '\n');
-				} else {
-					/* specified field not in JSON for this row */
-					utstring_printf(line, "%c", node->next ? ',' : '\n');
-				}
-			}
-			func(UB(line), param);
-			utstring_renew(line);
-		} else {
-			json_foreach(j, one) {
+		json_foreach(node, fields) {
+			if ((j = json_find_member(one, node->string_)) != NULL) {
 				print_one(line, j, inttypes, func, param);
-				utstring_printf(line, "%c", j->next ? ',' : '\n');
 			}
-			func(UB(line), param);
-			utstring_renew(line);
+			/* an empty cell when the field isn't in this row */
+			utstring_printf(line, "%c", node->next ? ',' : '\n');
 		}
+		func(UB(line), param);
+		utstring_renew(line);
 	}
 	json_delete(inttypes);
+	if (allfields)
+		json_delete(allfields);
 }
 
 char *storage_userphoto(char *username)
