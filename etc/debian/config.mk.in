@@ -9,7 +9,6 @@ WITH_HTTP ?= yes
 WITH_TOURS ?= yes
 WITH_LUA ?= yes
 WITH_PING ?= yes
-WITH_KILL ?= no
 WITH_ENCRYPT ?= yes
 WITH_TZ ?= yes
 

@@ -49,7 +49,6 @@ void locations(char *filename, JsonNode *obj, JsonNode *arr, time_t s_lo, time_t
 int make_times(char *time_from, time_t *s_lo, char *time_to, time_t *s_to, int hours);
 JsonNode *geo_json(JsonNode *json, bool poi_only);
 JsonNode *geo_linestring(JsonNode *location_array);
-JsonNode *kill_datastore(char *username, char *device);
 JsonNode *last_users(char *user, char *device, JsonNode *fields);
 char *gpx_string(JsonNode *json);
 void storage_init(int revgeo);

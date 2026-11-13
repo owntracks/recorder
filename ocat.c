@@ -71,9 +71,6 @@ void usage(char *prog)
 	printf("           payload		Like RAW but JSON payload only\n");
 	printf("  --fields tst,lat,lon,...     	Choose fields for CSV. (dflt: ALL)\n");
 	printf("  --last		-L     	JSON object with last users\n");
-#if WITH_KILL
-	printf("  --killdata                   	requires -u and -d\n");
-#endif
 	printf("  --storage		-S      storage dir (%s)\n", STORAGEDEFAULT);
 	printf("  --norevgeo		-G      disable ghash to reverse-geo lookups\n");
 	printf("  --precision		        ghash precision (dflt: %d)\n", GHASHPREC);
@@ -117,9 +114,6 @@ void print_versioninfo()
 #ifdef WITH_PING
 	printf("\tWITH_PING = yes\n");
 #endif
-#ifdef WITH_KILL
-	printf("\tWITH_KILL = yes\n");
-#endif
 	printf("\tCONFIGFILE = \"%s\"\n", CONFIGFILE);
 	printf("\tDOCROOT = \"%s\"\n", DOCROOT);
 	printf("\tDEFAULT_HISTORY_HOURS = %d\n", DEFAULT_HISTORY_HOURS);
@@ -146,9 +140,6 @@ int main(int argc, char **argv)
 	int list = 0, last = 0, limit = 0;
 	char *lmdbname = NULL;
 	int dumpghash = FALSE, loadghash = FALSE;
-#if WITH_KILL
-	int killdata = FALSE;
-#endif
 	int revgeo = TRUE;
 	char *username = NULL, *device = NULL, *time_from = NULL, *time_to = NULL;
 	JsonNode *json, *obj, *locs;
@@ -200,9 +191,6 @@ int main(int argc, char **argv)
 			{ "precision",	required_argument, 0, 	2},
 			{ "dump",	optional_argument, 0, 	3},
 			{ "load",	optional_argument, 0, 	4},
-#if WITH_KILL
-			{ "killdata",	no_argument, 0, 	'K'},
-#endif
 			{ "norevgeo",	no_argument, 0, 	'G'},
 		  	{0, 0, 0, 0}
 		  };
@@ -281,11 +269,6 @@ int main(int argc, char **argv)
 					exit(2);
 				}
 				break;
-#if WITH_KILL
-			case 'K':
-				killdata = 1;
-				break;
-#endif
 			case 'L':
 				last = 1;
 				break;
@@ -317,33 +300,6 @@ int main(int argc, char **argv)
 
 	storage_init(revgeo);
 
-
-#if WITH_KILL
-	if (killdata) {
-		JsonNode *obj; //, *killed, *f;
-
-		if (!username || !device) {
-			fprintf(stderr, "%s: killdata requires username and device\n", progname);
-			return (-2);
-		}
-
-		fprintf(stderr, "Storage deleted these files:\n");
-		if ((obj = kill_datastore(username, device)) != NULL) {
-			char *js;
-			// if ((killed = json_find_member(obj, "results")) != NULL) { // get array
-			// 	json_foreach(f, killed) {
-			// 		fprintf(stderr, "  %s\n", f->string_);
-			// 	}
-			// }
-
-			js = json_stringify(obj, JSON_INDENT);
-			printf("%s\n", js);
-			free(js);
-			json_delete(obj);
-		}
-		return (0);
-	}
-#endif
 
 	if (last) {
 		JsonNode *user_array;

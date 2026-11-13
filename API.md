@@ -64,24 +64,6 @@ The reported timestamp was the time at which this cache entry was made. Note tha
 
 Requires GET method and _user_, and will return the `image/png` 40x40px photograph of a user if available in `STORAGEDIR/photos/` or a transparent 40x40png with a black border otherwise.
 
-## `kill`
-
-If support for this is compiled in, this API endpoint allows a client to remove data from _storage_. (Warning: *any* client can do this, as there is no authentication/authorization in the Recorder!)
-
-```
-curl 'http://127.0.0.1:8083/api/0/kill?user=ngin&device=ojo'
-
-{
- "path": "s0/rec/ngin/ojo",
- "status": "OK",
- "last": "s0/last/ngin/ojo/ngin-ojo.json",
- "killed": [
-  "2015-09.rec",
- ]
-}
-```
-The response contains a list of removed `.rec` files, and file system operations are logged to syslog.
-
 ## `version`
 
 Returns a JSON object which contains the Recorder's version string, such as

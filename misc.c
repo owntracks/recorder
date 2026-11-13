@@ -328,11 +328,6 @@ void display_json_variables(struct udata *ud, bool plain)
 #else
 	j_bool(json, "WITH_HTTP", false);
 #endif
-#ifdef WITH_KILL
-	j_bool(json, "WITH_KILL", true);
-#else
-	j_bool(json, "WITH_KILL", false);
-#endif
 #ifdef WITH_LUA
 	j_bool(json, "WITH_LUA", true);
 #else

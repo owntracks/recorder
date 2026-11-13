@@ -63,10 +63,6 @@ ifeq ($(WITH_ENCRYPT),yes)
 	LIBS   += $(SODIUM_LIBS)
 endif
 
-ifeq ($(WITH_KILL),yes)
-	CFLAGS += -DWITH_KILL=1
-endif
-
 ifeq ($(WITH_HTTP),yes)
 	CFLAGS += -DWITH_HTTP=1
 	OTR_EXTRA_OBJS += mongoose.o http.o

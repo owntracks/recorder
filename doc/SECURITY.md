@@ -23,7 +23,7 @@ Implementing HTTP caused a whole slew of additional issues we needed to resolve,
 
 Very specifically we need to warn Recorder users using HTTP:
 - any client permitted to access the `/pub` endpoint can publish data to the Recorder
-- any client permitted to access the `/api` endpoint can access any user's data, and even destroy it, depending on whether or not the Recorder was built with the `WITH_KILL` flag. (Since July 2026, our packages are built with this setting set to `no`, i.e. disabled.)
+- any client permitted to access the `/api` endpoint can access any user's data, and even destroy it, depending on whether or not the Recorder was built with the `WITH_KILL` flag. (Since July 2026, our packages are built with this setting set to `no`, i.e. disabled, and the feature has been removed entirely in November 2026.)
 - any client permitted to access the `/ws` endpoint can access users' LAST locations
 
 ## payload encryption
