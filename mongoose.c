@@ -479,7 +479,7 @@ int ns_avprintf(char **buf, size_t size, const char *fmt, va_list ap) {
       len = vsnprintf(*buf, size, fmt, ap_copy);
       va_end(ap_copy);
     }
-  } else if (len > (int) size) {
+  } else if (len >= (int) size) {
     // Standard-compliant code path. Allocate a buffer that is large enough.
     if ((*buf = (char *) NS_MALLOC(len + 1)) == NULL) {
       len = -1;
