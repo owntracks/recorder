@@ -383,6 +383,12 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 		request_type = j->string_;
 	}
 
+	if (request_type == NULL) {
+		olog(LOG_DEBUG, "do_request: no `request' member in payload");
+		json_delete(json);
+		return;
+	}
+
 	if (strcmp(request_type, "tour") == 0) {
 		FILE *fp;
 		char path[BUFSIZ];
@@ -521,6 +527,12 @@ void do_request(struct udata *ud, UT_string *username, UT_string *device, char *
 
 		if ((r = json_find_member(json, "uuid")) == NULL) {
 			fprintf(stderr, "No uuid in untour request\n");
+			return;
+		}
+
+		if (r->tag != JSON_STRING) {
+			fprintf(stderr, "uuid in untour request is not a string\n");
+			json_delete(r);
 			return;
 		}
 
