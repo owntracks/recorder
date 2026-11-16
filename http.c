@@ -1422,16 +1422,18 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 
 				if (!strcmp(conn->uri, "/block")) {
 					int blocked = TRUE;
-					char buf[BUFSIZ], *u;
+					char *u;
 
 					if ((u = field(conn, "user")) != NULL) {
-						if (gcache_put(ud->gc, "blockme", buf) != 0) {
+						if (gcache_put(ud->gc, "blockme", u) != 0) {
 							fprintf(stderr, "HTTP: gcahce put error\n");
 							blocked = FALSE;
 						}
+						mg_printf_data(conn, "User %s %s", u, (blocked) ? "BLOCKED" : "UNblocked");
 						free(u);
+					} else {
+						mg_printf_data(conn, "User %s %s", "", "UNblocked");
 					}
-					mg_printf_data(conn, "User %s %s", buf, (blocked) ? "BLOCKED" : "UNblocked");
 					return (MG_TRUE);
 				}
 			}
