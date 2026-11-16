@@ -638,6 +638,20 @@ static int dopublish(struct mg_connection *conn, const char *uri)
 		d = strdup("phone");
 	}
 
+	/*
+	 * Reject invalid
+	 * encodings here, at the point where the untrusted bytes enter,
+	 * rather than letting the process abort deep inside the JSON
+	 * encoder.
+	 */
+	if (!utf8_validate(u) || !utf8_validate(d)) {
+		free(u);
+		free(d);
+		mg_send_status(conn, 400);
+		mg_printf_data(conn, "invalid utf-8 in u= or d=\n");
+		return (MG_TRUE);
+	}
+
 	utstring_renew(topic);
 	utstring_printf(topic, "owntracks/%s/%s", u, d);
 
