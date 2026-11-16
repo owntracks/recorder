@@ -396,7 +396,7 @@ static int json_response(struct mg_connection *conn, JsonNode *json)
 			char buffer[length + 1];
 			snprintf(buffer, length + 1, "%zu", content_length);
 			mg_send_header(conn, "X-Content-Length", buffer);
-			mg_printf_data(conn, js);
+			mg_printf_data(conn, "%s", js);
 			free(js);
 		}
 		json_delete(json);
@@ -408,7 +408,7 @@ static void emit_xml_line(char *line, void *param)
 {
 	struct mg_connection *conn = (struct mg_connection *)param;
 
-	mg_printf_data(conn, line);
+	mg_printf_data(conn, "%s", line);
 	mg_printf_data(conn, "\n");
 }
 
@@ -416,7 +416,7 @@ static void emit_csv_line(char *line, void *param)
 {
 	struct mg_connection *conn = (struct mg_connection *)param;
 
-	mg_printf_data(conn, line);
+	mg_printf_data(conn, "%s", line);
 }
 
 static int xml_response(struct mg_connection *conn, JsonNode *obj)
@@ -458,7 +458,7 @@ static int csv_response(struct mg_connection *conn, JsonNode *obj)
 static int send_status(struct mg_connection *conn, int status, char *text)
 {
 	mg_send_status(conn, status);
-	mg_printf_data(conn, text);
+	mg_printf_data(conn, "%s", text);
 	return (MG_TRUE);
 }
 
