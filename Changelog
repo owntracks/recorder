@@ -1,4 +1,10 @@
 
+2026-11-17 version 1.0.5
+- FIX: 8192-byte response truncation in http (#588)
+- FIX: CSV: align columns when records have different members (#587)
+- UPD: the KILL API and command-line flags and features have been removed
+- FIX: http: forbid directory traversal / glob characters in user / device
+
 2026-09-08 version 1.0.4
 - FIX: ocat adheres to standard in outputting trkpts in GPX output format (#584)
 - FIX: our debian build config.mk.in, obsolete raspian/
