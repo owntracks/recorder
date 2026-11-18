@@ -1,4 +1,7 @@
 
+2026-11-18 version 1.0.6
+- UPD: Remove support for Traccar (osmand) GET requests
+
 2026-11-17 version 1.0.5
 - FIX: 8192-byte response truncation in http (#588)
 - FIX: CSV: align columns when records have different members (#587)
