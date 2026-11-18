@@ -66,7 +66,6 @@ extern ZoneDetect *zdb;
 #define TOPIC_PARTS     (4)             /* owntracks/user/device/info */
 #define DEFAULT_QOS	(2)
 #define CLEAN_SESSION	false
-#define GWNUMBERSMAX	50		/* number of batt,ext,status in array */
 
 static int run = 1;
 
@@ -187,86 +186,6 @@ void republish(struct mosquitto *mosq, struct udata *userdata, char *username, c
 
 }
 #endif /* WITH_MQTT */
-
-/*
- * Quickly check wheterh the payload looks like
- * Greenwich CSV with a regex. We could use this
- * to split out the fields, instead of reverting
- * to sscanf
- */
-
-//                TID          , TST           , T         , LAT        , LON        , COG        , VEL        , ALT        , DIST       , TRIP
-#define CSV_RE "^([[:alnum:]]+),([[:xdigit:]]+),[[:alnum:]],-?[[:digit:]]+,-?[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+,[[:digit:]]+$"
-
-static int csv_looks_sane(char *payload)
-{
-	static int virgin = 1;
-	static regex_t regex;
-	int nomatch;
-	int cflags = REG_EXTENDED | REG_ICASE | REG_NOSUB;
-
-	if (virgin) {
-		virgin = !virgin;
-
-		if (regcomp(&regex, CSV_RE, cflags)) {
-			olog(LOG_ERR, "Cannot compile CSV RE");
-			return (FALSE);
-		}
-	}
-
-	nomatch = regexec(&regex, payload, 0, NULL, 0);
-
-	return (nomatch ? FALSE : TRUE);
-}
-
-/*
- * Decode OwnTracks CSV (Greenwich) and return a new JSON object
- * of _type = location.
- * #define CSV "X0,542A46AA,k,30365854,7575769,26,4,7,5,872"
- */
-
-#define MILL 1000000.0
-
-JsonNode *csv_to_json(char *payload)
-{
-	JsonNode *json;
-	char tid[64], t[10];
-        double dist = 0, lat, lon, vel, trip, alt, cog;
-	long tst;
-	char tmptst[40];
-
-	if (!csv_looks_sane(payload))
-		return (NULL);
-
-        if (sscanf(payload, "%[^,],%[^,],%[^,],%lf,%lf,%lf,%lf,%lf,%lf,%lf", tid, tmptst, t, &lat, &lon, &cog, &vel, &alt, &dist, &trip) != 10) {
-		// fprintf(stderr, "**** payload not CSV: %s\n", payload);
-                return (NULL);
-        }
-
-        lat /= MILL;
-        lon /= MILL;
-        cog *= 10;
-        alt *= 10;
-        trip *= 1000;
-
-	tst = strtoul(tmptst, NULL, 16);
-
-	json = json_mkobject();
-	json_append_member(json, "_type", json_mkstring("location"));
-	json_append_member(json, "t",	  json_mkstring(t));
-	json_append_member(json, "tid",	  json_mkstring(tid));
-	json_append_member(json, "tst",	  json_mknumber(tst));
-	json_append_member(json, "lat",	  json_mknumber(lat));
-	json_append_member(json, "lon",	  json_mknumber(lon));
-	json_append_member(json, "cog",	  json_mknumber(cog));
-	json_append_member(json, "vel",	  json_mknumber(vel));
-	json_append_member(json, "alt",	  json_mknumber(alt));
-	json_append_member(json, "dist",  json_mknumber(dist));
-	json_append_member(json, "trip",  json_mknumber(trip));
-	json_append_member(json, "csv",   json_mkbool(1));
-
-	return (json);
-}
 
 #define RECFORMAT "%s\t%-18s\t%s\n"
 
@@ -856,24 +775,15 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	splitterfree(topics);
 
 	/*
-	 * Now let's see if this contains some sort of valid JSON
-	 * or an OwnTracks CSV. If it doesn't, just store this payload because
+	 * Now let's see if this contains some sort of valid JSON.
+	 * If it doesn't, just store this payload because
 	 * there's nothing left for us to do with it.
 	 */
 
 	if ((json = json_decode(payload)) == NULL) {
-		if ((json = csv_to_json(payload)) == NULL) {
-			dumpedpayload = bindump(payload, payloadlen);
-			/* It's not JSON or it's not a location CSV; store it using
-			 * now as time -- we have no other */
-#ifdef WITH_LUA
-			r_ok = hooks_norec(ud, UB(username), UB(device), dumpedpayload) == 0;
-#endif
-			if (r_ok) {
-				putrec(ud, now, reltopic, username, device, dumpedpayload);
-			}
-			return;
-		}
+		dumpedpayload = bindump(payload, payloadlen);
+		putrec(ud, now, reltopic, username, device, dumpedpayload);
+		return;
 	}
 
 	if (ud->skipdemo && (json_find_member(json, "_demo") != NULL)) {
@@ -1013,7 +923,7 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 
 	/*
 	 * We are now handling location-related JSON.  Normalize tst, lat, lon
-	 * to numbers, particularly for Greenwich which produces strings
+	 * to numbers, particularly for [obsolete Greenwich] which produces strings
 	 * currently. We're normalizing *in* json which replaces strings by
 	 * numbers.
 	 */
