@@ -841,6 +841,11 @@ void handle_message(void *userdata, char *topic, char *payload, size_t payloadle
 	utstring_printf(username, "%s", topics[1 + skipslash]);
 	utstring_printf(device, "%s", topics[2 + skipslash]);
 
+	if (strchr(UB(username), '/') || strchr(UB(device), '/')) {
+		/* defend against path traversal when using in paths */
+		return;
+	}
+
 
 #ifdef WITH_PING
 	if (!strcmp(UB(username), "ping") && !strcmp(UB(device), "ping")) {
