@@ -1,6 +1,11 @@
 
+2026-11-19 version 1.0.7
+- FIX: Remote crash (DoS) of the ot-recorder process (GHSA-8hwr-3r34-r36w)
+- FIX: Uninitialized stack memory disclosure in POST /block (GHSA-r4px-c5fc-chph)
+- UPD: remove support for obsolete Greenwich devices (CSV handling)
+
 2026-11-18 version 1.0.6
-- UPD: Remove support for Traccar (osmand) GET requests
+- UPD: Remove support for Traccar (osmand) GET requests (GHSA-r9p8-m74j-3h57)
 
 2026-11-17 version 1.0.5
 - FIX: 8192-byte response truncation in http (#588)
