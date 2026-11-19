@@ -1418,24 +1418,6 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev)
 				}
 			}
 
-			if (!strcmp(conn->request_method, "POST")) {
-
-				if (!strcmp(conn->uri, "/block")) {
-					int blocked = TRUE;
-					char buf[BUFSIZ], *u;
-
-					if ((u = field(conn, "user")) != NULL) {
-						if (gcache_put(ud->gc, "blockme", buf) != 0) {
-							fprintf(stderr, "HTTP: gcahce put error\n");
-							blocked = FALSE;
-						}
-						free(u);
-					}
-					mg_printf_data(conn, "User %s %s", buf, (blocked) ? "BLOCKED" : "UNblocked");
-					return (MG_TRUE);
-				}
-			}
-
 			/*
 			 * We can't handle this request ourselves. Return
 			 * to Mongoose and have it try document root.
