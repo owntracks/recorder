@@ -203,7 +203,7 @@ static int utf8_validate_cz(const char *s)
 }
 
 /* Validate a null-terminated UTF-8 string. */
-static bool utf8_validate(const char *s)
+bool utf8_validate(const char *s)
 {
 	int len;
 	
