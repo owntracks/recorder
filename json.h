@@ -75,6 +75,7 @@ char       *json_stringify      (const JsonNode *node, const char *space);
 void        json_delete         (JsonNode *node);
 
 bool        json_validate       (const char *json);
+bool        utf8_validate       (const char *s);
 
 /*** Lookup and traversal ***/
 

@@ -452,7 +452,16 @@ static void ls(char *path, JsonNode *obj)
 			utstring_renew(fullp);
 			utstring_printf(fullp, "%s/%s", path, dp->d_name);
 
-			assert(stat(UB(fullp), &st) != -1);
+			if (stat(UB(fullp), &st) == -1) {
+				/*
+				 * If a dangling symlink, or the entry was
+				 * removed in a race with readdir(). Neither is
+				 * a reason to bring the whole process down;
+				 * just skip this entry.
+				 */
+				olog(LOG_DEBUG, "ls: stat(%s) failed: %m", UB(fullp));
+				continue;
+			}
 			is_dir = S_ISDIR(st.st_mode);
 		}
 		if (is_dir && (*dp->d_name != '.')) {
