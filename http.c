@@ -923,20 +923,35 @@ static int view(struct mg_connection *conn, const char *viewname)
 					p+strlen("@@@LASTPOS@@@"));
 				mg_printf_data(conn, "%s", UB(sbuf));
 			} else if ((p = strstr(buf, "@@@LABEL@@@")) != NULL) {
-				char *label;
+				char *label, *esc_label;
 				JsonNode *t;
-				if ((t = json_find_member(view, "label")) == NULL) {
+				if ((t = json_find_member(view, "label")) == NULL || t->tag != JSON_STRING) {
 					label = "";
 				} else {
 					label = t->string_;
 				}
+				/*
+				 * 'label' is attacker-controlled: it comes
+				 * straight from the "label" field of a
+				 * client-submitted tour request (do_request()
+				 * in recorder.c), stored verbatim, and served
+				 * here as part of a text/html response. It
+				 * must be HTML-escaped before being embedded
+				 * in markup, or a label such as
+				 * "</title><script>...</script>" breaks out
+				 * of <title> and executes on the recorder's
+				 * origin for anyone who opens the /view/ link
+				 * (stored XSS).
+				 */
+				esc_label = html_escape(label);
 				*p = 0;
 				utstring_clear(sbuf);
 				utstring_printf(sbuf, "%s%s%s",
 					buf,
-					label,
+					esc_label ? esc_label : "",
 					p+strlen("@@@LABEL@@@"));
 				mg_printf_data(conn, "%s", UB(sbuf));
+				free(esc_label);
 			} else {
 				mg_printf_data(conn, "%s", buf);
 			}

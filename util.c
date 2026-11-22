@@ -656,6 +656,53 @@ void chomp(char *s)
 	}
 }
 
+/*
+ * Return a newly malloc()'d, HTML-escaped copy of `s' which the
+ * caller must free(). Escapes the characters that matter for safely
+ * embedding arbitrary, untrusted text inside HTML markup (so it is
+ * rendered as literal text rather than parsed as markup/script):
+ * & < > " '
+ * Returns NULL on allocation failure; a NULL `s' is treated as "".
+ */
+
+char *html_escape(const char *s)
+{
+	size_t len = 0;
+	const char *p;
+	char *out, *o;
+
+	if (s == NULL)
+		s = "";
+
+	for (p = s; *p; p++) {
+		switch (*p) {
+			case '&':  len += 5; break;	/* &amp;  */
+			case '<':  len += 4; break;	/* &lt;   */
+			case '>':  len += 4; break;	/* &gt;   */
+			case '"':  len += 6; break;	/* &quot; */
+			case '\'': len += 5; break;	/* &#39;  */
+			default:   len += 1; break;
+		}
+	}
+
+	if ((out = malloc(len + 1)) == NULL)
+		return (NULL);
+
+	for (p = s, o = out; *p; p++) {
+		switch (*p) {
+			case '&':  memcpy(o, "&amp;",  5); o += 5; break;
+			case '<':  memcpy(o, "&lt;",   4); o += 4; break;
+			case '>':  memcpy(o, "&gt;",   4); o += 4; break;
+			case '"':  memcpy(o, "&quot;", 6); o += 6; break;
+			case '\'': memcpy(o, "&#39;",  5); o += 5; break;
+			default:   *o++ = *p; break;
+		}
+	}
+	*o = 0;
+
+	return (out);
+}
+
 double number(JsonNode *j, char *element)
 {
 	JsonNode *m;
